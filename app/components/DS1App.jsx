@@ -53,7 +53,6 @@ export default function DS1App() {
     { id: "admin", label: "Admin", icon: "⚙" },
   ];
 
-  // Responsive web design: sidebar collapses to icon-only rail on narrow viewports
   return (
     <div style={s.shell}>
       <style>{FONTS}</style>
@@ -214,126 +213,108 @@ function HomeView({ agency, onNavigate }) {
   const [chatInput, setChatInput] = useState("");
 
   const workflows = [
-    { id: "explore", title: "Find prebuilt audiences", desc: "Search Dstillery's catalog by topic", icon: "◎", color: C.accentBlue },
-    { id: "domainseeded", title: "Build a domain seeded audience", desc: "Pick seed domains and model an audience", icon: "⊞", color: C.accentGreen },
-    { id: "brief", title: "Generate an audience brief", desc: "Draft a client-ready brief you can export", icon: "◫", color: C.accentOrange },
-    { id: "pixel", title: "Create a pixel", desc: "Generate a tracking pixel and its tags", icon: "◈", color: C.accentPink },
+    { id: "explore", title: "Find prebuilt audiences", desc: "Search Dstillery's catalog by topic", icon: "◎", color: C.accentBlue, group: "Discover" },
+    { id: "brief", title: "Generate an audience brief", desc: "Draft a client-ready brief you can export", icon: "◫", color: C.accentOrange, group: "Discover" },
+    { id: "domainseeded", title: "Build a domain seeded audience", desc: "Pick seed domains and model an audience", icon: "⊞", color: C.accentGreen, group: "Build" },
+    { id: "pixel", title: "Create a pixel", desc: "Generate a tracking pixel and its tags", icon: "◈", color: C.accentPink, group: "Build" },
   ];
 
   return (
-    <div style={s.content}>
-      {/* Greeting */}
-      <div style={{ animation: "fadeUp 0.5s ease-out", marginBottom: "28px", maxWidth: "720px" }}>
-        <h1 style={s.heading}>What are you working on?</h1>
-        <p style={s.subheading}>Start from a workflow below</p>
-      </div>
-
-      {/* Quick workflows — new: pixel creation and brief generation added */}
-      <div style={{
-        marginBottom: "28px", maxWidth: "720px",
-        animation: "fadeUp 0.5s ease-out", animationDelay: "0.05s", animationFillMode: "both",
-      }}>
-        <div style={{ fontSize: "12px", fontWeight: 600, color: C.textTertiary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "12px" }}>
-          Quick workflows
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", padding: "clamp(20px, 5vw, 48px)", boxSizing: "border-box" }}>
+      {/* Hero block, centered */}
+      <div style={{ width: "100%", maxWidth: "680px", marginTop: "12vh" }}>
+        {/* Title */}
+        <div style={{ textAlign: "center", marginBottom: "28px", animation: "fadeUp 0.5s ease-out" }}>
+          <div style={{ fontSize: "13px", fontWeight: 600, color: C.textTertiary, marginBottom: "6px" }}>{agency.name}</div>
+          <h1 style={{ fontSize: "30px", fontWeight: 700, color: C.text, margin: 0, letterSpacing: "-0.5px" }}>What are you working on?</h1>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-          {workflows.map((wf) => (
-            <button
-              key={wf.id}
-              onMouseEnter={() => setHovered(wf.id)}
-              onMouseLeave={() => setHovered(null)}
-              onClick={() => onNavigate(wf.id === "explore" ? "explorer" : wf.id)}
-              style={{
-                display: "flex", alignItems: "center", gap: "12px",
-                padding: "16px", borderRadius: "10px", textAlign: "left",
-                border: `1px solid ${hovered === wf.id ? "#d3d1cb" : C.border}`,
-                backgroundColor: hovered === wf.id ? C.bgSecondary : C.bg,
-                cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
-                transition: "all 0.15s ease",
-              }}
-            >
-              <div style={{
-                width: "36px", height: "36px", borderRadius: "8px",
-                backgroundColor: wf.color + "18", color: wf.color,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: "16px", flexShrink: 0,
-              }}>{wf.icon}</div>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: "14px", fontWeight: 600, color: C.text }}>{wf.title}</div>
-                <div style={{ fontSize: "12px", color: C.textTertiary, marginTop: "1px" }}>{wf.desc}</div>
+
+        {/* Chat composer */}
+        <div style={{ animation: "fadeUp 0.5s ease-out", animationDelay: "0.05s", animationFillMode: "both" }}>
+          <div style={{ border: `1px solid ${C.border}`, borderRadius: "14px", backgroundColor: C.bg, overflow: "hidden", boxShadow: "0 2px 16px rgba(0,0,0,0.04)" }}>
+            <textarea
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onNavigate("explorer"); } }}
+              placeholder="Ask DS-1 anything..."
+              rows={2}
+              style={{ width: "100%", padding: "15px 18px 6px", border: "none", backgroundColor: "transparent", color: C.text, fontSize: "15px", fontFamily: "'DM Sans', sans-serif", outline: "none", resize: "none", lineHeight: "1.5", boxSizing: "border-box" }}
+            />
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 14px 14px" }}>
+              <div style={{ display: "flex", gap: "4px" }}>
+                <button style={chatS.actionBtn}>+ Files</button>
+                <button style={chatS.actionBtn}>⊞ Prompts</button>
               </div>
-            </button>
+              <button
+                onClick={() => onNavigate("explorer")}
+                style={{ width: "36px", height: "36px", borderRadius: "50%", border: "none", cursor: "pointer", backgroundColor: chatInput.trim() ? C.text : C.bgHover, color: chatInput.trim() ? "#fff" : C.textTertiary, fontSize: "16px", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.15s ease" }}
+              >↑</button>
+            </div>
+          </div>
+        </div>
+
+        {/* Workflows grouped by Discover / Build */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginTop: "28px", animation: "fadeUp 0.5s ease-out", animationDelay: "0.1s", animationFillMode: "both" }}>
+          {["Discover", "Build"].map((group) => (
+            <div key={group}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "7px" }}>
+                  <span style={{ color: group === "Discover" ? C.accentBlue : C.accentGreen, fontSize: "13px" }}>{group === "Discover" ? "◎" : "⊞"}</span>
+                  <span style={{ fontSize: "12px", fontWeight: 600, color: C.textTertiary, textTransform: "uppercase", letterSpacing: "0.5px" }}>{group}</span>
+                </div>
+                <span
+                  onClick={() => onNavigate(group === "Discover" ? "discover" : "build")}
+                  style={{ fontSize: "12px", color: C.textTertiary, cursor: "pointer", fontWeight: 500 }}
+                >See all ›</span>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {workflows.filter(w => w.group === group).map((wf) => (
+                  <button
+                    key={wf.id}
+                    onMouseEnter={() => setHovered(wf.id)}
+                    onMouseLeave={() => setHovered(null)}
+                    onClick={() => onNavigate(wf.id === "explore" ? "explorer" : wf.id)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: "12px",
+                      padding: "14px", borderRadius: "10px", textAlign: "left",
+                      border: `1px solid ${hovered === wf.id ? "#d3d1cb" : C.border}`,
+                      backgroundColor: hovered === wf.id ? C.bgSecondary : C.bg,
+                      cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    <div style={{ width: "34px", height: "34px", borderRadius: "8px", backgroundColor: wf.color + "18", color: wf.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "15px", flexShrink: 0 }}>{wf.icon}</div>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: "14px", fontWeight: 600, color: C.text }}>{wf.title}</div>
+                      <div style={{ fontSize: "12px", color: C.textTertiary, marginTop: "1px" }}>{wf.desc}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
-
-        {/* Compact Discover/Build entry points */}
-        <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
-          <button
-            onClick={() => onNavigate("discover")}
-            style={{ ...homeS.compactEntry, ...(hovered === "d" ? homeS.compactEntryHover : {}) }}
-            onMouseEnter={() => setHovered("d")} onMouseLeave={() => setHovered(null)}
-          >
-            <span style={{ color: C.accentBlue }}>◎</span> Browse all Discover tools
-          </button>
-          <button
-            onClick={() => onNavigate("build")}
-            style={{ ...homeS.compactEntry, ...(hovered === "b" ? homeS.compactEntryHover : {}) }}
-            onMouseEnter={() => setHovered("b")} onMouseLeave={() => setHovered(null)}
-          >
-            <span style={{ color: C.accentGreen }}>⊞</span> Browse all Build tools
-          </button>
-        </div>
       </div>
 
-      {/* Activity */}
-      <div style={{ animation: "fadeUp 0.5s ease-out", animationDelay: "0.15s", animationFillMode: "both", width: "100%", maxWidth: "720px" }}>
-
-        <h2 style={actS.heading}>You have 4 items to review</h2>
-
-        {/* Action Required Card */}
-        <div style={actS.card}>
-          <div style={actS.cardHeader}>
-            <div style={actS.cardIcon}>⊞</div>
-            <span style={actS.cardTitle}>Audience Builds</span>
-            <span style={actS.cardContext}>Ready for syndication</span>
-            <span style={actS.reviewLink}>Review ›</span>
-          </div>
-          <div style={actS.cardBody}>
-            <div style={actS.taskRow}>
-              <div style={{ ...actS.dot, backgroundColor: C.accentOrange }} />
-              <span style={actS.taskText}>Review and syndicate NSM-demo-6/1_Custom Built</span>
-              <span style={actS.fileBadge}>Compound · 23h ago</span>
-            </div>
-            <div style={actS.taskRow}>
-              <div style={{ ...actS.dot, backgroundColor: C.accentBlue }} />
-              <span style={actS.taskText}>Approve New York Rangers Fans_Custom Built</span>
-              <span style={actS.fileBadge}>Compound · 2h ago</span>
-            </div>
-          </div>
+      {/* Activity, tucked low with whitespace above */}
+      <div style={{ width: "100%", maxWidth: "680px", marginTop: "auto", paddingTop: "80px", animation: "fadeUp 0.5s ease-out", animationDelay: "0.2s", animationFillMode: "both" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+          <h2 style={{ fontSize: "12px", fontWeight: 600, color: C.textTertiary, textTransform: "uppercase", letterSpacing: "0.5px", margin: 0 }}>Needs your attention</h2>
+          <span style={{ fontSize: "12px", color: C.textTertiary, cursor: "pointer" }}>View all ›</span>
         </div>
-
-        {/* Completed Card */}
-        <div style={actS.card}>
-          <div style={actS.cardHeader}>
-            <div style={actS.cardIcon}>↗</div>
-            <span style={actS.cardTitle}>Syndications</span>
-            <span style={actS.cardContext}>Recently completed</span>
-            <span style={actS.reviewLink}>View all ›</span>
-          </div>
-          <div style={actS.cardBody}>
-            <div style={actS.taskRow}>
-              <div style={{ ...actS.dot, backgroundColor: C.accentGreen }} />
-              <span style={actS.taskText}>New York_Custom Built syndicated to The Trade Desk</span>
-              <span style={actS.fileBadge}>1h ago</span>
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          {[
+            { dot: C.accentOrange, text: "Review and syndicate NSM-demo-6/1_Custom Built", meta: "23h ago" },
+            { dot: C.accentBlue, text: "Approve New York Rangers Fans_Custom Built", meta: "2h ago" },
+            { dot: C.accentGreen, text: "New York_Custom Built syndicated to The Trade Desk", meta: "1h ago" },
+          ].map((row, i, arr) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 2px", borderBottom: i < arr.length - 1 ? `1px solid ${C.borderLight}` : "none", cursor: "pointer" }}>
+              <div style={{ width: "7px", height: "7px", borderRadius: "50%", backgroundColor: row.dot, flexShrink: 0 }} />
+              <span style={{ flex: 1, fontSize: "14px", color: C.text }}>{row.text}</span>
+              <span style={{ fontSize: "12px", color: C.textTertiary, fontFamily: "'Space Mono', monospace", flexShrink: 0 }}>{row.meta}</span>
             </div>
-            <div style={actS.taskRow}>
-              <div style={{ ...actS.dot, backgroundColor: C.accentGreen }} />
-              <span style={actS.taskText}>Auto Insurance Intenders — Q3 syndicated to DV360</span>
-              <span style={actS.fileBadge}>Yesterday</span>
-            </div>
-          </div>
+          ))}
         </div>
-
       </div>
     </div>
   );
@@ -1914,6 +1895,7 @@ function AudienceBriefBuilder({ onBack }) {
   // Natural-language reorder/edit command
   const [command, setCommand] = useState("");
   const [cmdResult, setCmdResult] = useState(null);
+  const [cmdLog, setCmdLog] = useState([]);
 
   const findSectionId = (text, exclude = []) => {
     const t = text.toLowerCase();
@@ -1938,10 +1920,11 @@ function AudienceBriefBuilder({ onBack }) {
   const runCommand = (raw) => {
     const text = (typeof raw === "string" ? raw : command).trim();
     if (!text) return;
+    const say = (ok, msg) => { setCmdResult({ ok, msg }); setCmdLog(prev => [...prev, { role: "user", text }, { role: "ds1", ok, text: msg }]); };
     const t = text.toLowerCase();
     const idA = findSectionId(t);
     if (!idA) {
-      setCmdResult({ ok: false, msg: "I couldn't tell which section you meant. Try naming it, e.g. \"move Custom AI to the top\"." });
+      say(false, "I couldn't tell which section you meant. Try naming it, e.g. \"move Custom AI to the top\".");
       setCommand("");
       return;
     }
@@ -1953,24 +1936,23 @@ function AudienceBriefBuilder({ onBack }) {
       const [item] = arr.splice(from, 1);
 
       if (/\b(remove|delete|drop|take out)\b/.test(t)) {
-        setCmdResult({ ok: true, msg: `Removed ${nameA}.` });
+        say(true, `Removed ${nameA}.`);
         return arr;
       }
       if (/\b(after|below|under)\b/.test(t)) {
         const idB = findSectionId(t, [idA]);
-        if (idB) { const bi = arr.findIndex(s => s.id === idB); arr.splice(bi + 1, 0, item); setCmdResult({ ok: true, msg: `Moved ${nameA} after ${sections.find(s=>s.id===idB).product}.` }); return arr; }
+        if (idB) { const bi = arr.findIndex(s => s.id === idB); arr.splice(bi + 1, 0, item); say(true, `Moved ${nameA} after ${sections.find(s=>s.id===idB).product}.`); return arr; }
       }
       if (/\b(before|above|over)\b/.test(t)) {
         const idB = findSectionId(t, [idA]);
-        if (idB) { const bi = arr.findIndex(s => s.id === idB); arr.splice(bi, 0, item); setCmdResult({ ok: true, msg: `Moved ${nameA} before ${sections.find(s=>s.id===idB).product}.` }); return arr; }
+        if (idB) { const bi = arr.findIndex(s => s.id === idB); arr.splice(bi, 0, item); say(true, `Moved ${nameA} before ${sections.find(s=>s.id===idB).product}.`); return arr; }
       }
-      if (/\b(top|first|beginning|start)\b/.test(t)) { arr.unshift(item); setCmdResult({ ok: true, msg: `Moved ${nameA} to the top.` }); return arr; }
-      if (/\b(bottom|last|end)\b/.test(t)) { arr.push(item); setCmdResult({ ok: true, msg: `Moved ${nameA} to the bottom.` }); return arr; }
-      if (/\bup\b/.test(t)) { arr.splice(Math.max(0, from - 1), 0, item); setCmdResult({ ok: true, msg: `Moved ${nameA} up.` }); return arr; }
-      if (/\bdown\b/.test(t)) { arr.splice(Math.min(arr.length, from + 1), 0, item); setCmdResult({ ok: true, msg: `Moved ${nameA} down.` }); return arr; }
-      // default: no clear intent, restore
+      if (/\b(top|first|beginning|start)\b/.test(t)) { arr.unshift(item); say(true, `Moved ${nameA} to the top.`); return arr; }
+      if (/\b(bottom|last|end)\b/.test(t)) { arr.push(item); say(true, `Moved ${nameA} to the bottom.`); return arr; }
+      if (/\bup\b/.test(t)) { arr.splice(Math.max(0, from - 1), 0, item); say(true, `Moved ${nameA} up.`); return arr; }
+      if (/\bdown\b/.test(t)) { arr.splice(Math.min(arr.length, from + 1), 0, item); say(true, `Moved ${nameA} down.`); return arr; }
       arr.splice(from, 0, item);
-      setCmdResult({ ok: false, msg: `Got the section (${nameA}) but not the action. Try "to the top", "to the bottom", or "after Partnership".` });
+      say(false, `Got the section (${nameA}) but not the action. Try "to the top", "to the bottom", or "after Partnership".`);
       return arr;
     });
     setCommand("");
@@ -2093,105 +2075,122 @@ function AudienceBriefBuilder({ onBack }) {
         <button onClick={onBack} style={s.btnSecondary}>← Back</button>
         <div style={{ ...briefBadge, backgroundColor: C.accentOrange + "18", color: C.accentOrange }}>AB</div>
         <span style={{ fontSize: "15px", fontWeight: 600, color: C.text, flex: 1 }}>Audience Brief</span>
-        <span style={{ fontSize: "12px", color: C.textTertiary }}>{sections.length} sections · Draft</span>
+        {exported ? (
+          <span style={{ fontSize: "13px", fontWeight: 600, color: C.accentGreen }}>✓ Exported as PDF</span>
+        ) : (
+          <button onClick={handleExport} style={{ ...s.btnPrimary, backgroundColor: C.text }}>↓ Download PDF</button>
+        )}
       </div>
 
-      <div style={{ flex: 1, overflowY: "auto", padding: "28px clamp(20px, 5vw, 48px)" }}>
-        <div style={{ maxWidth: "720px", margin: "0 auto" }}>
-          {/* Brief title */}
-          <div style={{ marginBottom: "24px" }}>
-            <div style={{ fontSize: "12px", fontWeight: 600, color: C.textTertiary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "4px" }}>Audience Brief</div>
-            <h1 style={{ fontSize: "26px", fontWeight: 700, color: C.text, margin: 0 }}>{brandName} x Dstillery</h1>
-          </div>
+      {/* Split: chat left, document right */}
+      <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
 
-          {/* Sections */}
-          {sections.map((sec, idx) => (
-            <div key={sec.id} style={{ marginBottom: "12px", border: `1px solid ${C.border}`, borderRadius: "12px", backgroundColor: C.bg, overflow: "hidden" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "14px 16px", borderBottom: `1px solid ${C.borderLight}`, backgroundColor: C.bgSecondary }}>
-                <span style={{ fontSize: "15px", fontWeight: 700, color: C.text, flex: 1 }}>{sec.product}</span>
-                <div style={{ display: "flex", gap: "6px" }}>
-                  <button onClick={() => setEditingId(editingId === sec.id ? null : sec.id)} style={{
-                    display: "flex", alignItems: "center", gap: "5px",
-                    padding: "6px 12px", borderRadius: "7px", cursor: "pointer",
-                    border: `1px solid ${editingId === sec.id ? C.accentBlue : C.border}`,
-                    backgroundColor: editingId === sec.id ? C.accentBlue : C.bg,
-                    color: editingId === sec.id ? "#fff" : C.textSecondary,
-                    fontSize: "12px", fontWeight: 600, fontFamily: "'DM Sans', sans-serif",
-                    transition: "all 0.15s ease",
-                  }}>✎ {editingId === sec.id ? "Done" : "Edit"}</button>
-                  <button onClick={() => removeSection(sec.id)} style={{
-                    display: "flex", alignItems: "center", gap: "5px",
-                    padding: "6px 12px", borderRadius: "7px", cursor: "pointer",
-                    border: `1px solid ${C.border}`, backgroundColor: C.bg,
-                    color: C.accentRed, fontSize: "12px", fontWeight: 600,
-                    fontFamily: "'DM Sans', sans-serif", transition: "all 0.15s ease",
-                  }}>✕ Remove</button>
-                </div>
-              </div>
-              <div style={{ padding: "14px 16px" }}>
-                {editingId === sec.id ? (
-                  <textarea value={sec.desc} onChange={(e) => updateDesc(sec.id, e.target.value)} rows={3} style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: `1px solid ${C.accentBlue}`, backgroundColor: C.bg, color: C.text, fontSize: "13px", fontFamily: "'DM Sans', sans-serif", outline: "none", resize: "vertical", lineHeight: "1.6", boxSizing: "border-box", marginBottom: "12px" }} />
-                ) : (
-                  <div style={{ fontSize: "13px", color: C.textSecondary, lineHeight: "1.6", marginBottom: "12px" }}>{sec.desc}</div>
-                )}
-                <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-                  {sec.items.map((it, ii) => (
-                    <div key={ii} style={{ display: "flex", gap: "8px", fontSize: "13px", color: C.text, lineHeight: "1.5" }}>
-                      <span style={{ color: C.textTertiary, flexShrink: 0, fontFamily: sec.itemType === "path" ? "'Space Mono', monospace" : "inherit" }}>{sec.itemType === "numbered" ? `${ii + 1}.` : "•"}</span>
-                      <span style={{ fontFamily: (sec.itemType === "path" || sec.itemType === "url") ? "'Space Mono', monospace" : "inherit", fontSize: (sec.itemType === "path" || sec.itemType === "url") ? "12px" : "13px", color: sec.itemType === "url" ? C.accentBlue : C.text }}>{it}</span>
-                    </div>
-                  ))}
-                </div>
+        {/* LEFT — chat / edit panel */}
+        <div style={{ width: "380px", flexShrink: 0, borderRight: `1px solid ${C.borderLight}`, display: "flex", flexDirection: "column", backgroundColor: C.bgSecondary }}>
+          <div style={{ flex: 1, overflowY: "auto", padding: "20px" }}>
+            {/* the user's original request */}
+            <div style={{ fontSize: "11px", fontWeight: 600, color: C.textTertiary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>Your request</div>
+            <div style={{ fontSize: "13px", color: C.text, lineHeight: "1.6", padding: "12px 14px", borderRadius: "10px", backgroundColor: C.bg, border: `1px solid ${C.border}`, marginBottom: "20px" }}>
+              {input || "Generate an audience brief for this campaign."}
+            </div>
+
+            {/* DS-1 generated confirmation */}
+            <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+              <span style={{ fontSize: "11px", fontWeight: 700, color: C.accentOrange, fontFamily: "'Space Mono', monospace", flexShrink: 0, marginTop: "2px" }}>DS-1</span>
+              <div style={{ fontSize: "13px", color: C.textSecondary, lineHeight: "1.6" }}>
+                I drafted your <strong>{brandName} x Dstillery</strong> brief with {sections.length} product{sections.length !== 1 ? "s" : ""}. Tell me to reorder, edit, or add products and you'll see it update on the right.
               </div>
             </div>
-          ))}
 
-          {/* Add product */}
-          <div style={{ position: "relative", marginTop: "4px" }}>
-            <button onClick={() => setShowAdd(!showAdd)} style={{ width: "100%", padding: "12px", borderRadius: "10px", border: `1px dashed ${C.border}`, backgroundColor: "transparent", color: C.textSecondary, cursor: "pointer", fontSize: "13px", fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}>
-              + Ask DS-1 to recommend another product
-            </button>
-            {showAdd && (
-              <div style={{ marginTop: "8px", border: `1px solid ${C.border}`, borderRadius: "10px", overflow: "hidden", boxShadow: "0 4px 16px rgba(0,0,0,0.06)" }}>
-                {ADDABLE.filter(a => !sections.find(s2 => s2.id === a.id)).map(a => (
-                  <div key={a.id} onClick={() => addSection(a)} style={{ padding: "12px 16px", borderBottom: `1px solid ${C.borderLight}`, cursor: "pointer", backgroundColor: C.bg }}>
-                    <div style={{ fontSize: "13px", fontWeight: 600, color: C.text }}>{a.product}</div>
-                    <div style={{ fontSize: "12px", color: C.textTertiary, marginTop: "2px" }}>{a.desc}</div>
+            {/* conversation log */}
+            {cmdLog.map((m, i) => (
+              <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start", marginBottom: "10px" }}>
+                {m.role === "user" ? (
+                  <div style={{ maxWidth: "85%", fontSize: "13px", color: "#fff", backgroundColor: C.text, padding: "8px 12px", borderRadius: "12px 12px 2px 12px", lineHeight: "1.5" }}>{m.text}</div>
+                ) : (
+                  <div style={{ display: "flex", gap: "8px", maxWidth: "90%" }}>
+                    <span style={{ fontSize: "11px", flexShrink: 0, marginTop: "2px", color: m.ok ? C.accentGreen : C.textTertiary }}>{m.ok ? "✓" : "ⓘ"}</span>
+                    <div style={{ fontSize: "13px", color: C.textSecondary, lineHeight: "1.5" }}>{m.text}</div>
                   </div>
-                ))}
-                {ADDABLE.filter(a => !sections.find(s2 => s2.id === a.id)).length === 0 && (
-                  <div style={{ padding: "14px 16px", fontSize: "13px", color: C.textTertiary, fontStyle: "italic", backgroundColor: C.bg }}>All recommended products are already in the brief.</div>
                 )}
               </div>
-            )}
+            ))}
+          </div>
+
+          {/* composer */}
+          <div style={{ padding: "14px", borderTop: `1px solid ${C.borderLight}` }}>
+            <div style={{ display: "flex", gap: "8px", alignItems: "flex-end", padding: "6px 6px 6px 12px", borderRadius: "12px", border: `1px solid ${C.border}`, backgroundColor: C.bg }}>
+              <textarea
+                value={command}
+                onChange={(e) => setCommand(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); runCommand(); } }}
+                placeholder="Ask DS-1 to edit, reorder, or add a product…"
+                rows={2}
+                style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "13px", fontFamily: "'DM Sans', sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "4px 0" }}
+              />
+              <button onClick={() => runCommand()} style={{ width: "30px", height: "30px", borderRadius: "8px", border: "none", cursor: "pointer", backgroundColor: command.trim() ? C.text : C.bgHover, color: command.trim() ? "#fff" : C.textTertiary, fontSize: "14px", flexShrink: 0 }}>↑</button>
+            </div>
+            <div style={{ display: "flex", gap: "6px", marginTop: "8px", flexWrap: "wrap" }}>
+              {["Move Custom AI to the top", "Remove Predictive Contextual"].map(ex => (
+                <button key={ex} onClick={() => runCommand(ex)} style={{ padding: "4px 10px", borderRadius: "14px", fontSize: "11px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textTertiary, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>{ex}</button>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Footer */}
-      <div style={{ borderTop: `1px solid ${C.borderLight}`, padding: "14px clamp(20px, 5vw, 48px)", flexShrink: 0, backgroundColor: C.bgSecondary }}>
-        {cmdResult && (
-          <div style={{ fontSize: "13px", color: cmdResult.ok ? C.accentGreen : C.textSecondary, marginBottom: "10px", display: "flex", alignItems: "center", gap: "6px" }}>
-            <span>{cmdResult.ok ? "✓" : "ⓘ"}</span> {cmdResult.msg}
+        {/* RIGHT — live document */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "32px clamp(20px, 4vw, 56px)", minWidth: 0 }}>
+          <div style={{ maxWidth: "640px", margin: "0 auto" }}>
+            <div style={{ marginBottom: "24px" }}>
+              <div style={{ fontSize: "12px", fontWeight: 600, color: C.textTertiary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "4px" }}>Audience Brief</div>
+              <h1 style={{ fontSize: "26px", fontWeight: 700, color: C.text, margin: 0 }}>{brandName} x Dstillery</h1>
+            </div>
+
+            {sections.map((sec) => (
+              <div key={sec.id} style={{ marginBottom: "12px", border: `1px solid ${C.border}`, borderRadius: "12px", backgroundColor: C.bg, overflow: "hidden" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "14px 16px", borderBottom: `1px solid ${C.borderLight}`, backgroundColor: C.bgSecondary }}>
+                  <span style={{ fontSize: "15px", fontWeight: 700, color: C.text, flex: 1 }}>{sec.product}</span>
+                  <button onClick={() => setEditingId(editingId === sec.id ? null : sec.id)} style={{ display: "flex", alignItems: "center", gap: "5px", padding: "6px 12px", borderRadius: "7px", cursor: "pointer", border: `1px solid ${editingId === sec.id ? C.accentBlue : C.border}`, backgroundColor: editingId === sec.id ? C.accentBlue : C.bg, color: editingId === sec.id ? "#fff" : C.textSecondary, fontSize: "12px", fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}>✎ {editingId === sec.id ? "Done" : "Edit"}</button>
+                  <button onClick={() => removeSection(sec.id)} style={{ display: "flex", alignItems: "center", gap: "5px", padding: "6px 12px", borderRadius: "7px", cursor: "pointer", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.accentRed, fontSize: "12px", fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}>✕ Remove</button>
+                </div>
+                <div style={{ padding: "14px 16px" }}>
+                  {editingId === sec.id ? (
+                    <textarea value={sec.desc} onChange={(e) => updateDesc(sec.id, e.target.value)} rows={3} style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: `1px solid ${C.accentBlue}`, backgroundColor: C.bg, color: C.text, fontSize: "13px", fontFamily: "'DM Sans', sans-serif", outline: "none", resize: "vertical", lineHeight: "1.6", boxSizing: "border-box", marginBottom: "12px" }} />
+                  ) : (
+                    <div style={{ fontSize: "13px", color: C.textSecondary, lineHeight: "1.6", marginBottom: "12px" }}>{sec.desc}</div>
+                  )}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                    {sec.items.map((it, ii) => (
+                      <div key={ii} style={{ display: "flex", gap: "8px", fontSize: "13px", color: C.text, lineHeight: "1.5" }}>
+                        <span style={{ color: C.textTertiary, flexShrink: 0, fontFamily: sec.itemType === "path" ? "'Space Mono', monospace" : "inherit" }}>{sec.itemType === "numbered" ? `${ii + 1}.` : "•"}</span>
+                        <span style={{ fontFamily: (sec.itemType === "path" || sec.itemType === "url") ? "'Space Mono', monospace" : "inherit", fontSize: (sec.itemType === "path" || sec.itemType === "url") ? "12px" : "13px", color: sec.itemType === "url" ? C.accentBlue : C.text }}>{it}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {/* Add product */}
+            <div style={{ position: "relative", marginTop: "4px" }}>
+              <button onClick={() => setShowAdd(!showAdd)} style={{ width: "100%", padding: "12px", borderRadius: "10px", border: `1px dashed ${C.border}`, backgroundColor: "transparent", color: C.textSecondary, cursor: "pointer", fontSize: "13px", fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}>
+                + Ask DS-1 to recommend another product
+              </button>
+              {showAdd && (
+                <div style={{ marginTop: "8px", border: `1px solid ${C.border}`, borderRadius: "10px", overflow: "hidden", boxShadow: "0 4px 16px rgba(0,0,0,0.06)" }}>
+                  {ADDABLE.filter(a => !sections.find(s2 => s2.id === a.id)).map(a => (
+                    <div key={a.id} onClick={() => addSection(a)} style={{ padding: "12px 16px", borderBottom: `1px solid ${C.borderLight}`, cursor: "pointer", backgroundColor: C.bg }}>
+                      <div style={{ fontSize: "13px", fontWeight: 600, color: C.text }}>{a.product}</div>
+                      <div style={{ fontSize: "12px", color: C.textTertiary, marginTop: "2px" }}>{a.desc}</div>
+                    </div>
+                  ))}
+                  {ADDABLE.filter(a => !sections.find(s2 => s2.id === a.id)).length === 0 && (
+                    <div style={{ padding: "14px 16px", fontSize: "13px", color: C.textTertiary, fontStyle: "italic", backgroundColor: C.bg }}>All recommended products are already in the brief.</div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-        )}
-        <div style={{ display: "flex", gap: "10px", alignItems: "center", maxWidth: "720px", margin: "0 auto" }}>
-          <div style={{ flex: 1, display: "flex", gap: "8px", alignItems: "center", padding: "4px 4px 4px 14px", borderRadius: "10px", border: `1px solid ${C.border}`, backgroundColor: C.bg }}>
-            <span style={{ fontSize: "11px", fontWeight: 700, color: C.accentBlue, fontFamily: "'Space Mono', monospace", flexShrink: 0 }}>DS-1</span>
-            <input
-              value={command}
-              onChange={(e) => setCommand(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") runCommand(); }}
-              placeholder="Tell DS-1 how to reorder — e.g. “move Custom AI to the top” or “put Partnership after Pre-built”"
-              style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "13px", fontFamily: "'DM Sans', sans-serif", color: C.text, padding: "8px 0" }}
-            />
-            <button onClick={() => runCommand()} style={{ width: "30px", height: "30px", borderRadius: "8px", border: "none", cursor: "pointer", backgroundColor: command.trim() ? C.text : C.bgHover, color: command.trim() ? "#fff" : C.textTertiary, fontSize: "14px", flexShrink: 0 }}>↑</button>
-          </div>
-          {exported ? (
-            <span style={{ fontSize: "13px", fontWeight: 600, color: C.accentGreen, flexShrink: 0 }}>✓ Exported</span>
-          ) : (
-            <button onClick={handleExport} style={{ ...s.btnPrimary, backgroundColor: C.text, flexShrink: 0 }}>↓ PDF</button>
-          )}
         </div>
       </div>
     </div>
@@ -2202,7 +2201,6 @@ const briefHeaderStyle = { padding: "14px 24px", borderBottom: `1px solid ${C.bo
 const briefBadge = { width: "28px", height: "28px", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Space Mono', monospace", fontSize: "10px", fontWeight: 700 };
 const briefIconBtn = { width: "26px", height: "26px", borderRadius: "6px", border: "none", backgroundColor: "transparent", color: C.textTertiary, cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'DM Sans', sans-serif" };
 
-// Projects addition: audience plan workspace with per-project audience lists and status tracking
 function ProjectsView({ agency }) {
   const [openProject, setOpenProject] = useState(null);
   const [showNew, setShowNew] = useState(false);
@@ -3239,7 +3237,7 @@ function AdminView({ agency }) {
         </div>
       </div>
 
-      {/* Data Marketplace — toggle Dstillery, LiveRamp, and custom taxonomy providers per workspace */}
+      {/* Data Providers */}
       <div style={{ maxWidth: "720px", marginBottom: "36px", animation: "fadeUp 0.5s ease-out", animationDelay: "0.08s", animationFillMode: "both" }}>
         <div style={adminS.catHeader}>
           <span style={adminS.catIcon}>⊟</span>
