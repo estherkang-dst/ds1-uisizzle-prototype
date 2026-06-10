@@ -26,9 +26,9 @@ const C = {
 };
 
 const AGENCIES = [
-  { id: "dstillery", name: "Dstillery", initials: "Ds", color: C.accentBlue },
-  { id: "sokal", name: "Sokal", initials: "So", color: C.accentGreen },
-  { id: "keynes", name: "Keynes", initials: "Ke", color: C.accentPurple },
+  { id: "dstillery", name: "Dstillery", initials: "Ds", color: C.accentBlue, parent: "Dstillery", marketers: ["NSM Demo", "Esther Test Marketer", "Fjällräven", "Matchaful"] },
+  { id: "360i", name: "360i NY", initials: "36", color: C.accentGreen, parent: "360i NY", marketers: ["360i NY", "American Eagle Outfitters", "DKNY", "Pirates Booty", "Purell"] },
+  { id: "keynes", name: "Keynes", initials: "Ke", color: C.accentPurple, parent: "Keynes", marketers: ["Keynes CPG", "Keynes Travel & Hospitality", "Keynes Retail"] },
 ];
 
 const ChevronDown = () => (
@@ -40,17 +40,20 @@ const ChevronDown = () => (
 export default function DS1App() {
   const [activeView, setActiveView] = useState("home");
   const [activeAgency, setActiveAgency] = useState(AGENCIES[0]);
+  const [selectedMarketer, setSelectedMarketer] = useState(AGENCIES[0].parent);
   const [agencyDropdownOpen, setAgencyDropdownOpen] = useState(false);
   const [hoveredNav, setHoveredNav] = useState(null);
   const [collapsed, setCollapsed] = useState(false);
+  const [navPayload, setNavPayload] = useState(null);
+
+  const navigate = (view, payload = null) => { setNavPayload(payload); setActiveView(view); };
 
   const navItems = [
     { id: "home", label: "Home", icon: "⌂" },
-    { id: "projects", label: "Audience Plan", icon: "◳" },
-    { id: "library", label: "Library", icon: "◧" },
+    { id: "projects", label: "Projects", icon: "◳" },
     { id: "history", label: "History", icon: "↻" },
     { id: "settings", label: "Settings", icon: "✦" },
-    { id: "admin", label: "Admin", icon: "⚙" },
+    ...(activeAgency.id === "dstillery" ? [{ id: "admin", label: "Admin", icon: "⚙" }] : []),
   ];
 
   return (
@@ -122,6 +125,7 @@ export default function DS1App() {
                       }}
                       onClick={() => {
                         setActiveAgency(agency);
+                        setSelectedMarketer(agency.id === "dstillery" ? agency.parent : agency.marketers[0]);
                         setAgencyDropdownOpen(false);
                         setActiveView("home");
                       }}
@@ -139,6 +143,50 @@ export default function DS1App() {
                       )}
                     </div>
                   ))}
+
+                  <div style={{ height: "1px", backgroundColor: C.borderLight, margin: "6px 0" }} />
+                  <div style={s.dropdownHeader}>Marketers</div>
+
+                  {(() => {
+                    const isDstillery = activeAgency.id === "dstillery";
+                    const parentSelectable = isDstillery;
+                    return (
+                      <>
+                        {/* Parent marketer */}
+                        <div
+                          onClick={parentSelectable ? () => { setSelectedMarketer(activeAgency.parent); setAgencyDropdownOpen(false); } : undefined}
+                          style={{
+                            display: "flex", alignItems: "center", gap: "8px",
+                            padding: "7px 10px", borderRadius: "6px",
+                            cursor: parentSelectable ? "pointer" : "default",
+                            backgroundColor: selectedMarketer === activeAgency.parent ? C.bgHover : "transparent",
+                          }}
+                        >
+                          <span style={{ fontSize: "10px", color: C.textTertiary, width: "10px" }}>▾</span>
+                          <span style={{ fontSize: "13px", fontWeight: 700, color: parentSelectable ? C.text : C.textTertiary }}>{activeAgency.parent}</span>
+                          <span style={{ fontSize: "11px", color: C.textTertiary, fontFamily: "'Space Mono', monospace" }}>({activeAgency.marketers.length})</span>
+                          {!parentSelectable && <span style={{ fontSize: "10px", color: C.textTertiary, marginLeft: "auto", backgroundColor: C.bgHover, padding: "1px 6px", borderRadius: "3px" }}>Parent</span>}
+                          {parentSelectable && selectedMarketer === activeAgency.parent && <span style={{ color: C.accentGreen, fontSize: "13px", marginLeft: "auto" }}>✓</span>}
+                        </div>
+
+                        {/* Child marketers = projects */}
+                        {activeAgency.marketers.map((m) => (
+                          <div
+                            key={m}
+                            onClick={() => { setSelectedMarketer(m); setAgencyDropdownOpen(false); }}
+                            style={{
+                              display: "flex", alignItems: "center", gap: "8px",
+                              padding: "7px 10px 7px 28px", borderRadius: "6px", cursor: "pointer",
+                              backgroundColor: selectedMarketer === m ? C.bgHover : "transparent",
+                            }}
+                          >
+                            <span style={{ fontSize: "13px", color: C.text }}>{m}</span>
+                            {selectedMarketer === m && <span style={{ color: C.accentGreen, fontSize: "13px", marginLeft: "auto" }}>✓</span>}
+                          </div>
+                        ))}
+                      </>
+                    );
+                  })()}
                 </div>
               )}
             </>
@@ -191,26 +239,232 @@ export default function DS1App() {
 
       {/* Main content */}
       <main style={s.main} key={`${activeAgency.id}-${activeView}`}>
-        {activeView === "home" && <HomeView agency={activeAgency} onNavigate={setActiveView} />}
-        {activeView === "projects" && <ProjectsView agency={activeAgency} />}
-        {activeView === "discover" && <DiscoverView onNavigate={setActiveView} />}
-        {activeView === "build" && <BuildView onNavigate={setActiveView} />}
-        {activeView === "explorer" && <AudienceExplorerChat onBack={() => setActiveView("home")} />}
-        {activeView === "domainseeded" && <DomainSeededCanvas onBack={() => setActiveView("build")} />}
-        {activeView === "brief" && <AudienceBriefBuilder onBack={() => setActiveView("discover")} />}
-        {activeView === "pixel" && <PixelCreator onBack={() => setActiveView("build")} />}
-        {activeView === "history" && <HistoryView agency={activeAgency} />}
-        {activeView === "library" && <LibraryView agency={activeAgency} />}
-        {activeView === "settings" && <SettingsView />}
-        {activeView === "admin" && <AdminView agency={activeAgency} />}
+        {activeView === "home" && <HomeView agency={activeAgency} onNavigate={navigate} />}
+        {activeView === "agents" && <AgentsLibrary onNavigate={navigate} />}
+        {activeView === "tasks" && <TasksPage onNavigate={navigate} />}
+        {activeView === "projects" && <ProjectsView agency={activeAgency} onNavigate={navigate} />}
+        {activeView === "discover" && <DiscoverView onNavigate={navigate} />}
+        {activeView === "build" && <BuildView onNavigate={navigate} />}
+        {activeView === "explorer" && <AudienceExplorerChat onBack={() => setActiveView("home")} initialQuery={navPayload} />}
+        {activeView === "domainseeded" && <DomainSeededCanvas onBack={() => setActiveView("home")} />}
+        {activeView === "brief" && <AudienceBriefBuilder onBack={() => setActiveView("home")} />}
+        {activeView === "pixel" && <PixelCreator onBack={() => setActiveView("home")} />}
+        {activeView === "history" && <HistoryView agency={activeAgency} onNavigate={navigate} />}
+        {activeView === "settings" && <SettingsView onNavigate={navigate} />}
+        {activeView === "admin" && <AdminView agency={activeAgency} onNavigate={navigate} />}
       </main>
     </div>
   );
 }
 
+function AgentsLibrary({ onNavigate }) {
+  const [search, setSearch] = useState("");
+  const [customAgents, setCustomAgents] = useState([]);
+  const [showBuilder, setShowBuilder] = useState(false);
+
+  const AGENTS = [
+    { id: "explore", title: "Find prebuilt audiences", desc: "Search Dstillery's catalog of 10,000+ ready-to-activate audiences by topic, vertical, or behavior.", icon: "◎", color: C.accentBlue, group: "Discover", route: "explorer" },
+    { id: "brief", title: "Generate an audience brief", desc: "Draft a client-ready brief with recommended products you can edit, reorder, and export.", icon: "◫", color: C.accentOrange, group: "Discover", route: "brief" },
+    { id: "segrank", title: "SegRank", desc: "Rank and compare audience segments by reach, relevance, and performance potential.", icon: "▦", color: C.accentPurple, group: "Discover" },
+    { id: "persona", title: "Persona Insights Deck", desc: "Generate a client-ready deck profiling an audience's demographics and top behaviors.", icon: "◰", color: C.accentBlue, group: "Discover" },
+    { id: "lift", title: "Predictive Lift Analysis", desc: "Estimate the incremental lift a Dstillery audience would drive for your campaign.", icon: "↗", color: C.accentPurple, group: "Discover" },
+    { id: "domainseeded", title: "Build a domain seeded audience", desc: "Pick seed domains and let DS-1 model an audience from shared visitor behavior.", icon: "⊞", color: C.accentGreen, group: "Build", route: "domainseeded" },
+    { id: "pixel", title: "Create a pixel", desc: "Generate a tracking pixel and its HTML/JS tags to build first-party audiences.", icon: "◈", color: C.accentPink, group: "Build", route: "pixel" },
+    { id: "search", title: "Search Audience", desc: "Describe your ideal audience in plain language and get matched segments to refine.", icon: "⌕", color: C.accentBlue, group: "Build" },
+    { id: "compound", title: "Build a compound audience", desc: "Combine segments with and/or/not boolean logic into one custom audience.", icon: "⊕", color: C.accentGreen, group: "Build" },
+    { id: "partnership", title: "Partnership Audience Search", desc: "Search partner data sets across Auto, Entertainment, and CPG to reach niche users.", icon: "⊟", color: C.accentOrange, group: "Build" },
+    { id: "syndicate", title: "Syndicate", desc: "Push an audience to The Trade Desk, DV360, Amazon, or the LiveRamp marketplace.", icon: "↗", color: C.accentPink, group: "Activate" },
+    { id: "report", title: "Daily Client Activity Report", desc: "Pull a daily report of audience activity, syndications, and campaign performance.", icon: "▤", color: C.accentPurple, group: "Activate" },
+  ];
+
+  const allAgents = [...customAgents, ...AGENTS];
+  const q = search.toLowerCase().trim();
+  const filtered = q ? allAgents.filter(a => a.title.toLowerCase().includes(q) || a.desc.toLowerCase().includes(q)) : allAgents;
+
+  return (
+    <div style={s.content}>
+      <Breadcrumb onNavigate={onNavigate} current="Agents" />
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", maxWidth: "720px", animation: "fadeUp 0.5s ease-out", marginBottom: "20px" }}>
+        <div>
+          <h1 style={s.heading}>All agents</h1>
+          <p style={s.subheading}>Every DS-1 agent, plus any workflows you build yourself.</p>
+        </div>
+        <button onClick={() => setShowBuilder(true)} style={{ padding: "9px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600, border: "none", backgroundColor: C.text, color: "#fff", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", flexShrink: 0 }}>+ Build your own</button>
+      </div>
+
+      {/* Search */}
+      <div style={{ position: "relative", maxWidth: "720px", marginBottom: "24px", animation: "fadeUp 0.5s ease-out", animationDelay: "0.04s", animationFillMode: "both" }}>
+        <span style={{ position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)", color: C.textTertiary, fontSize: "14px" }}>⌕</span>
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search agents by name or what they do..."
+          style={{ width: "100%", padding: "12px 16px 12px 40px", borderRadius: "10px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "14px", fontFamily: "'DM Sans', sans-serif", outline: "none", boxSizing: "border-box" }}
+        />
+      </div>
+
+      {filtered.length === 0 ? (
+        <div style={{ maxWidth: "720px", padding: "24px", textAlign: "center", fontSize: "14px", color: C.textTertiary, fontStyle: "italic" }}>
+          No agents match "{search}".
+        </div>
+      ) : (
+        <div style={{ maxWidth: "720px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", animation: "fadeUp 0.5s ease-out", animationDelay: "0.08s", animationFillMode: "both" }}>
+          {filtered.map((a) => (
+            <button
+              key={a.id}
+              onClick={() => a.route && onNavigate(a.route)}
+              style={{
+                display: "flex", alignItems: "flex-start", gap: "12px",
+                padding: "16px", borderRadius: "10px", textAlign: "left",
+                border: `1px solid ${C.border}`, backgroundColor: C.bg,
+                cursor: a.route ? "pointer" : "default", fontFamily: "'DM Sans', sans-serif",
+                transition: "all 0.15s ease", opacity: a.route || a.custom ? 1 : 0.7,
+              }}
+              onMouseEnter={(e) => { if (a.route || a.custom) e.currentTarget.style.backgroundColor = C.bgSecondary; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = C.bg; }}
+            >
+              <div style={{ width: "34px", height: "34px", borderRadius: "8px", backgroundColor: a.color + "18", color: a.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "15px", flexShrink: 0 }}>{a.icon}</div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: "14px", fontWeight: 600, color: C.text, display: "flex", alignItems: "center", gap: "6px" }}>
+                  {a.title}
+                  {a.custom && <span style={{ fontSize: "10px", fontWeight: 600, color: C.accentPurple, backgroundColor: C.accentPurple + "16", padding: "1px 6px", borderRadius: "3px" }}>Custom</span>}
+                  {!a.route && !a.custom && <span style={{ fontSize: "10px", fontWeight: 600, color: C.textTertiary, backgroundColor: C.bgHover, padding: "1px 6px", borderRadius: "3px" }}>Soon</span>}
+                </div>
+                <div style={{ fontSize: "12px", color: C.textTertiary, marginTop: "3px", lineHeight: "1.5" }}>{a.desc}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {showBuilder && <WorkflowBuilderModal agents={AGENTS} onClose={() => setShowBuilder(false)} onCreate={(wf) => { setCustomAgents(prev => [wf, ...prev]); setShowBuilder(false); }} />}
+    </div>
+  );
+}
+
+function WorkflowBuilderModal({ agents, onClose, onCreate }) {
+  const [name, setName] = useState("");
+  const [desc, setDesc] = useState("");
+  const [steps, setSteps] = useState([]);
+  const [color, setColor] = useState(C.accentPurple);
+
+  const colors = [C.accentPurple, C.accentBlue, C.accentGreen, C.accentOrange, C.accentPink, C.accentRed];
+  const canCreate = name.trim() && steps.length > 0;
+
+  const toggleStep = (id) => setSteps(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  const moveStep = (idx, dir) => setSteps(prev => { const a = [...prev]; const t = idx + dir; if (t < 0 || t >= a.length) return prev; [a[idx], a[t]] = [a[t], a[idx]]; return a; });
+
+  const create = () => {
+    onCreate({
+      id: "custom-" + Date.now(),
+      title: name.trim(),
+      desc: desc.trim() || `Custom workflow: ${steps.map(id => agents.find(a => a.id === id)?.title).filter(Boolean).join(" → ")}`,
+      icon: "✦", color, custom: true, route: null,
+    });
+  };
+
+  const inputStyle = { width: "100%", padding: "10px 14px", borderRadius: "8px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "14px", fontFamily: "'DM Sans', sans-serif", outline: "none", boxSizing: "border-box" };
+
+  return (
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "24px", animation: "fadeIn 0.2s ease-out" }}>
+      <style>{`@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } @keyframes popIn { from { opacity: 0; transform: scale(0.97) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }`}</style>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: "540px", maxHeight: "85vh", overflowY: "auto", backgroundColor: C.bg, borderRadius: "16px", boxShadow: "0 12px 48px rgba(0,0,0,0.18)", animation: "popIn 0.25s cubic-bezier(0.4,0,0.2,1)" }}>
+        <div style={{ padding: "20px 24px 16px", borderBottom: `1px solid ${C.borderLight}`, position: "sticky", top: 0, backgroundColor: C.bg, borderRadius: "16px 16px 0 0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div>
+            <div style={{ fontSize: "17px", fontWeight: 700, color: C.text }}>Build your own agent</div>
+            <div style={{ fontSize: "13px", color: C.textTertiary, marginTop: "2px" }}>Chain existing agents into a custom workflow.</div>
+          </div>
+          <button onClick={onClose} style={{ width: "30px", height: "30px", borderRadius: "8px", border: "none", backgroundColor: C.bgHover, color: C.textSecondary, cursor: "pointer", fontSize: "16px" }}>×</button>
+        </div>
+
+        <div style={{ padding: "22px 24px" }}>
+          <div style={{ marginBottom: "18px" }}>
+            <div style={{ fontSize: "13px", fontWeight: 600, color: C.text, marginBottom: "6px" }}>Name</div>
+            <input style={inputStyle} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Sports campaign launcher" />
+          </div>
+          <div style={{ marginBottom: "18px" }}>
+            <div style={{ fontSize: "13px", fontWeight: 600, color: C.text, marginBottom: "6px" }}>Description <span style={{ fontWeight: 400, color: C.textTertiary }}>(optional)</span></div>
+            <input style={inputStyle} value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="What does this workflow do?" />
+          </div>
+
+          <div style={{ marginBottom: "18px" }}>
+            <div style={{ fontSize: "13px", fontWeight: 600, color: C.text, marginBottom: "2px" }}>Steps</div>
+            <div style={{ fontSize: "12px", color: C.textTertiary, marginBottom: "10px" }}>Pick the agents this workflow runs, in order.</div>
+
+            {/* selected ordered steps */}
+            {steps.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "12px" }}>
+                {steps.map((id, idx) => {
+                  const a = agents.find(x => x.id === id);
+                  return (
+                    <div key={id} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 10px", borderRadius: "8px", border: `1px solid ${C.border}`, backgroundColor: C.bgSecondary }}>
+                      <span style={{ fontSize: "11px", fontWeight: 700, color: C.textTertiary, fontFamily: "'Space Mono', monospace", flexShrink: 0 }}>{idx + 1}</span>
+                      <span style={{ flex: 1, fontSize: "13px", fontWeight: 600, color: C.text }}>{a?.title}</span>
+                      <button onClick={() => moveStep(idx, -1)} disabled={idx === 0} style={{ ...miniBtn, opacity: idx === 0 ? 0.3 : 1 }}>↑</button>
+                      <button onClick={() => moveStep(idx, 1)} disabled={idx === steps.length - 1} style={{ ...miniBtn, opacity: idx === steps.length - 1 ? 0.3 : 1 }}>↓</button>
+                      <button onClick={() => toggleStep(id)} style={miniBtn}>×</button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* available agents to add */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+              {agents.filter(a => !steps.includes(a.id)).map(a => (
+                <button key={a.id} onClick={() => toggleStep(a.id)} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 12px", borderRadius: "16px", fontSize: "12px", fontWeight: 500, border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textSecondary, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
+                  <span style={{ color: a.color }}>+</span> {a.title}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ marginBottom: "4px" }}>
+            <div style={{ fontSize: "13px", fontWeight: 600, color: C.text, marginBottom: "8px" }}>Color</div>
+            <div style={{ display: "flex", gap: "8px" }}>
+              {colors.map(c => (
+                <button key={c} onClick={() => setColor(c)} style={{ width: "28px", height: "28px", borderRadius: "8px", backgroundColor: c, border: color === c ? `2px solid ${C.text}` : "2px solid transparent", cursor: "pointer", padding: 0 }} />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ padding: "16px 24px", borderTop: `1px solid ${C.borderLight}`, display: "flex", justifyContent: "flex-end", gap: "10px", position: "sticky", bottom: 0, backgroundColor: C.bg, borderRadius: "0 0 16px 16px" }}>
+          <button onClick={onClose} style={{ padding: "10px 18px", borderRadius: "8px", fontSize: "14px", fontWeight: 600, border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>Cancel</button>
+          <button onClick={create} disabled={!canCreate} style={{ padding: "10px 20px", borderRadius: "8px", fontSize: "14px", fontWeight: 600, border: "none", backgroundColor: canCreate ? C.text : C.bgHover, color: canCreate ? "#fff" : C.textTertiary, cursor: canCreate ? "pointer" : "not-allowed", fontFamily: "'DM Sans', sans-serif" }}>Create agent</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const miniBtn = { width: "24px", height: "24px", borderRadius: "6px", border: "none", backgroundColor: "transparent", color: C.textTertiary, cursor: "pointer", fontSize: "13px", flexShrink: 0 };
+
 function HomeView({ agency, onNavigate }) {
   const [hovered, setHovered] = useState(null);
   const [chatInput, setChatInput] = useState("");
+  const [showProjects, setShowProjects] = useState(false);
+  const [attachedProject, setAttachedProject] = useState(null);
+  const [openTask, setOpenTask] = useState(null);
+  const [openChat, setOpenChat] = useState(null);
+
+  const visibleTasks = [...TASKS].sort((a, b) => b.mins - a.mins).slice(0, 3);
+
+  const startChat = () => {
+    if (!chatInput.trim()) return;
+    setOpenChat({ text: chatInput.trim(), project: attachedProject });
+    setChatInput("");
+  };
+
+  if (openTask) return <TaskChat task={openTask} onBack={() => setOpenTask(null)} />;
+  if (openChat) return <GeneralChat seed={openChat} onBack={() => setOpenChat(null)} onNavigate={onNavigate} />;
+
+  const PROJECTS = [
+    { name: "SafeGuard Q3 Auto Campaign", color: C.accentBlue },
+    { name: "NY Sports Fans Initiative", color: C.accentGreen },
+    { name: "CPG Health & Wellness", color: C.accentOrange },
+  ];
 
   const workflows = [
     { id: "explore", title: "Find prebuilt audiences", desc: "Search Dstillery's catalog by topic", icon: "◎", color: C.accentBlue, group: "Discover" },
@@ -231,91 +485,320 @@ function HomeView({ agency, onNavigate }) {
 
         {/* Chat composer */}
         <div style={{ animation: "fadeUp 0.5s ease-out", animationDelay: "0.05s", animationFillMode: "both" }}>
-          <div style={{ border: `1px solid ${C.border}`, borderRadius: "14px", backgroundColor: C.bg, overflow: "hidden", boxShadow: "0 2px 16px rgba(0,0,0,0.04)" }}>
+          <div style={{ border: `1px solid ${C.border}`, borderRadius: "14px", backgroundColor: C.bg, overflow: "visible", boxShadow: "0 2px 16px rgba(0,0,0,0.04)", position: "relative" }}>
+            {/* Attached project chip */}
+            {attachedProject && (
+              <div style={{ padding: "12px 14px 0" }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "5px 10px", borderRadius: "8px", backgroundColor: attachedProject.color + "14", border: `1px solid ${attachedProject.color}40`, fontSize: "12px", fontWeight: 600, color: C.text }}>
+                  <span style={{ color: attachedProject.color }}>◳</span>
+                  {attachedProject.name}
+                  <span onClick={() => setAttachedProject(null)} style={{ cursor: "pointer", color: C.textTertiary, fontSize: "14px" }}>×</span>
+                </span>
+              </div>
+            )}
             <textarea
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onNavigate("explorer"); } }}
-              placeholder="Ask DS-1 anything..."
+              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); startChat(); } }}
+              placeholder={attachedProject ? `Ask anything within ${attachedProject.name}…` : "Ask DS-1 anything..."}
               rows={2}
               style={{ width: "100%", padding: "15px 18px 6px", border: "none", backgroundColor: "transparent", color: C.text, fontSize: "15px", fontFamily: "'DM Sans', sans-serif", outline: "none", resize: "none", lineHeight: "1.5", boxSizing: "border-box" }}
             />
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 14px 14px" }}>
-              <div style={{ display: "flex", gap: "4px" }}>
+              <div style={{ display: "flex", gap: "4px", position: "relative" }}>
                 <button style={chatS.actionBtn}>+ Files</button>
-                <button style={chatS.actionBtn}>⊞ Prompts</button>
+                <button onClick={() => setShowProjects(!showProjects)} style={{ ...chatS.actionBtn, color: attachedProject ? C.text : C.textTertiary }}>◳ Projects</button>
+                {showProjects && (
+                  <div style={{ position: "absolute", bottom: "38px", left: 0, width: "260px", backgroundColor: C.bg, borderRadius: "10px", border: `1px solid ${C.border}`, boxShadow: "0 6px 24px rgba(0,0,0,0.1)", overflow: "hidden", zIndex: 10 }}>
+                    <div style={{ padding: "10px 14px", fontSize: "11px", fontWeight: 600, color: C.textTertiary, textTransform: "uppercase", letterSpacing: "0.5px", borderBottom: `1px solid ${C.borderLight}` }}>Attach a project</div>
+                    {PROJECTS.map((p) => (
+                      <div key={p.name} onClick={() => { setAttachedProject(p); setShowProjects(false); }} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", cursor: "pointer", fontSize: "13px", color: C.text }}>
+                        <span style={{ color: p.color }}>◳</span> {p.name}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <button
-                onClick={() => onNavigate("explorer")}
+                onClick={startChat}
                 style={{ width: "36px", height: "36px", borderRadius: "50%", border: "none", cursor: "pointer", backgroundColor: chatInput.trim() ? C.text : C.bgHover, color: chatInput.trim() ? "#fff" : C.textTertiary, fontSize: "16px", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.15s ease" }}
               >↑</button>
             </div>
           </div>
+          {attachedProject && (
+            <div style={{ fontSize: "12px", color: C.textTertiary, marginTop: "8px", textAlign: "center" }}>
+              DS-1 will answer using only the context, files, and audiences inside <strong>{attachedProject.name}</strong>.
+            </div>
+          )}
         </div>
 
-        {/* Workflows grouped by Discover / Build */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginTop: "28px", animation: "fadeUp 0.5s ease-out", animationDelay: "0.1s", animationFillMode: "both" }}>
-          {["Discover", "Build"].map((group) => (
-            <div key={group}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "7px" }}>
-                  <span style={{ color: group === "Discover" ? C.accentBlue : C.accentGreen, fontSize: "13px" }}>{group === "Discover" ? "◎" : "⊞"}</span>
-                  <span style={{ fontSize: "12px", fontWeight: 600, color: C.textTertiary, textTransform: "uppercase", letterSpacing: "0.5px" }}>{group}</span>
+        {/* Recommended agents */}
+        <div style={{ marginTop: "28px", animation: "fadeUp 0.5s ease-out", animationDelay: "0.1s", animationFillMode: "both" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+            <span style={{ fontSize: "14px", fontWeight: 700, color: C.text }}>
+              Recommended agents
+            </span>
+            <span onClick={() => onNavigate("agents")} style={{ fontSize: "13px", color: C.text, cursor: "pointer", fontWeight: 700 }}>See all ›</span>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+            {workflows.map((wf) => (
+              <button
+                key={wf.id}
+                onMouseEnter={() => setHovered(wf.id)}
+                onMouseLeave={() => setHovered(null)}
+                onClick={() => onNavigate(wf.id === "explore" ? "explorer" : wf.id)}
+                style={{
+                  display: "flex", alignItems: "center", gap: "12px",
+                  padding: "14px", borderRadius: "10px", textAlign: "left",
+                  border: `1px solid ${hovered === wf.id ? "#d3d1cb" : C.border}`,
+                  backgroundColor: hovered === wf.id ? C.bgSecondary : C.bg,
+                  cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                <div style={{ width: "34px", height: "34px", borderRadius: "8px", backgroundColor: wf.color + "18", color: wf.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "15px", flexShrink: 0 }}>{wf.icon}</div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: "14px", fontWeight: 600, color: C.text }}>{wf.title}</div>
+                  <div style={{ fontSize: "12px", color: C.textTertiary, marginTop: "1px" }}>{wf.desc}</div>
                 </div>
-                <span
-                  onClick={() => onNavigate(group === "Discover" ? "discover" : "build")}
-                  style={{ fontSize: "12px", color: C.textTertiary, cursor: "pointer", fontWeight: 500 }}
-                >See all ›</span>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                {workflows.filter(w => w.group === group).map((wf) => (
-                  <button
-                    key={wf.id}
-                    onMouseEnter={() => setHovered(wf.id)}
-                    onMouseLeave={() => setHovered(null)}
-                    onClick={() => onNavigate(wf.id === "explore" ? "explorer" : wf.id)}
-                    style={{
-                      display: "flex", alignItems: "center", gap: "12px",
-                      padding: "14px", borderRadius: "10px", textAlign: "left",
-                      border: `1px solid ${hovered === wf.id ? "#d3d1cb" : C.border}`,
-                      backgroundColor: hovered === wf.id ? C.bgSecondary : C.bg,
-                      cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
-                      transition: "all 0.15s ease",
-                    }}
-                  >
-                    <div style={{ width: "34px", height: "34px", borderRadius: "8px", backgroundColor: wf.color + "18", color: wf.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "15px", flexShrink: 0 }}>{wf.icon}</div>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: "14px", fontWeight: 600, color: C.text }}>{wf.title}</div>
-                      <div style={{ fontSize: "12px", color: C.textTertiary, marginTop: "1px" }}>{wf.desc}</div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Activity, tucked low with whitespace above */}
       <div style={{ width: "100%", maxWidth: "680px", marginTop: "auto", paddingTop: "80px", animation: "fadeUp 0.5s ease-out", animationDelay: "0.2s", animationFillMode: "both" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
-          <h2 style={{ fontSize: "12px", fontWeight: 600, color: C.textTertiary, textTransform: "uppercase", letterSpacing: "0.5px", margin: 0 }}>Needs your attention</h2>
-          <span style={{ fontSize: "12px", color: C.textTertiary, cursor: "pointer" }}>View all ›</span>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
+          <h2 style={{ fontSize: "14px", fontWeight: 700, color: C.text, margin: 0 }}>You have {TASKS.length} tasks from an agent to review</h2>
+          <span onClick={() => onNavigate("tasks")} style={{ fontSize: "13px", color: C.text, cursor: "pointer", fontWeight: 700 }}>View all ›</span>
         </div>
         <div style={{ display: "flex", flexDirection: "column" }}>
-          {[
-            { dot: C.accentOrange, text: "Review and syndicate NSM-demo-6/1_Custom Built", meta: "23h ago" },
-            { dot: C.accentBlue, text: "Approve New York Rangers Fans_Custom Built", meta: "2h ago" },
-            { dot: C.accentGreen, text: "New York_Custom Built syndicated to The Trade Desk", meta: "1h ago" },
-          ].map((row, i, arr) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 2px", borderBottom: i < arr.length - 1 ? `1px solid ${C.borderLight}` : "none", cursor: "pointer" }}>
-              <div style={{ width: "7px", height: "7px", borderRadius: "50%", backgroundColor: row.dot, flexShrink: 0 }} />
-              <span style={{ flex: 1, fontSize: "14px", color: C.text }}>{row.text}</span>
+          {visibleTasks.map((row, i, arr) => (
+            <div key={row.text} onClick={() => setOpenTask(row)} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "13px 2px", borderBottom: i < arr.length - 1 ? `1px solid ${C.borderLight}` : "none", cursor: "pointer" }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: "14px", color: C.text }}>{row.text}</div>
+                <div style={{ fontSize: "11px", color: C.textTertiary, marginTop: "1px" }}>{row.agent}</div>
+              </div>
               <span style={{ fontSize: "12px", color: C.textTertiary, fontFamily: "'Space Mono', monospace", flexShrink: 0 }}>{row.meta}</span>
+              <span style={{ fontSize: "14px", color: C.textTertiary, flexShrink: 0 }}>›</span>
             </div>
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+function TaskChat({ task, onBack }) {
+  const [messages, setMessages] = useState([{ role: "ds1", text: task.context }]);
+  const [input, setInput] = useState("");
+
+  const send = () => {
+    if (!input.trim()) return;
+    const userMsg = input.trim();
+    setMessages(prev => [...prev, { role: "user", text: userMsg }]);
+    setInput("");
+    setTimeout(() => {
+      setMessages(prev => [...prev, { role: "ds1", text: "Got it — I'll take care of that and keep this task updated. Anything else you'd like me to adjust before I proceed?" }]);
+    }, 700);
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+      <div style={briefHeaderStyle}>
+        <button onClick={onBack} style={s.btnSecondary}>← Home</button>
+        <div style={{ ...briefBadge, backgroundColor: task.dot + "18", color: task.dot }}>◷</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: "14px", fontWeight: 600, color: C.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{task.text}</div>
+          <div style={{ fontSize: "11px", color: C.textTertiary }}>{task.agent}</div>
+        </div>
+      </div>
+
+      <div style={{ flex: 1, overflowY: "auto", padding: "24px clamp(20px, 5vw, 48px)" }}>
+        <div style={{ maxWidth: "680px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "16px" }}>
+          {messages.map((m, i) => (
+            m.role === "user" ? (
+              <div key={i} style={{ alignSelf: "flex-end", maxWidth: "80%", fontSize: "14px", color: "#fff", backgroundColor: C.text, padding: "10px 14px", borderRadius: "14px 14px 2px 14px", lineHeight: "1.5" }}>{m.text}</div>
+            ) : (
+              <div key={i} style={{ display: "flex", gap: "10px", maxWidth: "90%" }}>
+                <span style={{ fontSize: "11px", fontWeight: 700, color: C.accentBlue, fontFamily: "'Space Mono', monospace", flexShrink: 0, marginTop: "3px" }}>DS-1</span>
+                <div style={{ fontSize: "14px", color: C.text, lineHeight: "1.6", backgroundColor: C.bgSecondary, border: `1px solid ${C.borderLight}`, padding: "12px 14px", borderRadius: "2px 14px 14px 14px" }}>{m.text}</div>
+              </div>
+            )
+          ))}
+        </div>
+      </div>
+
+      <div style={{ borderTop: `1px solid ${C.borderLight}`, padding: "14px clamp(20px, 5vw, 48px)", flexShrink: 0, backgroundColor: C.bgSecondary }}>
+        <div style={{ maxWidth: "680px", margin: "0 auto", display: "flex", gap: "8px", alignItems: "flex-end", padding: "6px 6px 6px 14px", borderRadius: "12px", border: `1px solid ${C.border}`, backgroundColor: C.bg }}>
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
+            placeholder="Continue the conversation…"
+            rows={1}
+            style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "14px", fontFamily: "'DM Sans', sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "7px 0" }}
+          />
+          <button onClick={send} style={{ width: "32px", height: "32px", borderRadius: "8px", border: "none", cursor: "pointer", backgroundColor: input.trim() ? C.text : C.bgHover, color: input.trim() ? "#fff" : C.textTertiary, fontSize: "15px", flexShrink: 0 }}>↑</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const WF_INTENTS = [
+  { test: /pixel|tag|tracking/, route: "pixel", name: "Create a pixel", reply: "Got it — sounds like you want to set up a tracking pixel. I can generate the pixel and its HTML/JS tags for you." },
+  { test: /domain|seed|url|website/, route: "domainseeded", name: "Build a domain seeded audience", reply: "I can build a domain seeded audience for that. Pick a few seed domains and I'll model an audience from their shared visitors." },
+  { test: /brief|recommend|deck|proposal/, route: "brief", name: "Generate an audience brief", reply: "I can put together a client-ready audience brief with recommended products you can edit and export." },
+  { test: /audience|segment|fans|intender|reach|find|explore|target|prebuilt/, route: "explorer", name: "Find prebuilt audiences", reply: "I can search Dstillery's catalog for audiences that match that. Let me pull the strongest matches." },
+];
+
+function GeneralChat({ seed, onBack, onNavigate }) {
+  const [messages, setMessages] = useState([{ role: "user", text: seed.text }]);
+  const [input, setInput] = useState("");
+
+  const respondTo = (text) => {
+    const wf = WF_INTENTS.find(w => w.test.test(text.toLowerCase()));
+    if (wf) {
+      const topic = text.replace(/^(can you |please |i want to |i'd like to |help me |find( me)?|show me|get me|search for|build|create|generate|make)\s+/i, "").replace(/\b(an? )?(audience|audiences|segment|segments)\b/gi, "").replace(/\bprebuilt\b/gi, "").replace(/\s+/g, " ").trim();
+      setMessages(prev => [...prev, { role: "ds1", text: wf.reply, action: { route: wf.route, label: `Open ${wf.name}`, topic: topic || text } }]);
+    } else {
+      setMessages(prev => [...prev, { role: "ds1", text: "Happy to help with that. Tell me a bit more about what you're trying to do, or kick off one of the workflows — finding audiences, building a domain seeded audience, generating a brief, or creating a pixel." }]);
+    }
+  };
+
+  useEffect(() => {
+    const t = setTimeout(() => respondTo(seed.text), 600);
+    return () => clearTimeout(t);
+  // eslint-disable-next-line
+  }, []);
+
+  const send = () => {
+    if (!input.trim()) return;
+    const userMsg = input.trim();
+    setMessages(prev => [...prev, { role: "user", text: userMsg }]);
+    setInput("");
+    setTimeout(() => respondTo(userMsg), 600);
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+      <div style={briefHeaderStyle}>
+        <button onClick={onBack} style={s.btnSecondary}>← Home</button>
+        <div style={{ ...briefBadge, backgroundColor: C.accentBlue + "18", color: C.accentBlue }}>◎</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: "14px", fontWeight: 600, color: C.text }}>New chat</div>
+          {seed.project && <div style={{ fontSize: "11px", color: C.textTertiary, display: "flex", alignItems: "center", gap: "5px" }}><span style={{ color: seed.project.color }}>◳</span>{seed.project.name}</div>}
+        </div>
+      </div>
+
+      <div style={{ flex: 1, overflowY: "auto", padding: "24px clamp(20px, 5vw, 48px)" }}>
+        <div style={{ maxWidth: "680px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "16px" }}>
+          {messages.map((m, i) => (
+            m.role === "user" ? (
+              <div key={i} style={{ alignSelf: "flex-end", maxWidth: "80%", fontSize: "14px", color: "#fff", backgroundColor: C.text, padding: "10px 14px", borderRadius: "14px 14px 2px 14px", lineHeight: "1.5" }}>{m.text}</div>
+            ) : (
+              <div key={i} style={{ display: "flex", flexDirection: "column", gap: "10px", maxWidth: "90%" }}>
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <span style={{ fontSize: "11px", fontWeight: 700, color: C.accentBlue, fontFamily: "'Space Mono', monospace", flexShrink: 0, marginTop: "3px" }}>DS-1</span>
+                  <div style={{ fontSize: "14px", color: C.text, lineHeight: "1.6", backgroundColor: C.bgSecondary, border: `1px solid ${C.borderLight}`, padding: "12px 14px", borderRadius: "2px 14px 14px 14px" }}>{m.text}</div>
+                </div>
+                {m.action && (
+                  <button onClick={() => onNavigate(m.action.route, m.action.route === "explorer" ? m.action.topic : null)} style={{ alignSelf: "flex-start", marginLeft: "34px", padding: "9px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600, border: "none", backgroundColor: C.text, color: "#fff", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>{m.action.label} →</button>
+                )}
+              </div>
+            )
+          ))}
+        </div>
+      </div>
+
+      <div style={{ borderTop: `1px solid ${C.borderLight}`, padding: "14px clamp(20px, 5vw, 48px)", flexShrink: 0, backgroundColor: C.bgSecondary }}>
+        <div style={{ maxWidth: "680px", margin: "0 auto", display: "flex", gap: "8px", alignItems: "flex-end", padding: "6px 6px 6px 14px", borderRadius: "12px", border: `1px solid ${C.border}`, backgroundColor: C.bg }}>
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
+            placeholder={seed.project ? `Ask anything within ${seed.project.name}…` : "Ask DS-1 anything…"}
+            rows={1}
+            style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "14px", fontFamily: "'DM Sans', sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "7px 0" }}
+          />
+          <button onClick={send} style={{ width: "32px", height: "32px", borderRadius: "8px", border: "none", cursor: "pointer", backgroundColor: input.trim() ? C.text : C.bgHover, color: input.trim() ? "#fff" : C.textTertiary, fontSize: "15px", flexShrink: 0 }}>↑</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const TASKS = [
+  { agent: "Syndication Agent", text: "New York_Custom Built syndicated to The Trade Desk", meta: "1h ago", mins: 60, month: "June 2026", context: "New York_Custom Built was successfully syndicated to The Trade Desk a moment ago. It's now active in your AdGroup. Want me to set up a reach forecast or pull a daily activity report on it?" },
+  { agent: "Compound Audience Agent", text: "Approve New York Rangers Fans_Custom Built", meta: "2h ago", mins: 120, month: "June 2026", context: "New York Rangers Fans_Custom Built is modeled and waiting on your approval. Estimated reach is 1.9M with an ID-based build. Should I finalize it or would you like to adjust the seed segments first?" },
+  { agent: "Pixel Agent", text: "fjallraven-checkout-conv reached 1,000 loads", meta: "4h ago", mins: 240, month: "June 2026", context: "Your pixel fjallraven-checkout-conv just crossed 1,000 loads, so segments and SegRank data are now available for it. Want me to generate a SegRank report or start a lookalike model?" },
+  { agent: "Compound Audience Agent", text: "Review and syndicate NSM-demo-6/1_Custom Built", meta: "23h ago", mins: 1380, month: "June 2026", context: "I finished building the compound audience NSM-demo-6/1_Custom Built (combining NY sports fans + recent ticket purchasers). It has a combined reach of 4.2M and is ready for your review before syndication. Want me to push it to The Trade Desk?" },
+  { agent: "Audience Brief Agent", text: "Matchaful x Dstillery brief ready for export", meta: "May 30", mins: 14400, month: "May 2026", context: "The Matchaful x Dstillery brief is complete with 7 products. It's ready to export as a PDF whenever you'd like, or I can adjust the product mix first." },
+  { agent: "SegRank Agent", text: "SegRank report ready for CPG Health audiences", meta: "May 28", mins: 17280, month: "May 2026", context: "I ranked the CPG Health & Wellness segments by reach and relevance. The top performer is Wellness Intenders with a 3.4x relevance index. Want me to walk through the full ranking?" },
+  { agent: "Domain Seeded Agent", text: "Sports fans domain seeded audience modeled", meta: "May 22", mins: 25920, month: "May 2026", context: "Your domain seeded audience from nypost.com, espn.com, and si.com is modeled with ~640M reach. Ready to syndicate or refine the seed list?" },
+];
+
+function TasksPage({ onNavigate }) {
+  const [tasks, setTasks] = useState(TASKS);
+  const [search, setSearch] = useState("");
+  const [openTask, setOpenTask] = useState(null);
+
+  if (openTask) return <TaskChat task={openTask} onBack={() => setOpenTask(null)} />;
+
+  const q = search.toLowerCase().trim();
+  const filtered = q ? tasks.filter(t => t.text.toLowerCase().includes(q) || t.agent.toLowerCase().includes(q)) : tasks;
+  const months = [...new Set(filtered.map(t => t.month))];
+
+  return (
+    <div style={s.content}>
+      <Breadcrumb onNavigate={onNavigate} current="Tasks" />
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", maxWidth: "720px", animation: "fadeUp 0.5s ease-out", marginBottom: "20px" }}>
+        <div>
+          <h1 style={s.heading}>Tasks to review</h1>
+          <p style={s.subheading}>Everything your agents need you to look at.</p>
+        </div>
+        {tasks.length > 0 && (
+          <button onClick={() => setTasks([])} style={{ padding: "9px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600, border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textSecondary, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", flexShrink: 0 }}>Clear all</button>
+        )}
+      </div>
+
+      {/* Search */}
+      <div style={{ position: "relative", maxWidth: "720px", marginBottom: "28px", animation: "fadeUp 0.5s ease-out", animationDelay: "0.04s", animationFillMode: "both" }}>
+        <span style={{ position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)", color: C.textTertiary, fontSize: "14px" }}>⌕</span>
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search tasks by name or agent..."
+          style={{ width: "100%", padding: "12px 16px 12px 40px", borderRadius: "10px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "14px", fontFamily: "'DM Sans', sans-serif", outline: "none", boxSizing: "border-box" }}
+        />
+      </div>
+
+      {tasks.length === 0 ? (
+        <div style={{ maxWidth: "720px", padding: "24px 2px", fontSize: "14px", color: C.textTertiary, fontStyle: "italic" }}>You're all caught up — no tasks to review.</div>
+      ) : filtered.length === 0 ? (
+        <div style={{ maxWidth: "720px", padding: "24px 2px", fontSize: "14px", color: C.textTertiary, fontStyle: "italic" }}>No tasks match "{search}".</div>
+      ) : (
+        months.map((month) => (
+          <div key={month} style={{ maxWidth: "720px", marginBottom: "24px", animation: "fadeUp 0.5s ease-out", animationFillMode: "both" }}>
+            <div style={{ fontSize: "12px", fontWeight: 600, color: C.textTertiary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" }}>{month}</div>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              {filtered.filter(t => t.month === month).map((row, i, arr) => (
+                <div key={row.text} onClick={() => setOpenTask(row)} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "13px 2px", borderBottom: i < arr.length - 1 ? `1px solid ${C.borderLight}` : "none", cursor: "pointer" }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: "14px", color: C.text }}>{row.text}</div>
+                    <div style={{ fontSize: "11px", color: C.textTertiary, marginTop: "1px" }}>{row.agent}</div>
+                  </div>
+                  <span style={{ fontSize: "12px", color: C.textTertiary, fontFamily: "'Space Mono', monospace", flexShrink: 0 }}>{row.meta}</span>
+                  <span style={{ fontSize: "14px", color: C.textTertiary, flexShrink: 0 }}>›</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))
+      )}
     </div>
   );
 }
@@ -424,7 +907,7 @@ function Breadcrumb({ onNavigate, current }) {
   );
 }
 
-function AudienceExplorerChat({ onBack }) {
+function AudienceExplorerChat({ onBack, initialQuery }) {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([
     { role: "assistant", text: "Welcome to Audience Explorer! Start by searching a keyword or topic to search and discover audiences from Dstillery's catalog.", time: new Date(), isIntro: true },
@@ -691,6 +1174,11 @@ function AudienceExplorerChat({ onBack }) {
     return `${h % 12 || 12}:${m} ${ampm}`;
   };
 
+  useEffect(() => {
+    if (initialQuery && initialQuery.trim()) handleSend(initialQuery);
+  // eslint-disable-next-line
+  }, []);
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
       {/* Header */}
@@ -801,7 +1289,8 @@ function AudienceExplorerChat({ onBack }) {
           </div>
         </div>
       ) : (
-      <>
+      <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
       {/* Messages */}
       <div style={{ flex: 1, overflowY: "auto", padding: "24px 32px" }}>
         {messages.map((msg, i) => (
@@ -1012,27 +1501,6 @@ function AudienceExplorerChat({ onBack }) {
                       );
                     })}
 
-                    {/* Selection action bar */}
-                    {msg.groups && selected.length > 0 && (
-                      <div style={{
-                        position: "sticky", bottom: "0", marginTop: "20px",
-                        display: "flex", alignItems: "center", gap: "16px",
-                        padding: "14px 18px", borderRadius: "12px",
-                        backgroundColor: C.text, color: "#fff",
-                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-                      }}>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: "14px", fontWeight: 600 }}>{selected.length} audience{selected.length > 1 ? "s" : ""} selected</div>
-                          <div style={{ fontSize: "12px", opacity: 0.7, fontFamily: "'Space Mono', monospace" }}>{fmtSize(combinedReach)} combined reach</div>
-                        </div>
-                        <div style={{ display: "flex", gap: "8px" }}>
-                          <button style={chatS.selActionBtnGhost}>Build Compound</button>
-                          <button onClick={(e) => { e.stopPropagation(); handleSend("lets syndicate this"); }} style={chatS.selActionBtn}>Syndicate</button>
-                          <button onClick={(e) => { e.stopPropagation(); setSelected([]); }} style={{ ...chatS.selActionBtnGhost, padding: "8px 10px" }}>✕</button>
-                        </div>
-                      </div>
-                    )}
-
                     {msg.summary && (
                       <div style={{ ...chatS.bodyText, marginTop: "20px" }}>{msg.summary}</div>
                     )}
@@ -1143,7 +1611,38 @@ function AudienceExplorerChat({ onBack }) {
         </div>
 
       </div>
-      </>
+      </div>
+      {/* RIGHT — live selection canvas */}
+      <div style={{ width: "320px", flexShrink: 0, borderLeft: `1px solid ${C.borderLight}`, overflowY: "auto", padding: "24px 20px", backgroundColor: C.bgSecondary }}>
+        <div style={{ fontSize: "12px", fontWeight: 700, color: C.textTertiary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "14px" }}>Your selection</div>
+        {selected.length === 0 ? (
+          <div style={{ fontSize: "13px", color: C.textTertiary, lineHeight: "1.6" }}>Select audiences from the results and they'll collect here with combined reach and next actions.</div>
+        ) : (
+          <>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "16px" }}>
+              {selected.map((item, i) => {
+                const segName = item.path.split(" > ").pop();
+                return (
+                  <div key={i} style={{ padding: "10px 12px", borderRadius: "8px", border: `1px solid ${C.border}`, backgroundColor: C.bg }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <span style={{ flex: 1, fontSize: "13px", fontWeight: 600, color: C.text }}>{segName}</span>
+                      <span onClick={() => toggleSelect(item)} style={{ cursor: "pointer", color: C.textTertiary, fontSize: "14px" }}>×</span>
+                    </div>
+                    <div style={{ fontSize: "11px", color: C.textTertiary, fontFamily: "'Space Mono', monospace", marginTop: "2px" }}>{fmtSize(parseSize(item.size))}</div>
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ padding: "12px 14px", borderRadius: "10px", backgroundColor: C.text, color: "#fff", marginBottom: "12px" }}>
+              <div style={{ fontSize: "13px", fontWeight: 600 }}>{selected.length} audience{selected.length > 1 ? "s" : ""} selected</div>
+              <div style={{ fontSize: "12px", opacity: 0.7, fontFamily: "'Space Mono', monospace" }}>{fmtSize(combinedReach)} combined reach</div>
+            </div>
+            <button style={{ width: "100%", padding: "10px", borderRadius: "8px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", marginBottom: "8px" }}>Build Compound</button>
+            <button onClick={() => handleSend("lets syndicate this")} style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "none", backgroundColor: C.text, color: "#fff", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>Syndicate →</button>
+          </>
+        )}
+      </div>
+      </div>
       )}
     </div>
   );
@@ -1315,45 +1814,40 @@ function BuildView({ onNavigate }) {
   );
 }
 
+
 function DomainSeededCanvas({ onBack }) {
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
   const [seeds, setSeeds] = useState([]);
   const [building, setBuilding] = useState(false);
   const [built, setBuilt] = useState(false);
+  const [log, setLog] = useState([{ role: "ds1", text: "Tell me a topic, keyword, or seed domain and I'll surface relevant domains on the right. Pick up to 3 seeds and I'll model an audience from the people who visit them." }]);
 
   const MAX_SEEDS = 3;
 
   const ALL_DOMAINS = [
-    { domain: "nypost.com", reach: 96.7, status: "in_system", tags: ["news", "sports", "ny", "new york", "tabloid"] },
-    { domain: "espn.com", reach: 62.8, status: "in_system", tags: ["sports", "basketball", "nba", "football", "fans"] },
-    { domain: "si.com", reach: 61.6, status: "in_system", tags: ["sports", "sports illustrated", "fans", "basketball"] },
-    { domain: "nytimes.com", reach: 59.7, status: "in_system", tags: ["news", "ny", "new york", "politics"] },
-    { domain: "cbssports.com", reach: 56.2, status: "in_system", tags: ["sports", "fans", "basketball", "nba"] },
-    { domain: "sportingnews.com", reach: 51.1, status: "in_system", tags: ["sports", "news", "fans"] },
-    { domain: "yahoo.com/sports", reach: 44.1, status: "in_system", tags: ["sports", "news", "fans"] },
-    { domain: "basketball-reference.com", reach: 33.9, status: "in_system", tags: ["sports", "basketball", "nba", "stats"] },
-    { domain: "clutchpoints.com", reach: 22.2, status: "in_system", tags: ["sports", "basketball", "nba", "fans"] },
-    { domain: "bleacherreport.com", reach: 18.4, status: "in_system", tags: ["sports", "fans", "basketball", "nba"] },
-    { domain: "foxsports.com", reach: 12.7, status: "in_system", tags: ["sports", "fans", "news"] },
-    { domain: "nbcsports.com", reach: 11.6, status: "in_system", tags: ["sports", "fans", "news"] },
-    { domain: "theathletic.com", reach: 9.3, status: "in_system", tags: ["sports", "news", "basketball", "premium"] },
-    { domain: "nba.com", reach: 2.7, status: "in_system", tags: ["sports", "basketball", "nba", "fans"] },
-    { domain: "dailynews.com", reach: 2.6, status: "in_system", tags: ["news", "ny", "new york"] },
+    { domain: "nypost.com", reach: 96.7 }, { domain: "espn.com", reach: 62.8 },
+    { domain: "si.com", reach: 61.6 }, { domain: "nytimes.com", reach: 59.7 },
+    { domain: "cbssports.com", reach: 56.2 }, { domain: "sportingnews.com", reach: 51.1 },
+    { domain: "yahoo.com/sports", reach: 44.1 }, { domain: "basketball-reference.com", reach: 33.9 },
+    { domain: "clutchpoints.com", reach: 22.2 }, { domain: "bleacherreport.com", reach: 18.4 },
+    { domain: "foxsports.com", reach: 12.7 }, { domain: "nbcsports.com", reach: 11.6 },
+    { domain: "theathletic.com", reach: 9.3 }, { domain: "nba.com", reach: 2.7 },
+    { domain: "dailynews.com", reach: 2.6 },
   ];
 
-  const matchDomain = (d, q) => {
-    const query = q.toLowerCase().trim();
-    if (!query) return false;
-    if (d.domain.toLowerCase().includes(query)) return true;
-    return d.tags.some(t => t.includes(query) || query.includes(t));
-  };
-
   const maxReach = Math.max(...ALL_DOMAINS.map(d => d.reach));
-  const minReach = Math.min(...ALL_DOMAINS.map(d => d.reach));
   const filtered = search.trim() ? ALL_DOMAINS : [];
-  const inSystemCount = ALL_DOMAINS.filter(d => d.status === "in_system").length;
   const atMax = seeds.length >= MAX_SEEDS;
+
+  const say = (text) => setLog(prev => [...prev, { role: "ds1", text }]);
+
+  const runSearch = () => {
+    if (!query.trim()) return;
+    setLog(prev => [...prev, { role: "user", text: query.trim() }]);
+    setSearch(query.trim());
+    setTimeout(() => say(`Found ${ALL_DOMAINS.length} domains in our graph for "${query.trim()}". Pick up to ${MAX_SEEDS} to seed your audience.`), 400);
+  };
 
   const toggleSeed = (domain) => {
     setSeeds(prev => {
@@ -1366,249 +1860,144 @@ function DomainSeededCanvas({ onBack }) {
 
   const handleBuild = () => {
     setBuilding(true);
-    setTimeout(() => { setBuilding(false); setBuilt(true); }, 2000);
+    say("Modeling an audience from the shared behaviors of people who visit your seed domains…");
+    setTimeout(() => { setBuilding(false); setBuilt(true); say(`Done. I modeled a ~${modeledReach}M ID-based audience from your ${seeds.length} seed${seeds.length > 1 ? "s" : ""}. Ready to syndicate.`); }, 2000);
   };
 
-  const seededReach = seeds.reduce((sum, s) => {
-    const d = ALL_DOMAINS.find(x => x.domain === s);
-    return sum + (d ? d.reach : 0);
-  }, 0);
+  const seededReach = seeds.reduce((sum, s) => { const d = ALL_DOMAINS.find(x => x.domain === s); return sum + (d ? d.reach : 0); }, 0);
   const modeledReach = (seededReach * 3.2).toFixed(1);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-      {/* Header */}
-      <div style={{
-        padding: "14px 24px", borderBottom: `1px solid ${C.borderLight}`,
-        display: "flex", alignItems: "center", gap: "12px", flexShrink: 0,
-      }}>
+      <div style={briefHeaderStyle}>
         <button onClick={onBack} style={s.btnSecondary}>← Back</button>
-        <div style={{
-          width: "28px", height: "28px", borderRadius: "6px",
-          backgroundColor: C.accentGreen + "18", color: C.accentGreen,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontFamily: "'Space Mono', monospace", fontSize: "10px", fontWeight: 700,
-        }}>DS</div>
-        <span style={{ fontSize: "15px", fontWeight: 600, color: C.text, flex: 1 }}>Domain Seeded Canvas</span>
+        <div style={{ ...briefBadge, backgroundColor: C.accentGreen + "18", color: C.accentGreen }}>DS</div>
+        <span style={{ fontSize: "15px", fontWeight: 600, color: C.text, flex: 1 }}>Domain Seeded Audience</span>
+        <span style={{ fontSize: "12px", color: C.textTertiary }}>{seeds.length}/{MAX_SEEDS} seeds</span>
       </div>
 
-      {/* Search */}
-      <div style={{ padding: "20px 32px 0", flexShrink: 0 }}>
-        <div style={{ position: "relative" }}>
-          <span
-            onClick={() => setSearch(query)}
-            style={{ position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)", color: C.textTertiary, fontSize: "14px", cursor: "pointer" }}
-          >⌕</span>
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") setSearch(query); }}
-            placeholder="Find domains: a topic, keyword, or seed domain — then press Enter"
-            style={{
-              width: "100%", padding: "12px 16px 12px 40px", borderRadius: "10px",
-              border: `1px solid ${C.border}`, backgroundColor: C.bg,
-              color: C.text, fontSize: "14px", fontFamily: "'DM Sans', sans-serif",
-              outline: "none", boxSizing: "border-box",
-            }}
-          />
-        </div>
-
-        {/* Info explanation */}
-        <div style={{
-          display: "flex", alignItems: "flex-start", gap: "8px",
-          marginTop: "12px", padding: "10px 14px", borderRadius: "8px",
-          backgroundColor: C.bgSidebar, border: `1px solid ${C.borderLight}`,
-        }}>
-          <span style={{ fontSize: "13px", flexShrink: 0 }}>ⓘ</span>
-          <span style={{ fontSize: "12px", color: C.textSecondary, lineHeight: "1.5" }}>
-            Each domain shows its <strong>estimated reach</strong> — how many people in Dstillery's graph regularly visit it. Longer bars mean broader reach. Pick up to <strong>{MAX_SEEDS} seed domains</strong>, and DS-1 will model a new audience from the shared behaviors of people who visit them.
-          </span>
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "10px" }}>
-          <div style={{ display: "flex", gap: "16px" }}>
-            <span style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: C.textSecondary }}>
-              <span style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: C.accentGreen }} /> in our system
-            </span>
-            <span style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: C.textSecondary }}>
-              <span style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: C.textTertiary }} /> not found
-            </span>
-          </div>
-          <span style={{ fontSize: "12px", color: C.textTertiary, fontFamily: "'Space Mono', monospace" }}>
-            {search.trim() ? `${filtered.length} shown` : `${inSystemCount} domains in system`}
-          </span>
-        </div>
-      </div>
-
-      {/* Domain display */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "20px 32px" }}>
-        {!search.trim() ? (
-          <div style={{
-            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-            height: "100%", textAlign: "center", padding: "32px",
-          }}>
-            <div style={{
-              width: "52px", height: "52px", borderRadius: "13px",
-              backgroundColor: C.accentGreen + "14", color: C.accentGreen,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: "22px", marginBottom: "18px",
-            }}>⊞</div>
-            <div style={{ fontSize: "17px", fontWeight: 600, color: C.text, marginBottom: "6px" }}>Search for domains to get started</div>
-            <div style={{ fontSize: "14px", color: C.textTertiary, maxWidth: "380px", lineHeight: "1.5", marginBottom: "20px" }}>
-              Enter a topic, a brief, or a specific seed domain above. DS-1 will surface relevant domains you can pick from.
-            </div>
-            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "center" }}>
-              {["sports", "basketball", "nypost.com", "ny news"].map(ex => (
-                <button key={ex} onClick={() => { setQuery(ex); setSearch(ex); }} style={{
-                  padding: "7px 14px", borderRadius: "20px", fontSize: "13px",
-                  border: `1px solid ${C.border}`, backgroundColor: C.bg,
-                  color: C.textSecondary, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontWeight: 500,
-                }}>{ex}</button>
-              ))}
-            </div>
-          </div>
-        ) : filtered.length === 0 ? (
-          <div style={{ padding: "24px", textAlign: "center", fontSize: "14px", color: C.textTertiary, fontStyle: "italic" }}>
-            No domains match "{search}". Try a different topic or seed domain.
-          </div>
-        ) : (
-          // DOMAIN GRID
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-            {filtered.map((d) => {
-              const isSeeded = seeds.includes(d.domain);
-              const pct = (d.reach / maxReach) * 100;
-              const disabled = atMax && !isSeeded;
-              return (
-                <div
-                  key={d.domain}
-                  onClick={() => toggleSeed(d.domain)}
-                  style={{
-                    padding: "14px 16px", borderRadius: "10px",
-                    border: `1px solid ${isSeeded ? C.accentGreen : C.border}`,
-                    backgroundColor: isSeeded ? C.accentGreen + "08" : C.bg,
-                    cursor: disabled ? "not-allowed" : "pointer",
-                    opacity: disabled ? 0.45 : 1,
-                    transition: "all 0.15s ease",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
-                    <span style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: d.status === "in_system" ? C.accentGreen : C.textTertiary, flexShrink: 0 }} />
-                    <span style={{ fontSize: "14px", fontWeight: 600, color: C.text, flex: 1 }}>{d.domain}</span>
-                    <span style={{
-                      width: "22px", height: "22px", borderRadius: "6px",
-                      border: `1px solid ${isSeeded ? C.accentGreen : C.border}`,
-                      backgroundColor: isSeeded ? C.accentGreen : "transparent",
-                      color: isSeeded ? "#fff" : C.textTertiary,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: "14px", flexShrink: 0,
-                    }}>{isSeeded ? "✓" : "+"}</span>
+      <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
+        {/* LEFT — chat / seeds */}
+        <div style={{ width: "380px", flexShrink: 0, borderRight: `1px solid ${C.borderLight}`, display: "flex", flexDirection: "column", backgroundColor: C.bgSecondary }}>
+          <div style={{ flex: 1, overflowY: "auto", padding: "20px" }}>
+            {log.map((m, i) => (
+              <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start", marginBottom: "12px" }}>
+                {m.role === "user" ? (
+                  <div style={{ maxWidth: "85%", fontSize: "13px", color: "#fff", backgroundColor: C.text, padding: "8px 12px", borderRadius: "12px 12px 2px 12px", lineHeight: "1.5" }}>{m.text}</div>
+                ) : (
+                  <div style={{ display: "flex", gap: "8px", maxWidth: "92%" }}>
+                    <span style={{ fontSize: "11px", fontWeight: 700, color: C.accentGreen, fontFamily: "'Space Mono', monospace", flexShrink: 0, marginTop: "2px" }}>DS-1</span>
+                    <div style={{ fontSize: "13px", color: C.textSecondary, lineHeight: "1.6" }}>{m.text}</div>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <div style={{ flex: 1, height: "5px", borderRadius: "3px", backgroundColor: C.bgHover, overflow: "hidden" }}>
-                      <div style={{ height: "100%", width: `${pct}%`, borderRadius: "3px", backgroundColor: C.accentBlue, opacity: 0.4 + (pct / 100) * 0.6 }} />
-                    </div>
-                    <span style={{ fontSize: "12px", color: C.textTertiary, fontFamily: "'Space Mono', monospace", flexShrink: 0 }}>{d.reach}M</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* Seeds tray */}
-      <div style={{
-        borderTop: `1px solid ${C.borderLight}`, padding: "16px 32px",
-        flexShrink: 0, backgroundColor: C.bgSecondary,
-      }}>
-        {built ? (
-          <div style={{
-            display: "flex", alignItems: "center", gap: "14px",
-            padding: "14px 18px", borderRadius: "10px",
-            backgroundColor: C.accentGreen + "12", border: `1px solid ${C.accentGreen}40`,
-          }}>
-            <span style={{ fontSize: "18px" }}>✓</span>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: "14px", fontWeight: 600, color: C.text }}>Audience modeled from {seeds.length} seed domain{seeds.length > 1 ? "s" : ""}</div>
-              <div style={{ fontSize: "12px", color: C.textSecondary, marginTop: "2px", fontFamily: "'Space Mono', monospace" }}>~{modeledReach}M modeled reach · ID-Based</div>
-            </div>
-            <button onClick={() => { setBuilt(false); setSeeds([]); }} style={s.btnSecondary}>Start over</button>
-            <button style={{ ...s.btnPrimary, backgroundColor: C.text }}>Syndicate →</button>
-          </div>
-        ) : (
-          <>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: seeds.length > 0 ? "12px" : "0" }}>
-              <span style={{ fontSize: "12px", fontWeight: 700, color: atMax ? C.accentGreen : C.textSecondary, textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                Seeds ({seeds.length}/{MAX_SEEDS})
-              </span>
-              {seeds.length > 0 && (
-                <span style={{ fontSize: "12px", color: C.textTertiary, fontFamily: "'Space Mono', monospace" }}>
-                  {seededReach.toFixed(1)}M combined seed reach
-                </span>
-              )}
-            </div>
-            {seeds.length === 0 ? (
-              <div style={{ fontSize: "13px", color: C.textTertiary, fontStyle: "italic" }}>
-                Click domains above to add up to {MAX_SEEDS} seeds. DS-1 will model an audience from the behavioral patterns of people who visit them.
+                )}
               </div>
-            ) : (
-              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", flex: 1 }}>
+            ))}
+
+            {/* Seeds */}
+            {seeds.length > 0 && (
+              <div style={{ marginTop: "8px", padding: "14px", borderRadius: "10px", border: `1px solid ${C.border}`, backgroundColor: C.bg }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
+                  <span style={{ fontSize: "12px", fontWeight: 700, color: atMax ? C.accentGreen : C.text }}>Seeds ({seeds.length}/{MAX_SEEDS})</span>
+                  <span style={{ fontSize: "11px", color: C.textTertiary, fontFamily: "'Space Mono', monospace" }}>{seededReach.toFixed(1)}M combined</span>
+                </div>
+                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "12px" }}>
                   {seeds.map((s2) => (
-                    <span key={s2} style={{
-                      display: "flex", alignItems: "center", gap: "6px",
-                      padding: "5px 10px", borderRadius: "6px", fontSize: "12px", fontWeight: 500,
-                      backgroundColor: C.bg, border: `1px solid ${C.border}`, color: C.text,
-                    }}>
-                      {s2}
-                      <span onClick={() => toggleSeed(s2)} style={{ cursor: "pointer", color: C.textTertiary, fontSize: "14px" }}>×</span>
+                    <span key={s2} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "5px 10px", borderRadius: "6px", fontSize: "12px", fontWeight: 500, backgroundColor: C.bgSecondary, border: `1px solid ${C.border}`, color: C.text }}>
+                      {s2}<span onClick={() => toggleSeed(s2)} style={{ cursor: "pointer", color: C.textTertiary, fontSize: "14px" }}>×</span>
                     </span>
                   ))}
                 </div>
-                <button
-                  onClick={handleBuild}
-                  disabled={building}
-                  style={{
-                    ...s.btnPrimary, backgroundColor: C.accentGreen, flexShrink: 0,
-                    opacity: building ? 0.6 : 1,
-                  }}
-                >{building ? "Modeling..." : "Build Audience →"}</button>
+                <button onClick={handleBuild} disabled={building || built} style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "none", backgroundColor: built ? C.bgHover : C.accentGreen, color: built ? C.textTertiary : "#fff", fontSize: "13px", fontWeight: 600, cursor: building || built ? "default" : "pointer", fontFamily: "'DM Sans', sans-serif", opacity: building ? 0.6 : 1 }}>{building ? "Modeling…" : built ? "✓ Modeled" : "Build Audience →"}</button>
               </div>
             )}
-          </>
-        )}
+          </div>
+
+          {/* composer / search */}
+          <div style={{ padding: "14px", borderTop: `1px solid ${C.borderLight}` }}>
+            <div style={{ display: "flex", gap: "8px", alignItems: "flex-end", padding: "6px 6px 6px 12px", borderRadius: "12px", border: `1px solid ${C.border}`, backgroundColor: C.bg }}>
+              <textarea value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); runSearch(); } }} placeholder="Search a topic, keyword, or seed domain…" rows={1} style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "13px", fontFamily: "'DM Sans', sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "4px 0" }} />
+              <button onClick={runSearch} style={{ width: "30px", height: "30px", borderRadius: "8px", border: "none", cursor: "pointer", backgroundColor: query.trim() ? C.text : C.bgHover, color: query.trim() ? "#fff" : C.textTertiary, fontSize: "14px", flexShrink: 0 }}>↑</button>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT — live domain render */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "28px clamp(20px, 4vw, 48px)", minWidth: 0 }}>
+          <div style={{ maxWidth: "640px", margin: "0 auto" }}>
+            {built && (
+              <div style={{ display: "flex", alignItems: "center", gap: "14px", padding: "16px 18px", borderRadius: "12px", backgroundColor: C.accentGreen + "12", border: `1px solid ${C.accentGreen}40`, marginBottom: "20px" }}>
+                <span style={{ fontSize: "18px" }}>✓</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: "14px", fontWeight: 600, color: C.text }}>Audience modeled from {seeds.length} seed{seeds.length > 1 ? "s" : ""}</div>
+                  <div style={{ fontSize: "12px", color: C.textSecondary, marginTop: "2px", fontFamily: "'Space Mono', monospace" }}>~{modeledReach}M modeled reach · ID-Based</div>
+                </div>
+                <button onClick={() => { setBuilt(false); setSeeds([]); }} style={s.btnSecondary}>Start over</button>
+                <button style={{ ...s.btnPrimary, backgroundColor: C.text }}>Syndicate →</button>
+              </div>
+            )}
+
+            {!search.trim() ? (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "60vh", textAlign: "center" }}>
+                <div style={{ width: "52px", height: "52px", borderRadius: "13px", backgroundColor: C.accentGreen + "14", color: C.accentGreen, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", marginBottom: "18px" }}>⊞</div>
+                <div style={{ fontSize: "17px", fontWeight: 600, color: C.text, marginBottom: "6px" }}>Search for domains to get started</div>
+                <div style={{ fontSize: "14px", color: C.textTertiary, maxWidth: "380px", lineHeight: "1.5", marginBottom: "20px" }}>Use the chat on the left — enter a topic, brief, or seed domain and relevant domains appear here.</div>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "center" }}>
+                  {["sports", "basketball", "nypost.com", "ny news"].map(ex => (
+                    <button key={ex} onClick={() => { setQuery(ex); setLog(prev => [...prev, { role: "user", text: ex }]); setSearch(ex); setTimeout(() => say(`Found ${ALL_DOMAINS.length} domains in our graph for "${ex}". Pick up to ${MAX_SEEDS} to seed your audience.`), 400); }} style={{ padding: "7px 14px", borderRadius: "20px", fontSize: "13px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textSecondary, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontWeight: 500 }}>{ex}</button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", marginBottom: "16px", padding: "10px 14px", borderRadius: "8px", backgroundColor: C.bgSidebar, border: `1px solid ${C.borderLight}` }}>
+                  <span style={{ fontSize: "13px", flexShrink: 0 }}>ⓘ</span>
+                  <span style={{ fontSize: "12px", color: C.textSecondary, lineHeight: "1.5" }}>Each domain shows its <strong>estimated reach</strong> — how many people in Dstillery's graph regularly visit it. Pick up to <strong>{MAX_SEEDS} seeds</strong> and DS-1 models a new audience from their shared behaviors.</span>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                  {filtered.map((d) => {
+                    const isSeeded = seeds.includes(d.domain);
+                    const pct = (d.reach / maxReach) * 100;
+                    const disabled = atMax && !isSeeded;
+                    return (
+                      <div key={d.domain} onClick={() => toggleSeed(d.domain)} style={{ padding: "14px 16px", borderRadius: "10px", border: `1px solid ${isSeeded ? C.accentGreen : C.border}`, backgroundColor: isSeeded ? C.accentGreen + "08" : C.bg, cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.45 : 1, transition: "all 0.15s ease" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+                          <span style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: C.accentGreen, flexShrink: 0 }} />
+                          <span style={{ fontSize: "14px", fontWeight: 600, color: C.text, flex: 1 }}>{d.domain}</span>
+                          <span style={{ width: "22px", height: "22px", borderRadius: "6px", border: `1px solid ${isSeeded ? C.accentGreen : C.border}`, backgroundColor: isSeeded ? C.accentGreen : "transparent", color: isSeeded ? "#fff" : C.textTertiary, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", flexShrink: 0 }}>{isSeeded ? "✓" : "+"}</span>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                          <div style={{ flex: 1, height: "5px", borderRadius: "3px", backgroundColor: C.bgHover, overflow: "hidden" }}>
+                            <div style={{ height: "100%", width: `${pct}%`, borderRadius: "3px", backgroundColor: C.accentBlue, opacity: 0.4 + (pct / 100) * 0.6 }} />
+                          </div>
+                          <span style={{ fontSize: "12px", color: C.textTertiary, fontFamily: "'Space Mono', monospace", flexShrink: 0 }}>{d.reach}M</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
+
 function PixelCreator({ onBack }) {
-  const [stage, setStage] = useState("form"); // form | creating | created
   const [marketer, setMarketer] = useState("");
-  const [audienceCode, setAudienceCode] = useState("");
-  const [description, setDescription] = useState("");
-  const [pixelType, setPixelType] = useState("Site Visitor");
+  const [draftType, setDraftType] = useState("Site Visitor");
+  const [draftCodes, setDraftCodes] = useState("");
+  const [draftDesc, setDraftDesc] = useState("");
   const [agreed, setAgreed] = useState(false);
+  const [batch, setBatch] = useState([]); // {key, code, type, description, status, id, loads}
   const [copied, setCopied] = useState(null);
-  const [excelDone, setExcelDone] = useState(false);
+  const [log, setLog] = useState([{ role: "ds1", text: "I can create tracking pixels for you — one at a time or in bulk. Pick a marketer, then add audience codes (one per line for a batch) and I'll render each pixel and its tags on the right." }]);
+  const [input, setInput] = useState("");
 
-  const canCreate = marketer.trim() && audienceCode.trim() && description.trim() && agreed;
-  const pixelId = "874787";
   const brand = marketer.trim() || "your brand";
-
-  const htmlTag = `<img width="1" height="1" src="//action.dstillery.com/orbserv/nspix?adv=cl161902600414132&ns=5973&nc=${audienceCode || "audience-code"}&ncv=64&dstOrderId=[OrderId]&dstOrderAmount=[OrderAmount]" />`;
-  const jsTag = `<script src="//action.dstillery.com/orbserv/nsjs?adv=cl161902600414132&ns=5973&nc=${audienceCode || "audience-code"}&ncv=64&dstOrderId=[OrderId]&dstOrderAmount=[OrderAmount]" type="text/javascript"></script>`;
-
-  const handleCreate = () => {
-    setStage("creating");
-    setTimeout(() => setStage("created"), 1800);
-  };
-
-  const copy = (text, key) => {
-    try { navigator.clipboard && navigator.clipboard.writeText(text); } catch (e) {}
-    setCopied(key); setTimeout(() => setCopied(null), 1600);
-  };
+  const typeAbbr = (t) => t.toUpperCase().split(" ")[0];
 
   const PIXEL_TYPES = [
     { value: "Site Visitor", desc: "tracks website visitors" },
@@ -1622,204 +2011,215 @@ function PixelCreator({ onBack }) {
     { code: "fjallraven-spring-display", type: "AD", id: "873544", date: "May 20, 2026", loads: 1340 },
   ];
 
-  const labelStyle = { fontSize: "13px", fontWeight: 600, color: C.text, marginBottom: "6px" };
-  const hintStyle = { fontSize: "12px", color: C.textTertiary, marginTop: "6px", lineHeight: "1.4" };
-  const inputStyle = { width: "100%", padding: "11px 14px", borderRadius: "8px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "14px", fontFamily: "'DM Sans', sans-serif", outline: "none", boxSizing: "border-box" };
+  const tagFor = (code, kind) => kind === "js"
+    ? `<script src="//action.dstillery.com/orbserv/nsjs?adv=cl161902600414132&ns=5973&nc=${code}&ncv=64" type="text/javascript"></script>`
+    : `<img width="1" height="1" src="//action.dstillery.com/orbserv/nspix?adv=cl161902600414132&ns=5973&nc=${code}&ncv=64" />`;
 
-  // CREATING
-  if (stage === "creating") {
-    return (
-      <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-        <div style={briefHeaderStyle}>
-          <button onClick={onBack} style={s.btnSecondary}>← Back</button>
-          <div style={{ ...briefBadge, backgroundColor: C.accentPink + "18", color: C.accentPink }}>PX</div>
-          <span style={{ fontSize: "15px", fontWeight: 600, color: C.text }}>Create Pixel</span>
-        </div>
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "8px" }}>
-          <div style={{ fontSize: "14px", color: C.textSecondary, fontStyle: "italic" }}>Creating pixel...</div>
-        </div>
+  const say = (text) => setLog(prev => [...prev, { role: "ds1", text }]);
+
+  const cleanCode = (s) => s.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
+  const addToBatch = () => {
+    const codes = draftCodes.split("\n").map(cleanCode).filter(Boolean);
+    if (codes.length === 0) return;
+    const additions = codes.map((code, i) => ({ key: Date.now() + "-" + i, code, type: draftType, description: draftDesc.trim(), status: "draft" }));
+    setBatch(prev => [...prev, ...additions]);
+    setDraftCodes(""); setDraftDesc("");
+    say(`Added ${additions.length} ${draftType} pixel${additions.length !== 1 ? "s" : ""} to the batch${codes.length > 1 ? " — bulk create is ready when you are." : "."}`);
+  };
+
+  const removeFromBatch = (key) => setBatch(prev => prev.filter(p => p.key !== key));
+
+  const createAll = () => {
+    const drafts = batch.filter(p => p.status === "draft");
+    if (drafts.length === 0 || !agreed) return;
+    let n = 874790;
+    setBatch(prev => prev.map(p => p.status === "draft" ? { ...p, status: "created", id: String(n++), loads: 0 } : p));
+    say(`Created ${drafts.length} pixel${drafts.length !== 1 ? "s" : ""} for ${brand}. Tags are ready on the right — each needs 1,000 loads before segments and SegRank unlock.`);
+  };
+
+  const copy = (text, key) => {
+    try { navigator.clipboard && navigator.clipboard.writeText(text); } catch (e) {}
+    setCopied(key); setTimeout(() => setCopied(null), 1600);
+  };
+
+  // light NL: "add conversion pixel for checkout" / "bulk add homepage, checkout, promo" / "create"
+  const runInput = () => {
+    const raw = input.trim();
+    if (!raw) return;
+    const t = raw.toLowerCase();
+    setLog(prev => [...prev, { role: "user", text: raw }]);
+    setInput("");
+    if (/\b(create|generate|make) (all|them|the pixels|batch)\b/.test(t) || t === "create" || t === "create all") {
+      setTimeout(createAll, 400); return;
+    }
+    const type = /conversion|convert|checkout|purchase/.test(t) ? "Conversion" : /ad ?viewer|impression/.test(t) ? "Ad Viewer" : "Site Visitor";
+    const codeMatch = raw.match(/(?:for|called|named)\s+([a-z0-9 ,\-]+)/i);
+    const codes = (codeMatch ? codeMatch[1] : "").split(/[,]/).map(cleanCode).filter(Boolean);
+    if (codes.length) {
+      const additions = codes.map((code, i) => ({ key: Date.now() + "-" + i, code, type, description: "", status: "draft" }));
+      setBatch(prev => [...prev, ...additions]);
+      setTimeout(() => say(`Added ${additions.length} ${type} pixel${additions.length !== 1 ? "s" : ""} to the batch.`), 400);
+    } else {
+      setTimeout(() => say("Tell me the audience code(s) — e.g. \"add a conversion pixel for checkout\" or use the fields above to bulk-add several at once."), 400);
+    }
+  };
+
+  const inputStyle = { width: "100%", padding: "10px 12px", borderRadius: "8px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "13px", fontFamily: "'DM Sans', sans-serif", outline: "none", boxSizing: "border-box" };
+  const draftCount = batch.filter(p => p.status === "draft").length;
+
+  const CodeBlock = ({ label, code, ckey }) => (
+    <div style={{ marginTop: "8px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "4px" }}>
+        <span style={{ fontSize: "11px", fontWeight: 600, color: C.textTertiary }}>{label}</span>
+        <button onClick={() => copy(code, ckey)} style={{ padding: "2px 10px", borderRadius: "5px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: copied === ckey ? C.accentGreen : C.textSecondary, fontSize: "11px", fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>{copied === ckey ? "✓ Copied" : "Copy"}</button>
       </div>
-    );
-  }
-
-  // CREATED
-  if (stage === "created") {
-    const CodeBlock = ({ label, code, ckey }) => (
-      <div style={{ marginBottom: "16px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
-          <span style={{ fontSize: "13px", fontWeight: 600, color: C.text }}>{label}</span>
-          <button onClick={() => copy(code, ckey)} style={{ padding: "4px 12px", borderRadius: "6px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: copied === ckey ? C.accentGreen : C.textSecondary, fontSize: "12px", fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>{copied === ckey ? "✓ Copied" : "Copy"}</button>
-        </div>
-        <div style={{ padding: "14px 16px", borderRadius: "8px", backgroundColor: "#2b2926", border: `1px solid ${C.border}`, overflowX: "auto" }}>
-          <code style={{ fontSize: "12px", fontFamily: "'Space Mono', monospace", color: "#e8e5e0", lineHeight: "1.6", whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{code}</code>
-        </div>
+      <div style={{ padding: "10px 12px", borderRadius: "6px", backgroundColor: "#2b2926", overflowX: "auto" }}>
+        <code style={{ fontSize: "11px", fontFamily: "'Space Mono', monospace", color: "#e8e5e0", lineHeight: "1.5", whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{code}</code>
       </div>
-    );
+    </div>
+  );
 
-    return (
-      <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-        <div style={briefHeaderStyle}>
-          <button onClick={onBack} style={s.btnSecondary}>← Back</button>
-          <div style={{ ...briefBadge, backgroundColor: C.accentPink + "18", color: C.accentPink }}>PX</div>
-          <span style={{ fontSize: "15px", fontWeight: 600, color: C.text }}>Create Pixel</span>
-        </div>
-        <div style={{ flex: 1, overflowY: "auto", padding: "28px clamp(20px, 5vw, 48px)" }}>
-          <div style={{ maxWidth: "680px", margin: "0 auto" }}>
-            {/* Success */}
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "14px 18px", borderRadius: "10px", backgroundColor: C.accentGreen + "12", border: `1px solid ${C.accentGreen}40`, marginBottom: "24px" }}>
-              <span style={{ fontSize: "18px" }}>✓</span>
-              <span style={{ fontSize: "14px", fontWeight: 600, color: C.text }}>Successfully created the {pixelType} pixel for {brand}</span>
-            </div>
-
-            {/* Details */}
-            <div style={{ marginBottom: "24px" }}>
-              <div style={{ fontSize: "13px", fontWeight: 700, color: C.text, marginBottom: "10px" }}>Pixel Details</div>
-              <div style={{ border: `1px solid ${C.border}`, borderRadius: "10px", overflow: "hidden" }}>
-                {[["ID", pixelId], ["Description", `${brand} - ${pixelType.toUpperCase()}`], ["Audience Code", audienceCode]].map(([k, v], i) => (
-                  <div key={k} style={{ display: "flex", padding: "11px 16px", borderBottom: i < 2 ? `1px solid ${C.borderLight}` : "none", fontSize: "13px" }}>
-                    <span style={{ width: "120px", color: C.textTertiary, flexShrink: 0 }}>{k}</span>
-                    <span style={{ color: C.text, fontWeight: 500, fontFamily: "'Space Mono', monospace" }}>{v}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Tags */}
-            <CodeBlock label="HTML Image Tag" code={htmlTag} ckey="html" />
-            <CodeBlock label="JavaScript Tag" code={jsTag} ckey="js" />
-
-            {/* Info */}
-            <div style={{ padding: "14px 16px", borderRadius: "10px", backgroundColor: C.bgSidebar, border: `1px solid ${C.borderLight}`, fontSize: "13px", color: C.textSecondary, lineHeight: "1.6", marginBottom: "20px" }}>
-              Dstillery will start building a unique lookalike model for {brand} as soon as your pixel is placed and reaches <strong>1,000 loads</strong>. Place the tag on every page you want to track.
-            </div>
-
-            {/* Excel offer */}
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "16px", borderRadius: "10px", border: `1px solid ${C.border}`, marginBottom: "28px" }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: "14px", fontWeight: 600, color: C.text }}>Generate an Excel template</div>
-                <div style={{ fontSize: "12px", color: C.textTertiary, marginTop: "2px" }}>All tracking codes and pixel info in a shareable spreadsheet for your dev team.</div>
-              </div>
-              {excelDone ? (
-                <span style={{ fontSize: "13px", fontWeight: 600, color: C.accentGreen }}>✓ Generated</span>
-              ) : (
-                <button onClick={() => setExcelDone(true)} style={{ ...s.btnSecondary, flexShrink: 0 }}>Generate</button>
-              )}
-            </div>
-
-            {/* Previously created pixels */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
-              <div style={{ fontSize: "13px", fontWeight: 700, color: C.text }}>All pixels for {brand}</div>
-              <span style={{ fontSize: "12px", color: C.textTertiary }}>{PREVIOUS_PIXELS.length + 1} total</span>
-            </div>
-            <div style={{
-              display: "flex", alignItems: "flex-start", gap: "8px",
-              padding: "10px 14px", borderRadius: "8px",
-              backgroundColor: C.bgSidebar, border: `1px solid ${C.borderLight}`, marginBottom: "12px",
-            }}>
-              <span style={{ fontSize: "13px", flexShrink: 0 }}>ⓘ</span>
-              <span style={{ fontSize: "12px", color: C.textSecondary, lineHeight: "1.5" }}>
-                Each pixel needs <strong>1,000 loads</strong> before Dstillery can build segments and unlock SegRank data. The bar shows progress toward that threshold.
-              </span>
-            </div>
-            <div style={{ border: `1px solid ${C.border}`, borderRadius: "10px", overflow: "hidden" }}>
-              {[{ code: audienceCode, type: pixelType.toUpperCase().split(" ")[0], id: pixelId, date: "just now", loads: 0, isNew: true }, ...PREVIOUS_PIXELS].map((px, i, arr) => {
-                const reached = px.loads >= 1000;
-                const pct = Math.min(100, (px.loads / 1000) * 100);
-                return (
-                  <div key={i} style={{ padding: "14px 16px", borderBottom: i < arr.length - 1 ? `1px solid ${C.borderLight}` : "none", backgroundColor: px.isNew ? C.accentGreen + "0c" : C.bg, cursor: px.isNew ? "default" : "pointer" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "10px" }}>
-                      <span style={{ fontSize: "10px", fontWeight: 700, color: px.isNew ? C.accentPink : C.textSecondary, backgroundColor: px.isNew ? C.accentPink + "16" : C.bgHover, padding: "2px 8px", borderRadius: "4px", fontFamily: "'Space Mono', monospace", flexShrink: 0 }}>{px.type}</span>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: "13px", fontWeight: 600, color: C.text }}>{px.code}</div>
-                        <div style={{ fontSize: "11px", color: C.textTertiary, fontFamily: "'Space Mono', monospace" }}>ID {px.id} · {px.date}</div>
-                      </div>
-                      {reached ? (
-                        <span style={{ fontSize: "11px", fontWeight: 600, color: C.accentGreen, backgroundColor: C.accentGreen + "14", padding: "3px 10px", borderRadius: "5px", flexShrink: 0 }}>✓ Segments active</span>
-                      ) : px.isNew ? (
-                        <span style={{ fontSize: "11px", fontWeight: 600, color: C.textTertiary, flexShrink: 0 }}>Collecting…</span>
-                      ) : (
-                        <span style={{ fontSize: "11px", fontWeight: 600, color: C.accentOrange, flexShrink: 0 }}>{(1000 - px.loads).toLocaleString()} to go</span>
-                      )}
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <div style={{ flex: 1, height: "6px", borderRadius: "3px", backgroundColor: C.bgHover, overflow: "hidden", position: "relative" }}>
-                        <div style={{ height: "100%", width: `${pct}%`, borderRadius: "3px", backgroundColor: reached ? C.accentGreen : C.accentPink, transition: "width 0.4s ease" }} />
-                      </div>
-                      <span style={{ fontSize: "11px", color: C.textTertiary, fontFamily: "'Space Mono', monospace", flexShrink: 0, minWidth: "92px", textAlign: "right" }}>
-                        {px.loads.toLocaleString()} / 1,000
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // FORM
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
       <div style={briefHeaderStyle}>
         <button onClick={onBack} style={s.btnSecondary}>← Back</button>
         <div style={{ ...briefBadge, backgroundColor: C.accentPink + "18", color: C.accentPink }}>PX</div>
-        <span style={{ fontSize: "15px", fontWeight: 600, color: C.text }}>Create Pixel</span>
+        <span style={{ fontSize: "15px", fontWeight: 600, color: C.text, flex: 1 }}>Create Pixels</span>
+        <span style={{ fontSize: "12px", color: C.textTertiary }}>{batch.length} in batch</span>
       </div>
-      <div style={{ flex: 1, overflowY: "auto", padding: "28px clamp(20px, 5vw, 48px)" }}>
-        <div style={{ maxWidth: "560px", margin: "0 auto" }}>
-          <div style={{ marginBottom: "24px" }}>
-            <h1 style={{ fontSize: "24px", fontWeight: 700, color: C.text, margin: "0 0 6px 0" }}>Create a tracking pixel</h1>
-            <p style={{ fontSize: "14px", color: C.textSecondary, margin: 0, lineHeight: "1.5" }}>Generate a Dstillery pixel and its tags to drop on your site.</p>
-          </div>
 
-          <div style={{ marginBottom: "18px" }}>
-            <div style={labelStyle}>Marketer</div>
-            <input style={inputStyle} value={marketer} onChange={(e) => setMarketer(e.target.value)} placeholder="e.g. cl12345 or Acme Corp" />
-            <div style={hintStyle}>Enter a CL ID (e.g. cl12345) to use directly, or a marketer name to search.</div>
-          </div>
-
-          <div style={{ marginBottom: "18px" }}>
-            <div style={labelStyle}>Audience Code</div>
-            <input style={inputStyle} value={audienceCode} onChange={(e) => setAudienceCode(e.target.value.toLowerCase().replace(/\s+/g, "-"))} placeholder="e.g. acme-homepage-2024" />
-            <div style={hintStyle}>A unique identifier for the audience. Lowercase with hyphens, no spaces.</div>
-          </div>
-
-          <div style={{ marginBottom: "18px" }}>
-            <div style={labelStyle}>Description</div>
-            <input style={inputStyle} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="e.g. Homepage visitors for Q1 2024 campaign" />
-            <div style={hintStyle}>A human-readable description of what this pixel tracks.</div>
-          </div>
-
-          <div style={{ marginBottom: "18px" }}>
-            <div style={labelStyle}>Pixel Type</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              {PIXEL_TYPES.map(pt => (
-                <div key={pt.value} onClick={() => setPixelType(pt.value)} style={{
-                  display: "flex", alignItems: "center", gap: "12px", padding: "12px 14px",
-                  borderRadius: "8px", cursor: "pointer",
-                  border: `1px solid ${pixelType === pt.value ? C.accentPink : C.border}`,
-                  backgroundColor: pixelType === pt.value ? C.accentPink + "0a" : C.bg,
-                }}>
-                  <div style={{ width: "16px", height: "16px", borderRadius: "50%", border: `1.5px solid ${pixelType === pt.value ? C.accentPink : C.border}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    {pixelType === pt.value && <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: C.accentPink }} />}
+      <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
+        {/* LEFT — chat / controls */}
+        <div style={{ width: "380px", flexShrink: 0, borderRight: `1px solid ${C.borderLight}`, display: "flex", flexDirection: "column", backgroundColor: C.bgSecondary }}>
+          <div style={{ flex: 1, overflowY: "auto", padding: "20px" }}>
+            {log.map((m, i) => (
+              <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start", marginBottom: "12px" }}>
+                {m.role === "user" ? (
+                  <div style={{ maxWidth: "85%", fontSize: "13px", color: "#fff", backgroundColor: C.text, padding: "8px 12px", borderRadius: "12px 12px 2px 12px", lineHeight: "1.5" }}>{m.text}</div>
+                ) : (
+                  <div style={{ display: "flex", gap: "8px", maxWidth: "92%" }}>
+                    <span style={{ fontSize: "11px", fontWeight: 700, color: C.accentPink, fontFamily: "'Space Mono', monospace", flexShrink: 0, marginTop: "2px" }}>DS-1</span>
+                    <div style={{ fontSize: "13px", color: C.textSecondary, lineHeight: "1.6" }}>{m.text}</div>
                   </div>
-                  <span style={{ fontSize: "14px", fontWeight: 600, color: C.text }}>{pt.value}</span>
-                  <span style={{ fontSize: "12px", color: C.textTertiary }}>{pt.desc}</span>
-                </div>
-              ))}
+                )}
+              </div>
+            ))}
+
+            {/* Builder */}
+            <div style={{ marginTop: "8px", padding: "14px", borderRadius: "10px", border: `1px solid ${C.border}`, backgroundColor: C.bg }}>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: C.text, marginBottom: "10px" }}>Add pixels</div>
+              <select style={{ ...inputStyle, marginBottom: "8px" }} value={marketer} onChange={(e) => setMarketer(e.target.value)}>
+                <option value="">Select marketer…</option>
+                <option>Fjällräven</option>
+                <option>Matchaful</option>
+                <option>NSM Demo</option>
+                <option>Esther Test Marketer</option>
+              </select>
+              <div style={{ display: "flex", gap: "4px", marginBottom: "8px" }}>
+                {PIXEL_TYPES.map(pt => (
+                  <button key={pt.value} onClick={() => setDraftType(pt.value)} title={pt.desc} style={{ flex: 1, padding: "7px 4px", borderRadius: "6px", fontSize: "11px", fontWeight: 600, border: `1px solid ${draftType === pt.value ? C.accentPink : C.border}`, backgroundColor: draftType === pt.value ? C.accentPink + "14" : C.bg, color: draftType === pt.value ? C.accentPink : C.textSecondary, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>{pt.value.split(" ")[0]}</button>
+                ))}
+              </div>
+              <textarea value={draftCodes} onChange={(e) => setDraftCodes(e.target.value)} rows={3} placeholder={"Audience codes — one per line for bulk:\nhomepage\ncheckout\nspring-promo"} style={{ ...inputStyle, resize: "vertical", lineHeight: "1.5", marginBottom: "8px", fontFamily: "'Space Mono', monospace", fontSize: "12px" }} />
+              <input style={{ ...inputStyle, marginBottom: "10px" }} value={draftDesc} onChange={(e) => setDraftDesc(e.target.value)} placeholder="Description (optional)" />
+              <button onClick={addToBatch} disabled={!marketer || !draftCodes.trim()} style={{ width: "100%", padding: "9px", borderRadius: "8px", border: "none", backgroundColor: (marketer && draftCodes.trim()) ? C.text : C.bgHover, color: (marketer && draftCodes.trim()) ? "#fff" : C.textTertiary, fontSize: "13px", fontWeight: 600, cursor: (marketer && draftCodes.trim()) ? "pointer" : "default", fontFamily: "'DM Sans', sans-serif" }}>+ Add to batch</button>
+            </div>
+
+            {/* T&C + Create */}
+            <label style={{ display: "flex", alignItems: "flex-start", gap: "8px", margin: "14px 2px", cursor: "pointer" }}>
+              <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} style={{ marginTop: "2px" }} />
+              <span style={{ fontSize: "12px", color: C.textSecondary, lineHeight: "1.5" }}>I agree to the pixel terms & conditions.</span>
+            </label>
+            <button onClick={createAll} disabled={draftCount === 0 || !agreed} style={{ width: "100%", padding: "11px", borderRadius: "8px", border: "none", backgroundColor: (draftCount > 0 && agreed) ? C.accentPink : C.bgHover, color: (draftCount > 0 && agreed) ? "#fff" : C.textTertiary, fontSize: "14px", fontWeight: 600, cursor: (draftCount > 0 && agreed) ? "pointer" : "default", fontFamily: "'DM Sans', sans-serif" }}>Create {draftCount > 0 ? draftCount : ""} pixel{draftCount !== 1 ? "s" : ""}</button>
+          </div>
+
+          {/* composer */}
+          <div style={{ padding: "14px", borderTop: `1px solid ${C.borderLight}` }}>
+            <div style={{ display: "flex", gap: "8px", alignItems: "flex-end", padding: "6px 6px 6px 12px", borderRadius: "12px", border: `1px solid ${C.border}`, backgroundColor: C.bg }}>
+              <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); runInput(); } }} placeholder="e.g. add a conversion pixel for checkout" rows={1} style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "13px", fontFamily: "'DM Sans', sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "4px 0" }} />
+              <button onClick={runInput} style={{ width: "30px", height: "30px", borderRadius: "8px", border: "none", cursor: "pointer", backgroundColor: input.trim() ? C.text : C.bgHover, color: input.trim() ? "#fff" : C.textTertiary, fontSize: "14px", flexShrink: 0 }}>↑</button>
             </div>
           </div>
+        </div>
 
-          <div onClick={() => setAgreed(!agreed)} style={{ display: "flex", alignItems: "flex-start", gap: "10px", padding: "14px 0", cursor: "pointer", marginBottom: "8px" }}>
-            <div style={{ width: "18px", height: "18px", borderRadius: "5px", marginTop: "1px", border: `1.5px solid ${agreed ? C.accentPink : C.border}`, backgroundColor: agreed ? C.accentPink : "transparent", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", flexShrink: 0 }}>{agreed ? "✓" : ""}</div>
-            <span style={{ fontSize: "13px", color: C.textSecondary, lineHeight: "1.5" }}>By selecting here and having DS-1 generate the pixel, you agree to Dstillery's Terms and Conditions.</span>
-          </div>
+        {/* RIGHT — live batch render */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "28px clamp(20px, 4vw, 48px)", minWidth: 0 }}>
+          <div style={{ maxWidth: "640px", margin: "0 auto" }}>
+            <h2 style={{ fontSize: "16px", fontWeight: 700, color: C.text, margin: "0 0 4px" }}>Pixel batch for {brand}</h2>
+            <p style={{ fontSize: "13px", color: C.textTertiary, margin: "0 0 20px" }}>Pixels render here as you add them. Bulk-create them all at once.</p>
 
-          <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "12px" }}>
-            <button onClick={onBack} style={s.btnSecondary}>Cancel</button>
-            <button onClick={handleCreate} disabled={!canCreate} style={{ padding: "10px 22px", borderRadius: "8px", border: "none", backgroundColor: canCreate ? C.accentPink : C.bgHover, color: canCreate ? "#fff" : C.textTertiary, fontSize: "14px", fontWeight: 600, cursor: canCreate ? "pointer" : "default", fontFamily: "'DM Sans', sans-serif" }}>Create pixel</button>
+            {batch.length === 0 ? (
+              <div style={{ padding: "40px 20px", textAlign: "center", border: `1px dashed ${C.border}`, borderRadius: "12px", color: C.textTertiary, fontSize: "14px" }}>
+                No pixels yet. Add audience codes on the left — one per line to create several at once.
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                {batch.map((p) => (
+                  <div key={p.key} style={{ border: `1px solid ${p.status === "created" ? C.accentGreen + "55" : C.border}`, borderRadius: "12px", backgroundColor: C.bg, overflow: "hidden" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "12px 14px", borderBottom: `1px solid ${C.borderLight}`, backgroundColor: C.bgSecondary }}>
+                      <span style={{ fontSize: "10px", fontWeight: 700, color: C.accentPink, backgroundColor: C.accentPink + "16", padding: "2px 8px", borderRadius: "4px", fontFamily: "'Space Mono', monospace" }}>{typeAbbr(p.type)}</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: "13px", fontWeight: 600, color: C.text }}>{p.code}</div>
+                        {p.id && <div style={{ fontSize: "11px", color: C.textTertiary, fontFamily: "'Space Mono', monospace" }}>ID {p.id}</div>}
+                      </div>
+                      {p.status === "created" ? (
+                        <span style={{ fontSize: "11px", fontWeight: 600, color: C.accentGreen }}>✓ Created</span>
+                      ) : (
+                        <span onClick={() => removeFromBatch(p.key)} style={{ fontSize: "12px", color: C.textTertiary, cursor: "pointer" }}>Draft · remove ×</span>
+                      )}
+                    </div>
+                    {p.status === "created" && (
+                      <div style={{ padding: "12px 14px" }}>
+                        <CodeBlock label="HTML Image Tag" code={tagFor(p.code, "img")} ckey={p.key + "-img"} />
+                        <CodeBlock label="JavaScript Tag" code={tagFor(p.code, "js")} ckey={p.key + "-js"} />
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "10px" }}>
+                          <div style={{ flex: 1, height: "6px", borderRadius: "3px", backgroundColor: C.bgHover, overflow: "hidden" }}>
+                            <div style={{ height: "100%", width: "0%", backgroundColor: C.accentPink }} />
+                          </div>
+                          <span style={{ fontSize: "11px", color: C.textTertiary, fontFamily: "'Space Mono', monospace", flexShrink: 0 }}>Collecting… 0 / 1,000</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Existing pixels */}
+            <div style={{ marginTop: "28px" }}>
+              <div style={{ fontSize: "13px", fontWeight: 700, color: C.text, marginBottom: "8px" }}>All pixels for {brand}</div>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", padding: "10px 14px", borderRadius: "8px", backgroundColor: C.bgSidebar, border: `1px solid ${C.borderLight}`, marginBottom: "12px" }}>
+                <span style={{ fontSize: "13px", flexShrink: 0 }}>ⓘ</span>
+                <span style={{ fontSize: "12px", color: C.textSecondary, lineHeight: "1.5" }}>Each pixel needs <strong>1,000 loads</strong> before Dstillery can build segments and unlock SegRank data.</span>
+              </div>
+              <div style={{ border: `1px solid ${C.border}`, borderRadius: "10px", overflow: "hidden" }}>
+                {PREVIOUS_PIXELS.map((px, i, arr) => {
+                  const reached = px.loads >= 1000;
+                  const pct = Math.min(100, (px.loads / 1000) * 100);
+                  return (
+                    <div key={i} style={{ padding: "14px 16px", borderBottom: i < arr.length - 1 ? `1px solid ${C.borderLight}` : "none" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "10px" }}>
+                        <span style={{ fontSize: "10px", fontWeight: 700, color: C.textSecondary, backgroundColor: C.bgHover, padding: "2px 8px", borderRadius: "4px", fontFamily: "'Space Mono', monospace" }}>{px.type}</span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: "13px", fontWeight: 600, color: C.text }}>{px.code}</div>
+                          <div style={{ fontSize: "11px", color: C.textTertiary, fontFamily: "'Space Mono', monospace" }}>ID {px.id} · {px.date}</div>
+                        </div>
+                        {reached
+                          ? <span style={{ fontSize: "11px", fontWeight: 600, color: C.accentGreen, backgroundColor: C.accentGreen + "14", padding: "3px 10px", borderRadius: "5px" }}>✓ Segments active</span>
+                          : <span style={{ fontSize: "11px", fontWeight: 600, color: C.accentOrange }}>{(1000 - px.loads).toLocaleString()} to go</span>}
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <div style={{ flex: 1, height: "6px", borderRadius: "3px", backgroundColor: C.bgHover, overflow: "hidden" }}>
+                          <div style={{ height: "100%", width: `${pct}%`, borderRadius: "3px", backgroundColor: reached ? C.accentGreen : C.accentPink }} />
+                        </div>
+                        <span style={{ fontSize: "11px", color: C.textTertiary, fontFamily: "'Space Mono', monospace", flexShrink: 0, minWidth: "92px", textAlign: "right" }}>{px.loads.toLocaleString()} / 1,000</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -2201,9 +2601,10 @@ const briefHeaderStyle = { padding: "14px 24px", borderBottom: `1px solid ${C.bo
 const briefBadge = { width: "28px", height: "28px", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Space Mono', monospace", fontSize: "10px", fontWeight: 700 };
 const briefIconBtn = { width: "26px", height: "26px", borderRadius: "6px", border: "none", backgroundColor: "transparent", color: C.textTertiary, cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'DM Sans', sans-serif" };
 
-function ProjectsView({ agency }) {
+function ProjectsView({ agency, onNavigate }) {
   const [openProject, setOpenProject] = useState(null);
   const [showNew, setShowNew] = useState(false);
+  const [search, setSearch] = useState("");
 
   const projects = [
     {
@@ -2236,7 +2637,7 @@ function ProjectsView({ agency }) {
             display: "flex", alignItems: "center", gap: "6px", padding: "5px 12px", borderRadius: "6px",
             border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textSecondary,
             cursor: "pointer", fontWeight: 500, fontFamily: "'DM Sans', sans-serif", fontSize: "13px",
-          }}>← Audience Plans</button>
+          }}>← Projects</button>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "28px", maxWidth: "720px", animation: "fadeUp 0.5s ease-out" }}>
@@ -2258,12 +2659,12 @@ function ProjectsView({ agency }) {
             border: "none", backgroundColor: C.text, color: "#fff",
             fontSize: "14px", fontWeight: 600, cursor: "pointer", textAlign: "left",
             fontFamily: "'DM Sans', sans-serif", animation: "fadeUp 0.5s ease-out", animationDelay: "0.05s", animationFillMode: "both",
-          }}>+ New chat in this plan</button>
+          }}>+ New chat in this project</button>
 
           {/* Project instructions */}
           <div style={projS.section}>
-            <div style={projS.sectionTitle}>Plan Instructions</div>
-            <div style={projS.sectionDesc}>DS-1 applies these to every conversation in this plan</div>
+            <div style={projS.sectionTitle}>Project Instructions</div>
+            <div style={projS.sectionDesc}>DS-1 applies these to every conversation in this project</div>
             <div style={{
               marginTop: "12px", padding: "14px 16px", borderRadius: "10px",
               backgroundColor: C.bgSidebar, border: `1px solid ${C.borderLight}`,
@@ -2275,8 +2676,8 @@ function ProjectsView({ agency }) {
           <div style={projS.section}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div>
-                <div style={projS.sectionTitle}>Plan Knowledge</div>
-                <div style={projS.sectionDesc}>{p.files} files scoped to this plan</div>
+                <div style={projS.sectionTitle}>Project Knowledge</div>
+                <div style={projS.sectionDesc}>{p.files} files scoped to this project</div>
               </div>
               <button style={{
                 padding: "6px 14px", borderRadius: "6px", fontSize: "12px", fontWeight: 600,
@@ -2310,7 +2711,7 @@ function ProjectsView({ agency }) {
           {/* Project conversations */}
           <div style={projS.section}>
             <div style={projS.sectionTitle}>Conversations</div>
-            <div style={projS.sectionDesc}>{p.convos} chats in this plan</div>
+            <div style={projS.sectionDesc}>{p.convos} chats in this project</div>
             <div style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "8px" }}>
               {[
                 { title: "Auto insurance intenders search", time: "2h ago" },
@@ -2336,22 +2737,40 @@ function ProjectsView({ agency }) {
   return (
     <div style={s.content}>
       <style>{`@keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+      <Breadcrumb onNavigate={onNavigate} current="Projects" />
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", maxWidth: "720px", animation: "fadeUp 0.5s ease-out" }}>
         <div>
-          <h1 style={s.heading}>Audience Plans</h1>
+          <h1 style={s.heading}>Projects</h1>
           <p style={s.subheading}>Organize campaigns and initiatives with their own context, files, and chats</p>
         </div>
         <button onClick={() => setShowNew(true)} style={{
           padding: "9px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600,
           border: "none", backgroundColor: C.text, color: "#fff",
           cursor: "pointer", fontFamily: "'DM Sans', sans-serif", flexShrink: 0,
-        }}>+ New plan</button>
+        }}>+ New project</button>
       </div>
 
       {showNew && <NewProjectModal onClose={() => setShowNew(false)} />}
 
+      {/* Search */}
+      <div style={{ position: "relative", maxWidth: "720px", marginBottom: "20px" }}>
+        <span style={{ position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)", color: C.textTertiary, fontSize: "14px" }}>⌕</span>
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search projects..."
+          style={{ width: "100%", padding: "12px 16px 12px 40px", borderRadius: "10px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "14px", fontFamily: "'DM Sans', sans-serif", outline: "none", boxSizing: "border-box" }}
+        />
+      </div>
+
+      {(() => {
+        const q = search.toLowerCase().trim();
+        const shown = q ? projects.filter(p => p.name.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q)) : projects;
+        if (shown.length === 0) return <div style={{ maxWidth: "720px", padding: "24px 2px", fontSize: "14px", color: C.textTertiary, fontStyle: "italic" }}>No projects match "{search}".</div>;
+        return (
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", maxWidth: "720px" }}>
-        {projects.map((p, i) => (
+        {shown.map((p, i) => (
           <div
             key={p.id}
             onClick={() => setOpenProject(p)}
@@ -2379,6 +2798,8 @@ function ProjectsView({ agency }) {
           </div>
         ))}
       </div>
+        );
+      })()}
     </div>
   );
 }
@@ -2393,15 +2814,8 @@ function NewProjectModal({ onClose }) {
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
   const [marketer, setMarketer] = useState("");
-  const [color, setColor] = useState(C.accentBlue);
-  const [instructions, setInstructions] = useState("");
-  const [dsp, setDsp] = useState("ttd");
-  const [audType, setAudType] = useState("id_based");
-  const [scalePerf, setScalePerf] = useState("scale");
-  const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const colors = [C.accentBlue, C.accentGreen, C.accentOrange, C.accentPurple, C.accentPink, C.accentRed];
-  const canCreate = name.trim() && desc.trim() && marketer;
+  const canCreate = name.trim();
 
   const Field = ({ label, hint, required, children }) => (
     <div style={{ marginBottom: "18px" }}>
@@ -2421,20 +2835,6 @@ function NewProjectModal({ onClose }) {
     outline: "none", boxSizing: "border-box",
   };
 
-  const Pills = ({ options, value, onChange }) => (
-    <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
-      {options.map(opt => (
-        <button key={opt.value} onClick={() => onChange(opt.value)} style={{
-          padding: "7px 14px", borderRadius: "7px", fontSize: "12px", fontWeight: 600,
-          border: `1px solid ${value === opt.value ? C.text : C.border}`,
-          backgroundColor: value === opt.value ? C.text : C.bg,
-          color: value === opt.value ? "#fff" : C.textSecondary,
-          cursor: "pointer", fontFamily: "'DM Sans', sans-serif", transition: "all 0.15s ease",
-        }}>{opt.label}</button>
-      ))}
-    </div>
-  );
-
   return (
     <div
       onClick={onClose}
@@ -2449,7 +2849,7 @@ function NewProjectModal({ onClose }) {
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: "100%", maxWidth: "560px", maxHeight: "85vh", overflowY: "auto",
+          width: "100%", maxWidth: "520px", maxHeight: "85vh", overflowY: "auto",
           backgroundColor: C.bg, borderRadius: "16px",
           boxShadow: "0 12px 48px rgba(0,0,0,0.18)",
           animation: "popIn 0.25s cubic-bezier(0.4,0,0.2,1)",
@@ -2462,8 +2862,8 @@ function NewProjectModal({ onClose }) {
           position: "sticky", top: 0, backgroundColor: C.bg, borderRadius: "16px 16px 0 0",
         }}>
           <div>
-            <div style={{ fontSize: "17px", fontWeight: 700, color: C.text }}>New Audience Plan</div>
-            <div style={{ fontSize: "13px", color: C.textTertiary, marginTop: "2px" }}>Set up context and defaults for a campaign or initiative</div>
+            <div style={{ fontSize: "17px", fontWeight: 700, color: C.text }}>New Project</div>
+            <div style={{ fontSize: "13px", color: C.textTertiary, marginTop: "2px" }}>Create a siloed workspace for a campaign or initiative</div>
           </div>
           <button onClick={onClose} style={{
             width: "30px", height: "30px", borderRadius: "8px", border: "none",
@@ -2473,15 +2873,15 @@ function NewProjectModal({ onClose }) {
 
         {/* Body */}
         <div style={{ padding: "22px 24px" }}>
-          <Field label="Plan name" required>
+          <Field label="Project name" required>
             <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="e.g. SafeGuard Q3 Auto Campaign" />
           </Field>
 
-          <Field label="Description" required>
-            <input style={inputStyle} value={desc} onChange={e => setDesc(e.target.value)} placeholder="What is this plan for?" />
+          <Field label="Description">
+            <input style={inputStyle} value={desc} onChange={e => setDesc(e.target.value)} placeholder="What is this project for?" />
           </Field>
 
-          <Field label="Marketer" required hint="Links the plan to a marketer account so syndication is pre-wired.">
+          <Field label="Marketer" hint="Links the project to a marketer account so syndication is pre-wired.">
             <select style={inputStyle} value={marketer} onChange={e => setMarketer(e.target.value)}>
               <option value="">Select a marketer...</option>
               <option>SafeGuard Auto Insurance</option>
@@ -2491,70 +2891,9 @@ function NewProjectModal({ onClose }) {
             </select>
           </Field>
 
-          <Field label="Color">
-            <div style={{ display: "flex", gap: "8px" }}>
-              {colors.map(c => (
-                <button key={c} onClick={() => setColor(c)} style={{
-                  width: "28px", height: "28px", borderRadius: "8px", backgroundColor: c,
-                  border: color === c ? `2px solid ${C.text}` : "2px solid transparent",
-                  cursor: "pointer", padding: 0,
-                }} />
-              ))}
-            </div>
+          <Field label="Relevant files" hint="Add briefs, strategy docs, or any reference material DS-1 should use as context in this project.">
+            <button style={{ ...inputStyle, textAlign: "left", color: C.textTertiary, cursor: "pointer", borderStyle: "dashed" }}>+ Add files</button>
           </Field>
-
-          <div style={{ height: "1px", backgroundColor: C.borderLight, margin: "4px 0 20px" }} />
-
-          <Field label="Plan instructions" hint="Persistent guidance DS-1 follows in every chat in this plan — tone, rules, things to avoid.">
-            <textarea
-              style={{ ...inputStyle, height: "80px", resize: "vertical", lineHeight: "1.5" }}
-              value={instructions} onChange={e => setInstructions(e.target.value)}
-              placeholder="e.g. Always exclude current policyholders. Keep reports client-ready and free of internal segment IDs."
-            />
-          </Field>
-
-          <Field label="Default DSP" hint="Pre-selected when syndicating from this plan.">
-            <Pills value={dsp} onChange={setDsp} options={[
-              { value: "ttd", label: "The Trade Desk" }, { value: "dv360", label: "DV360" },
-              { value: "amazon", label: "Amazon" }, { value: "ask", label: "Ask each time" },
-            ]} />
-          </Field>
-
-          <Field label="Audience type">
-            <Pills value={audType} onChange={setAudType} options={[
-              { value: "id_based", label: "ID-Based" }, { value: "id_free", label: "ID-Free" }, { value: "ask", label: "Ask each time" },
-            ]} />
-          </Field>
-
-          {/* Advanced */}
-          <button onClick={() => setShowAdvanced(!showAdvanced)} style={{
-            display: "flex", alignItems: "center", gap: "6px", marginTop: "6px", marginBottom: showAdvanced ? "18px" : "0",
-            background: "none", border: "none", cursor: "pointer", color: C.textSecondary,
-            fontSize: "13px", fontWeight: 600, fontFamily: "'DM Sans', sans-serif", padding: 0,
-          }}>
-            <span style={{ transform: showAdvanced ? "rotate(90deg)" : "rotate(0)", transition: "transform 0.2s", display: "inline-block" }}>›</span>
-            Advanced — knowledge, guardrails, timeline
-          </button>
-
-          {showAdvanced && (
-            <div style={{ animation: "fadeIn 0.2s ease-out" }}>
-              <Field label="Plan knowledge" hint="Upload briefs, strategy docs, or exclusion lists scoped to this plan.">
-                <button style={{ ...inputStyle, textAlign: "left", color: C.textTertiary, cursor: "pointer", borderStyle: "dashed" }}>+ Upload files</button>
-              </Field>
-              <Field label="Exclusion rules" hint="Audiences, domains, or customer lists DS-1 should never target here.">
-                <input style={inputStyle} placeholder="e.g. current policyholders, competitor domains" />
-              </Field>
-              <Field label="Scale vs Performance">
-                <Pills value={scalePerf} onChange={setScalePerf} options={[
-                  { value: "scale", label: "Scale" }, { value: "performance", label: "Performance" }, { value: "ask", label: "Ask each time" },
-                ]} />
-              </Field>
-              <div style={{ display: "flex", gap: "12px" }}>
-                <Field label="Flight start"><input type="text" style={inputStyle} placeholder="Jul 1, 2026" /></Field>
-                <Field label="Flight end"><input type="text" style={inputStyle} placeholder="Sep 30, 2026" /></Field>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Footer */}
@@ -2573,39 +2912,118 @@ function NewProjectModal({ onClose }) {
             border: "none", backgroundColor: C.text, color: "#fff",
             cursor: canCreate ? "pointer" : "not-allowed", opacity: canCreate ? 1 : 0.4,
             fontFamily: "'DM Sans', sans-serif",
-          }}>Create plan</button>
+          }}>Create project</button>
         </div>
       </div>
     </div>
   );
 }
 
-function HistoryView({ agency }) {
-  const conversations = [
-    { id: 1, title: "NY Knicks audience search & syndication", tool: "Audience Explorer", messages: 12, date: "Jun 3, 2026", status: "Syndicated", statusColor: C.accentGreen },
-    { id: 2, title: "Auto Insurance Intenders — compound build", tool: "Build Compound Audience", messages: 8, date: "Jun 2, 2026", status: "Completed", statusColor: C.accentGreen },
-    { id: 3, title: "CPG Health & Wellness — domain seeded", tool: "Build Domain Seeded", messages: 6, date: "Jun 1, 2026", status: "In Progress", statusColor: C.accentOrange },
-  ];
+function HistoryView({ agency, onNavigate }) {
+  const PROJECT_OPTIONS = ["SafeGuard Q3 Auto Campaign", "NY Sports Fans Initiative", "CPG Health & Wellness"];
+
+  const [conversations, setConversations] = useState([
+    { id: 1, title: "NY Knicks audience search & syndication", messages: 12, date: "Jun 3, 2026", project: "NY Sports Fans Initiative", transcript: [
+      { role: "user", text: "Find audiences of NY Knicks fans" },
+      { role: "ds1", text: "I found several prebuilt audiences for NY Knicks fans. The strongest matches are NBA > Knicks Fans (8.2M), Sports > NY Basketball Enthusiasts (14.1M), and Ticketed Event Attendees > MSG (2.3M). Want me to combine these or syndicate one?" },
+      { role: "user", text: "Syndicate the Knicks Fans one to The Trade Desk" },
+      { role: "ds1", text: "Done — NBA > Knicks Fans (8.2M) was syndicated to The Trade Desk and is now active in your AdGroup. Want a reach forecast on it?" },
+    ] },
+    { id: 2, title: "Auto Insurance Intenders — compound build", messages: 8, date: "Jun 2, 2026", project: null, transcript: [
+      { role: "user", text: "Build a compound audience of auto insurance intenders who are also recent new movers" },
+      { role: "ds1", text: "I built a compound audience combining Auto Insurance Intenders AND Recent New Movers using an AND rule. Combined reach is 2.6M. Should I exclude current policyholders before you syndicate?" },
+      { role: "user", text: "Yes exclude current policyholders" },
+      { role: "ds1", text: "Updated — current policyholders are now excluded. Final reach is 2.1M and the audience is ready to syndicate." },
+    ] },
+    { id: 3, title: "CPG Health & Wellness — domain seeded", messages: 6, date: "Jun 1, 2026", project: null, transcript: [
+      { role: "user", text: "Build a domain seeded audience from health and wellness sites" },
+      { role: "ds1", text: "I modeled a domain seeded audience from wellness seeds like healthline.com, mindbodygreen.com, and goop.com. Modeled reach is ~410M. Want to refine the seed list or syndicate?" },
+    ] },
+  ]);
+
+  const [openConv, setOpenConv] = useState(null);
+  const [assigningId, setAssigningId] = useState(null);
+  const [draft, setDraft] = useState("");
+
+  const sendInHistory = () => {
+    if (!draft.trim()) return;
+    const userMsg = draft.trim();
+    const reply = { role: "ds1", text: "Picking up right where we left off — I'll take care of that and keep this conversation going. Anything else you'd like me to adjust?" };
+    setOpenConv(prev => ({ ...prev, transcript: [...prev.transcript, { role: "user", text: userMsg }], messages: prev.messages + 1 }));
+    setDraft("");
+    setTimeout(() => setOpenConv(prev => ({ ...prev, transcript: [...prev.transcript, reply], messages: prev.messages + 1 })), 700);
+  };
+
+  const assign = (id, project) => {
+    setConversations(prev => prev.map(c => c.id === id ? { ...c, project } : c));
+    setAssigningId(null);
+    setOpenConv(prev => prev && prev.id === id ? { ...prev, project } : prev);
+  };
+
+  // Transcript detail view
+  if (openConv) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+        <div style={briefHeaderStyle}>
+          <button onClick={() => setOpenConv(null)} style={s.btnSecondary}>← History</button>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: "14px", fontWeight: 600, color: C.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{openConv.title}</div>
+            <div style={{ fontSize: "11px", color: C.textTertiary }}>{openConv.messages} messages · {openConv.date}</div>
+          </div>
+          <div style={{ position: "relative", flexShrink: 0 }}>
+            <button onClick={() => setAssigningId(assigningId === openConv.id ? null : openConv.id)} style={{
+              display: "flex", alignItems: "center", gap: "6px", padding: "7px 12px", borderRadius: "8px",
+              border: `1px solid ${C.border}`, backgroundColor: openConv.project ? C.accentBlue + "14" : C.bg,
+              color: openConv.project ? C.accentBlue : C.textSecondary, cursor: "pointer", fontSize: "12px", fontWeight: 600, fontFamily: "'DM Sans', sans-serif",
+            }}>◳ {openConv.project || "Assign to project"} <span style={{ fontSize: "10px" }}>▾</span></button>
+            {assigningId === openConv.id && <AssignMenu current={openConv.project} options={PROJECT_OPTIONS} onPick={(p) => assign(openConv.id, p)} />}
+          </div>
+        </div>
+        <div style={{ flex: 1, overflowY: "auto", padding: "24px clamp(20px, 5vw, 48px)" }}>
+          <div style={{ maxWidth: "680px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "16px" }}>
+            {openConv.transcript.map((m, i) => (
+              m.role === "user" ? (
+                <div key={i} style={{ alignSelf: "flex-end", maxWidth: "80%", fontSize: "14px", color: "#fff", backgroundColor: C.text, padding: "10px 14px", borderRadius: "14px 14px 2px 14px", lineHeight: "1.5" }}>{m.text}</div>
+              ) : (
+                <div key={i} style={{ display: "flex", gap: "10px", maxWidth: "90%" }}>
+                  <span style={{ fontSize: "11px", fontWeight: 700, color: C.accentBlue, fontFamily: "'Space Mono', monospace", flexShrink: 0, marginTop: "3px" }}>DS-1</span>
+                  <div style={{ fontSize: "14px", color: C.text, lineHeight: "1.6", backgroundColor: C.bgSecondary, border: `1px solid ${C.borderLight}`, padding: "12px 14px", borderRadius: "2px 14px 14px 14px" }}>{m.text}</div>
+                </div>
+              )
+            ))}
+          </div>
+        </div>
+        <div style={{ borderTop: `1px solid ${C.borderLight}`, padding: "14px clamp(20px, 5vw, 48px)", flexShrink: 0, backgroundColor: C.bgSecondary }}>
+          <div style={{ maxWidth: "680px", margin: "0 auto", display: "flex", gap: "8px", alignItems: "flex-end", padding: "6px 6px 6px 14px", borderRadius: "12px", border: `1px solid ${C.border}`, backgroundColor: C.bg }}>
+            <textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendInHistory(); } }}
+              placeholder="Continue this conversation…"
+              rows={1}
+              style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "14px", fontFamily: "'DM Sans', sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "7px 0" }}
+            />
+            <button onClick={sendInHistory} style={{ width: "32px", height: "32px", borderRadius: "8px", border: "none", cursor: "pointer", backgroundColor: draft.trim() ? C.text : C.bgHover, color: draft.trim() ? "#fff" : C.textTertiary, fontSize: "15px", flexShrink: 0 }}>↑</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={s.content}>
       <style>{`
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(12px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
+      <Breadcrumb onNavigate={onNavigate} current="History" />
       <div style={{ animation: "fadeUp 0.5s ease-out", marginBottom: "28px" }}>
         <h1 style={s.heading}>History</h1>
         <p style={s.subheading}>All past conversations with DS-1 for <strong>{agency.name}</strong></p>
       </div>
 
-      <div style={{
-        maxWidth: "720px", display: "flex", flexDirection: "column", gap: "8px",
-        animation: "fadeUp 0.5s ease-out", animationDelay: "0.05s", animationFillMode: "both",
-      }}>
+      <div style={{ maxWidth: "720px", display: "flex", flexDirection: "column", gap: "8px", animation: "fadeUp 0.5s ease-out", animationDelay: "0.05s", animationFillMode: "both" }}>
         {conversations.map((conv) => (
-          <div key={conv.id} style={{
+          <div key={conv.id} onClick={() => setOpenConv(conv)} style={{
             display: "flex", alignItems: "center", gap: "16px",
             padding: "16px 20px", borderRadius: "10px",
             border: `1px solid ${C.border}`, backgroundColor: C.bg,
@@ -2614,18 +3032,25 @@ function HistoryView({ agency }) {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: "14px", fontWeight: 600, color: C.text }}>{conv.title}</div>
               <div style={{ fontSize: "12px", color: C.textTertiary, marginTop: "3px", display: "flex", gap: "12px", alignItems: "center" }}>
-                <span>{conv.tool}</span>
-                <span>·</span>
                 <span>{conv.messages} messages</span>
                 <span>·</span>
                 <span>{conv.date}</span>
               </div>
             </div>
-            <span style={{
-              fontSize: "11px", fontWeight: 600, fontFamily: "'Space Mono', monospace",
-              color: conv.statusColor, backgroundColor: conv.statusColor + "14",
-              padding: "3px 10px", borderRadius: "4px", flexShrink: 0,
-            }}>{conv.status}</span>
+            <div style={{ position: "relative", flexShrink: 0 }} onClick={(e) => e.stopPropagation()}>
+              <button onClick={() => setAssigningId(assigningId === conv.id ? null : conv.id)} style={{
+                display: "flex", alignItems: "center", gap: "6px",
+                fontSize: "12px", fontWeight: 600, cursor: "pointer",
+                padding: "4px 10px", borderRadius: "6px", fontFamily: "'DM Sans', sans-serif",
+                border: `1px solid ${conv.project ? "transparent" : C.border}`,
+                color: conv.project ? C.accentBlue : C.textTertiary,
+                backgroundColor: conv.project ? C.accentBlue + "14" : C.bg,
+              }}>
+                {conv.project ? <><span>◳</span>{conv.project}</> : "Assign to project"}
+                <span style={{ fontSize: "10px" }}>▾</span>
+              </button>
+              {assigningId === conv.id && <AssignMenu current={conv.project} options={PROJECT_OPTIONS} onPick={(p) => assign(conv.id, p)} />}
+            </div>
             <span style={{ color: C.textTertiary, fontSize: "16px", flexShrink: 0 }}>›</span>
           </div>
         ))}
@@ -2634,129 +3059,29 @@ function HistoryView({ agency }) {
   );
 }
 
-function LibraryView({ agency }) {
-  const [filter, setFilter] = useState("all");
-
-  const FILE_TYPES = {
-    pdf: { icon: "PDF", color: "#e03e3e", bg: "#e03e3e14" },
-    pptx: { icon: "PPTX", color: "#d9730d", bg: "#d9730d14" },
-    xlsx: { icon: "XLSX", color: "#0f7b6c", bg: "#0f7b6c14" },
-    csv: { icon: "CSV", color: "#2eaadc", bg: "#2eaadc14" },
-    docx: { icon: "DOCX", color: "#6940a5", bg: "#6940a514" },
-  };
-
-  const files = [
-    { name: "Q3 2026 Audience Strategy", type: "docx", addedBy: "Esther K.", date: "Jun 1, 2026", size: "1.2 MB", tag: "Strategy" },
-    { name: "Ideal Customer Profile — Auto Insurance", type: "pdf", addedBy: "Esther K.", date: "May 28, 2026", size: "640 KB", tag: "ICP" },
-    { name: "Brand Guidelines — SafeGuard", type: "pdf", addedBy: "Paul M.", date: "May 20, 2026", size: "3.8 MB", tag: "Brand" },
-    { name: "Approved Verticals & Exclusion List", type: "xlsx", addedBy: "Esther K.", date: "May 15, 2026", size: "92 KB", tag: "Rules" },
-    { name: "Historical Campaign Performance — 2025", type: "xlsx", addedBy: "Paul M.", date: "Apr 10, 2026", size: "1.8 MB", tag: "Performance" },
-    { name: "Competitor Audience Landscape", type: "pptx", addedBy: "Esther K.", date: "Mar 22, 2026", size: "5.1 MB", tag: "Research" },
-  ];
-
-  const types = ["all", "pdf", "pptx", "xlsx", "csv", "docx"];
-  const filtered = filter === "all" ? files : files.filter(f => f.type === filter);
-
+function AssignMenu({ current, options, onPick }) {
   return (
-    <div style={s.content}>
-      <style>{`
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(12px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
-      <div style={{ animation: "fadeUp 0.5s ease-out", marginBottom: "28px" }}>
-        <h1 style={s.heading}>Library</h1>
-        <p style={s.subheading}>Reference docs and files that DS-1 uses as context for <strong>{agency.name}</strong></p>
-      </div>
-
-      {/* Info box */}
-      <div style={{
-        padding: "14px 18px", borderRadius: "10px",
-        backgroundColor: C.bgSidebar, border: `1px solid ${C.borderLight}`,
-        marginBottom: "24px", maxWidth: "720px", fontSize: "13px", color: C.textSecondary, lineHeight: "1.6",
-        animation: "fadeUp 0.5s ease-out", animationDelay: "0.03s", animationFillMode: "both",
-      }}>
-        Files in the library are available to DS-1 across all conversations. Upload audience strategies, ICPs, brand guidelines, or any reference material to give DS-1 persistent context for this workspace.
-      </div>
-
-      {/* Actions + filter */}
-      <div style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        marginBottom: "16px", maxWidth: "720px",
-        animation: "fadeUp 0.5s ease-out", animationDelay: "0.05s", animationFillMode: "both",
-      }}>
-        <div style={{ display: "flex", gap: "6px" }}>
-          {types.map(t => (
-            <button key={t} onClick={() => setFilter(t)} style={{
-              padding: "5px 12px", borderRadius: "6px", fontSize: "11px", fontWeight: 600,
-              fontFamily: t === "all" ? "'DM Sans', sans-serif" : "'Space Mono', monospace",
-              border: `1px solid ${filter === t ? C.text : C.border}`,
-              backgroundColor: filter === t ? C.text : C.bg,
-              color: filter === t ? "#fff" : C.textSecondary,
-              cursor: "pointer", transition: "all 0.15s ease",
-              textTransform: t === "all" ? "none" : "uppercase",
-            }}>{t === "all" ? "All" : t}</button>
-          ))}
+    <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, width: "240px", backgroundColor: C.bg, borderRadius: "10px", border: `1px solid ${C.border}`, boxShadow: "0 6px 24px rgba(0,0,0,0.12)", overflow: "hidden", zIndex: 20 }}>
+      <div style={{ padding: "9px 14px", fontSize: "11px", fontWeight: 600, color: C.textTertiary, textTransform: "uppercase", letterSpacing: "0.5px", borderBottom: `1px solid ${C.borderLight}` }}>Assign to project</div>
+      {options.map((p) => (
+        <div key={p} onClick={() => onPick(p)} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 14px", cursor: "pointer", fontSize: "13px", color: C.text }}>
+          <span style={{ color: C.accentBlue }}>◳</span>
+          <span style={{ flex: 1 }}>{p}</span>
+          {current === p && <span style={{ color: C.accentGreen, fontSize: "13px" }}>✓</span>}
         </div>
-        <button style={{
-          padding: "7px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600,
-          border: "none", backgroundColor: C.text, color: "#fff",
-          cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
-        }}>+ Upload file</button>
-      </div>
-
-      {/* File list */}
-      <div style={{
-        maxWidth: "720px", border: `1px solid ${C.border}`, borderRadius: "12px", overflow: "hidden",
-        animation: "fadeUp 0.5s ease-out", animationDelay: "0.08s", animationFillMode: "both",
-      }}>
-        {filtered.length === 0 ? (
-          <div style={{ padding: "24px 20px", fontSize: "14px", color: C.textTertiary, fontStyle: "italic", textAlign: "center" }}>
-            No files match this filter.
-          </div>
-        ) : (
-          filtered.map((file, i) => {
-            const ft = FILE_TYPES[file.type];
-            return (
-              <div key={i} style={{
-                display: "flex", alignItems: "center", gap: "14px",
-                padding: "14px 20px", borderBottom: `1px solid ${C.borderLight}`,
-                backgroundColor: C.bg, cursor: "pointer",
-              }}>
-                <div style={{
-                  width: "36px", height: "36px", borderRadius: "6px",
-                  backgroundColor: ft.bg, color: ft.color,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontFamily: "'Space Mono', monospace", fontSize: "9px", fontWeight: 700,
-                  flexShrink: 0,
-                }}>{ft.icon}</div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: "14px", fontWeight: 500, color: C.text }}>{file.name}</div>
-                  <div style={{ fontSize: "11px", color: C.textTertiary, marginTop: "2px", display: "flex", gap: "8px", alignItems: "center" }}>
-                    <span>{file.addedBy}</span>
-                    <span style={{
-                      fontSize: "10px", fontWeight: 600,
-                      padding: "1px 6px", borderRadius: "3px",
-                      backgroundColor: C.bgHover, color: C.textSecondary,
-                    }}>{file.tag}</span>
-                  </div>
-                </div>
-                <div style={{ fontSize: "12px", color: C.textTertiary, fontFamily: "'Space Mono', monospace", flexShrink: 0 }}>{file.date}</div>
-                <div style={{ fontSize: "12px", color: C.textTertiary, fontFamily: "'Space Mono', monospace", width: "60px", textAlign: "right", flexShrink: 0 }}>{file.size}</div>
-              </div>
-            );
-          })
-        )}
-      </div>
+      ))}
+      {current && (
+        <div onClick={() => onPick(null)} style={{ padding: "10px 14px", cursor: "pointer", fontSize: "13px", color: C.accentRed, borderTop: `1px solid ${C.borderLight}` }}>Remove from project</div>
+      )}
     </div>
   );
 }
 
-function SettingsView() {
+function SettingsView({ onNavigate }) {
   const [voiceMode, setVoiceMode] = useState("professional");
   const [customExample, setCustomExample] = useState("");
   const [defaultDsp, setDefaultDsp] = useState("ttd");
+  const [defaultSsp, setDefaultSsp] = useState("indexexchange");
   const [scalePerf, setScalePerf] = useState("scale");
   const [outputFormat, setOutputFormat] = useState("pdf");
   const [autoExport, setAutoExport] = useState(false);
@@ -2770,15 +3095,15 @@ function SettingsView() {
   ]);
 
   const OptionPill = ({ options, value, onChange }) => (
-    <div style={{ display: "flex", gap: "4px" }}>
+    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
       {options.map(opt => (
         <button key={opt.value} onClick={() => onChange(opt.value)} style={{
-          padding: "6px 14px", borderRadius: "6px", fontSize: "12px", fontWeight: 600,
+          padding: "8px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600,
           border: `1px solid ${value === opt.value ? C.text : C.border}`,
           backgroundColor: value === opt.value ? C.text : C.bg,
           color: value === opt.value ? "#fff" : C.textSecondary,
           cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
-          transition: "all 0.15s ease",
+          transition: "all 0.15s ease", whiteSpace: "nowrap",
         }}>{opt.label}</button>
       ))}
     </div>
@@ -2809,6 +3134,7 @@ function SettingsView() {
           to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
+      <Breadcrumb onNavigate={onNavigate} current="Settings" />
       <div style={{ animation: "fadeUp 0.5s ease-out", marginBottom: "36px" }}>
         <h1 style={s.heading}>Settings</h1>
         <p style={s.subheading}>Customize how DS-1 works for you</p>
@@ -2878,86 +3204,46 @@ function SettingsView() {
           )}
         </div>
 
-        {/* Saved Prompts */}
-        <div style={setS.section}>
-          <div style={setS.sectionTitle}>Saved Prompts</div>
-          <div style={setS.sectionDesc}>Persistent instructions that DS-1 follows across all conversations</div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "16px" }}>
-            {prompts.map((p) => (
-              <div key={p.id} style={setS.promptCard}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: "13px", fontWeight: 600, color: C.text }}>{p.label}</div>
-                  <div style={{ fontSize: "12px", color: C.textTertiary, marginTop: "2px", lineHeight: "1.5" }}>{p.prompt}</div>
-                </div>
-                <span onClick={() => setPrompts(prev => prev.filter(x => x.id !== p.id))}
-                  style={{ color: C.textTertiary, cursor: "pointer", fontSize: "14px", flexShrink: 0 }}>×</span>
-              </div>
-            ))}
-            <button style={{
-              padding: "12px", borderRadius: "8px", fontSize: "13px",
-              border: `1px dashed ${C.border}`, backgroundColor: "transparent",
-              color: C.textTertiary, cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
-              transition: "border-color 0.15s ease",
-            }}>+ Add prompt</button>
-          </div>
-        </div>
-
         {/* Workflow Defaults */}
         <div style={setS.section}>
           <div style={setS.sectionTitle}>Workflow Defaults</div>
           <div style={setS.sectionDesc}>Pre-fill common selections so DS-1 skips the questions</div>
 
           <div style={{ marginTop: "16px" }}>
-            <div style={setS.row}>
-              <div style={setS.rowLabel}>
-                <div style={setS.label}>Default DSP</div>
-                <div style={setS.labelDesc}>Pre-selected platform when syndicating</div>
+            <div style={{ padding: "14px 0", borderBottom: `1px solid ${C.borderLight}` }}>
+              <div style={setS.label}>Default DSP</div>
+              <div style={setS.labelDesc}>Pre-selected demand-side platform when syndicating</div>
+              <div style={{ marginTop: "12px" }}>
+                <OptionPill value={defaultDsp} onChange={setDefaultDsp} options={[
+                  { value: "ttd", label: "TTD" },
+                  { value: "yahoo", label: "Yahoo" },
+                  { value: "liveramp", label: "LiveRamp" },
+                  { value: "none", label: "Ask me" },
+                ]} />
               </div>
-              <OptionPill value={defaultDsp} onChange={setDefaultDsp} options={[
-                { value: "ttd", label: "The Trade Desk" },
-                { value: "dv360", label: "DV360" },
-                { value: "amazon", label: "Amazon" },
-                { value: "none", label: "Ask me" },
-              ]} />
             </div>
-            <div style={setS.row}>
-              <div style={setS.rowLabel}>
-                <div style={setS.label}>Scale vs Performance</div>
-                <div style={setS.labelDesc}>Default optimization when syndicating</div>
+            <div style={{ padding: "14px 0", borderBottom: `1px solid ${C.borderLight}` }}>
+              <div style={setS.label}>Default SSP</div>
+              <div style={setS.labelDesc}>Pre-selected supply-side platform when syndicating</div>
+              <div style={{ marginTop: "12px" }}>
+                <OptionPill value={defaultSsp} onChange={setDefaultSsp} options={[
+                  { value: "indexexchange", label: "Index Exchange" },
+                  { value: "openx", label: "OpenX" },
+                  { value: "pubmatic", label: "PubMatic" },
+                  { value: "microsoft_curate", label: "Microsoft Curate" },
+                ]} />
               </div>
-              <OptionPill value={scalePerf} onChange={setScalePerf} options={[
-                { value: "scale", label: "Scale" },
-                { value: "performance", label: "Performance" },
-                { value: "ask", label: "Ask me" },
-              ]} />
             </div>
-          </div>
-        </div>
-
-        {/* Output Preferences */}
-        <div style={setS.section}>
-          <div style={setS.sectionTitle}>Output Preferences</div>
-          <div style={setS.sectionDesc}>Control how DS-1 generates and delivers files</div>
-
-          <div style={{ marginTop: "16px" }}>
-            <div style={setS.row}>
-              <div style={setS.rowLabel}>
-                <div style={setS.label}>Default Report Format</div>
-                <div style={setS.labelDesc}>Preferred format for generated reports and briefs</div>
+            <div style={{ padding: "14px 0" }}>
+              <div style={setS.label}>Scale vs Performance</div>
+              <div style={setS.labelDesc}>Default optimization when syndicating</div>
+              <div style={{ marginTop: "12px" }}>
+                <OptionPill value={scalePerf} onChange={setScalePerf} options={[
+                  { value: "scale", label: "Scale" },
+                  { value: "performance", label: "Performance" },
+                  { value: "ask", label: "Ask me" },
+                ]} />
               </div>
-              <OptionPill value={outputFormat} onChange={setOutputFormat} options={[
-                { value: "pdf", label: "PDF" },
-                { value: "pptx", label: "PPTX" },
-                { value: "docx", label: "DOCX" },
-              ]} />
-            </div>
-            <div style={setS.row}>
-              <div style={setS.rowLabel}>
-                <div style={setS.label}>Auto-attach Exports</div>
-                <div style={setS.labelDesc}>Automatically generate a CSV export with audience results</div>
-              </div>
-              <Toggle on={autoExport} onToggle={() => setAutoExport(!autoExport)} />
             </div>
           </div>
         </div>
@@ -2988,13 +3274,6 @@ function SettingsView() {
                 <div style={setS.labelDesc}>Always ask for confirmation before pushing to a DSP</div>
               </div>
               <Toggle on={confirmSyndication} onToggle={() => setConfirmSyndication(!confirmSyndication)} />
-            </div>
-            <div style={setS.row}>
-              <div style={setS.rowLabel}>
-                <div style={setS.label}>Weekly Digest</div>
-                <div style={setS.labelDesc}>Get a summary of all DS-1 activity every Monday</div>
-              </div>
-              <Toggle on={weeklyDigest} onToggle={() => setWeeklyDigest(!weeklyDigest)} />
             </div>
           </div>
         </div>
@@ -3063,7 +3342,7 @@ const setS = {
   },
 };
 
-function AdminView({ agency }) {
+function AdminView({ agency, onNavigate }) {
   const ALL_CAPABILITIES = [
     {
       category: "Audience Explorer & Insights",
@@ -3102,7 +3381,6 @@ function AdminView({ agency }) {
       tools: [
         { id: "daily_activity", name: "Daily Client Activity Report", desc: "Summary of all client audience activity across builds, syndications, and usage." },
         { id: "segrank", name: "SegRank", desc: "Rank and compare audience segments by reach, relevance, and performance potential." },
-        { id: "reach_forecasting", name: "Reach Forecasting", desc: "Estimate addressable reach before syndicating an audience to a platform." },
       ],
     },
     {
@@ -3111,8 +3389,6 @@ function AdminView({ agency }) {
       tools: [
         { id: "ooo", name: "Out of Office", desc: "Set coverage persons and auto-expiration for team member OOO periods." },
         { id: "notifications", name: "Notifications", desc: "Configure alerts for build completions, syndication status, and action items." },
-        { id: "user_management", name: "User Management", desc: "Manage workspace members, roles, and permissions." },
-        { id: "marketer_management", name: "Marketer Management", desc: "Configure and manage marketer accounts and destination mappings." },
       ],
     },
   ];
@@ -3195,6 +3471,7 @@ function AdminView({ agency }) {
           to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
+      <Breadcrumb onNavigate={onNavigate} current="Admin" />
       <div style={{ animation: "fadeUp 0.5s ease-out", marginBottom: "36px" }}>
         <h1 style={s.heading}>Workspace Admin</h1>
         <p style={s.subheading}>
@@ -3348,11 +3625,13 @@ function AdminView({ agency }) {
                 {cat.tools.map((tool) => {
                   const isOn = enabled.includes(tool.id);
                   const teams = teamAssignments[tool.id] || [];
+                  const showsTeams = ["ooo", "notifications", "daily_activity"].includes(tool.id);
                   return (
                     <div key={tool.id} style={adminS.toolRow}>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                           <span style={{ fontSize: "14px", fontWeight: 600, color: isOn ? C.text : C.textTertiary }}>{tool.name}</span>
+                          {showsTeams && (
                           <div style={{ display: "flex", gap: "4px" }}>
                             <button
                               onClick={() => isOn && toggleTeam(tool.id, "cs")}
@@ -3377,6 +3656,7 @@ function AdminView({ agency }) {
                               }}
                             >General</button>
                           </div>
+                          )}
                         </div>
                         <div style={{ fontSize: "12px", color: C.textTertiary, lineHeight: "1.5", marginTop: "2px" }}>{tool.desc}</div>
                       </div>
