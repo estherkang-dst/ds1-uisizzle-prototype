@@ -47,6 +47,37 @@ const ChevronDown = () => (
   </svg>
 );
 
+const SUBAGENT_VIEWS = ["explorer", "domainseeded", "brief", "pixel"];
+
+function MarketerBar({ agency, marketer, onSelect }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ position: "relative", height: "36px", borderBottom: `1px solid ${C.border}`, backgroundColor: C.bgSecondary, display: "flex", alignItems: "center", paddingLeft: "20px", gap: "8px", flexShrink: 0 }}>
+      <span style={{ fontSize: "12px", color: C.textTertiary, fontWeight: 500, letterSpacing: "0.3px", textTransform: "uppercase" }}>Marketer</span>
+      <button
+        onClick={() => setOpen(!open)}
+        style={{ display: "flex", alignItems: "center", gap: "6px", padding: "4px 10px", borderRadius: "6px", border: `1px solid ${C.border}`, backgroundColor: C.bg, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif", fontSize: "13px", fontWeight: 500, color: C.text }}
+      >
+        <span style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: agency.color, flexShrink: 0 }} />
+        {marketer}
+        <span style={{ fontSize: "10px", color: C.textTertiary, marginLeft: "2px" }}>▾</span>
+      </button>
+      {open && (
+        <div style={{ position: "absolute", top: "calc(100% + 4px)", left: "100px", backgroundColor: C.bg, border: `1px solid ${C.border}`, borderRadius: "10px", boxShadow: "0 6px 24px rgba(0,0,0,0.1)", zIndex: 100, minWidth: "200px", overflow: "hidden" }}>
+          <div style={{ padding: "8px 14px 6px", fontSize: "11px", fontWeight: 500, color: C.textTertiary, textTransform: "uppercase", letterSpacing: "0.5px", borderBottom: `1px solid ${C.borderLight}` }}>{agency.name}</div>
+          {[agency.parent, ...agency.marketers].filter((m, i, arr) => arr.indexOf(m) === i).map(m => (
+            <div key={m} onClick={() => { onSelect(m); setOpen(false); }} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 14px", cursor: "pointer", fontSize: "14px", color: C.text, backgroundColor: m === marketer ? C.bgHover : "transparent" }}>
+              <span style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: m === marketer ? agency.color : C.border, flexShrink: 0 }} />
+              {m}
+              {m === marketer && <span style={{ color: C.accentOrangeDark, fontSize: "13px", marginLeft: "auto" }}>✓</span>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function DS1App() {
   const [activeView, setActiveView] = useState("home");
   const [activeAgency, setActiveAgency] = useState(AGENCIES[0]);
@@ -163,7 +194,7 @@ export default function DS1App() {
                       }}
                       onClick={() => {
                         setActiveAgency(agency);
-                        setSelectedMarketer(agency.id === "dstillery" ? agency.parent : agency.marketers[0]);
+                        setSelectedMarketer(agency.marketers[0]);
                         setAgencyDropdownOpen(false);
                         setActiveView("home");
                       }}
@@ -177,54 +208,10 @@ export default function DS1App() {
                       </div>
                       <span style={s.dropdownItemText}>{agency.name}</span>
                       {agency.id === activeAgency.id && (
-                        <span style={{ color: C.accentGreen, fontSize: "15px", marginLeft: "auto" }}>✓</span>
+                        <span style={{ color: C.accentOrangeDark, fontSize: "15px", marginLeft: "auto" }}>✓</span>
                       )}
                     </div>
                   ))}
-
-                  <div style={{ height: "1px", backgroundColor: C.borderLight, margin: "6px 0" }} />
-                  <div style={s.dropdownHeader}>Marketers</div>
-
-                  {(() => {
-                    const isDstillery = activeAgency.id === "dstillery";
-                    const parentSelectable = isDstillery;
-                    return (
-                      <>
-                        {/* Parent marketer */}
-                        <div
-                          onClick={parentSelectable ? () => { setSelectedMarketer(activeAgency.parent); setAgencyDropdownOpen(false); } : undefined}
-                          style={{
-                            display: "flex", alignItems: "center", gap: "8px",
-                            padding: "7px 10px", borderRadius: "6px",
-                            cursor: parentSelectable ? "pointer" : "default",
-                            backgroundColor: selectedMarketer === activeAgency.parent ? C.bgHover : "transparent",
-                          }}
-                        >
-                          <span style={{ fontSize: "10px", color: C.textTertiary, width: "10px" }}>▾</span>
-                          <span style={{ fontSize: "14px", fontWeight: 500, color: parentSelectable ? C.text : C.textTertiary }}>{activeAgency.parent}</span>
-                          <span style={{ fontSize: "13px", color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace" }}>({activeAgency.marketers.length})</span>
-                          {!parentSelectable && <span style={{ fontSize: "10px", color: C.textTertiary, marginLeft: "auto", backgroundColor: C.bgHover, padding: "1px 6px", borderRadius: "3px" }}>Parent</span>}
-                          {parentSelectable && selectedMarketer === activeAgency.parent && <span style={{ color: C.accentGreen, fontSize: "14px", marginLeft: "auto" }}>✓</span>}
-                        </div>
-
-                        {/* Child marketers = projects */}
-                        {activeAgency.marketers.map((m) => (
-                          <div
-                            key={m}
-                            onClick={() => { setSelectedMarketer(m); setAgencyDropdownOpen(false); }}
-                            style={{
-                              display: "flex", alignItems: "center", gap: "8px",
-                              padding: "7px 10px 7px 28px", borderRadius: "6px", cursor: "pointer",
-                              backgroundColor: selectedMarketer === m ? C.bgHover : "transparent",
-                            }}
-                          >
-                            <span style={{ fontSize: "14px", color: C.text }}>{m}</span>
-                            {selectedMarketer === m && <span style={{ color: C.accentGreen, fontSize: "14px", marginLeft: "auto" }}>✓</span>}
-                          </div>
-                        ))}
-                      </>
-                    );
-                  })()}
                 </div>
               )}
             </>
@@ -277,16 +264,19 @@ export default function DS1App() {
 
       {/* Main content */}
       <main style={s.main} key={`${activeAgency.id}-${activeView}`}>
+        {SUBAGENT_VIEWS.includes(activeView) && (
+          <MarketerBar agency={activeAgency} marketer={selectedMarketer} onSelect={setSelectedMarketer} />
+        )}
         {activeView === "home" && <HomeView agency={activeAgency} onNavigate={navigate} />}
         {activeView === "agents" && <AgentsLibrary onNavigate={navigate} />}
         {activeView === "tasks" && <TasksPage onNavigate={navigate} />}
         {activeView === "projects" && <ProjectsView agency={activeAgency} onNavigate={navigate} />}
         {activeView === "discover" && <DiscoverView onNavigate={navigate} />}
         {activeView === "build" && <BuildView onNavigate={navigate} />}
-        {activeView === "explorer" && <AudienceExplorerChat onBack={() => setActiveView("home")} initialQuery={navPayload} />}
-        {activeView === "domainseeded" && <DomainSeededCanvas onBack={() => setActiveView("home")} />}
-        {activeView === "brief" && <AudienceBriefBuilder onBack={() => setActiveView("home")} />}
-        {activeView === "pixel" && <PixelCreator onBack={() => setActiveView("home")} />}
+        {activeView === "explorer" && <AudienceExplorerChat onBack={() => setActiveView("home")} initialQuery={navPayload} marketer={selectedMarketer} />}
+        {activeView === "domainseeded" && <DomainSeededCanvas onBack={() => setActiveView("home")} marketer={selectedMarketer} />}
+        {activeView === "brief" && <AudienceBriefBuilder onBack={() => setActiveView("home")} marketer={selectedMarketer} />}
+        {activeView === "pixel" && <PixelCreator onBack={() => setActiveView("home")} marketer={selectedMarketer} />}
         {activeView === "history" && <HistoryView agency={activeAgency} onNavigate={navigate} />}
         {activeView === "settings" && <SettingsView onNavigate={navigate} />}
         {activeView === "admin" && <AdminView agency={activeAgency} onNavigate={navigate} />}
