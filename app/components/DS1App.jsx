@@ -3,32 +3,42 @@
 import { useState, useEffect } from "react";
 
 const FONTS = `
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Space+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
 `;
 
 const C = {
-  bg: "#ffffff",
-  bgSecondary: "#fbfbfa",
-  bgSidebar: "#f7f6f3",
-  bgHover: "#efeeeb",
-  bgCard: "#ffffff",
-  border: "#e8e5e0",
-  borderLight: "#eeece9",
-  text: "#37352f",
-  textSecondary: "#787774",
-  textTertiary: "#a4a29e",
-  accentBlue: "#2eaadc",
-  accentGreen: "#0f7b6c",
-  accentOrange: "#d9730d",
-  accentRed: "#e03e3e",
-  accentPurple: "#6940a5",
-  accentPink: "#ad1a72",
+  bg: "#FFFFFF",
+  bgSecondary: "#F5F4F1",
+  bgSidebar: "#F5F4F1",
+  bgHover: "#EBE9E5",
+  bgCard: "#FFFFFF",
+  border: "#D6D4D1",
+  borderLight: "#E7E5E1",
+  text: "#030101",
+  textSecondary: "#5D5B58",
+  textTertiary: "#8A8884",
+  // brand primary
+  accentOrange: "#FF8B2C",
+  accentOrangeDark: "#CC6F23",
+  accentRed: "#FF2A1D",
+  accentRedDark: "#CC2217",
+  accentAmaranth: "#AA004E",
+  accentCrimson: "#6B0031",
+  // action button
+  actionBg: "#181817",
+  // spectrum gradient
+  spectrum: "linear-gradient(90deg, #FFFFFF 0%, #FF8B2C 28%, #FF2A1D 50%, #AA004E 75%, #6B0031 100%)",
+  // map old accent names → new palette so nothing breaks
+  accentBlue: "#FF8B2C",
+  accentGreen: "#CC6F23",
+  accentPurple: "#AA004E",
+  accentPink: "#AA004E",
 };
 
 const AGENCIES = [
-  { id: "dstillery", name: "Dstillery", initials: "Ds", color: C.accentBlue, parent: "Dstillery", marketers: ["NSM Demo", "Esther Test Marketer", "Fjällräven", "Matchaful"] },
-  { id: "360i", name: "360i NY", initials: "36", color: C.accentGreen, parent: "360i NY", marketers: ["360i NY", "American Eagle Outfitters", "DKNY", "Pirates Booty", "Purell"] },
-  { id: "keynes", name: "Keynes", initials: "Ke", color: C.accentPurple, parent: "Keynes", marketers: ["Keynes CPG", "Keynes Travel & Hospitality", "Keynes Retail"] },
+  { id: "dstillery", name: "Dstillery", initials: "Ds", color: C.accentOrange, parent: "Dstillery", marketers: ["NSM Demo", "Esther Test Marketer", "Fjällräven", "Matchaful"] },
+  { id: "360i", name: "360i NY", initials: "36", color: C.accentRed, parent: "360i NY", marketers: ["360i NY", "American Eagle Outfitters", "DKNY", "Pirates Booty", "Purell"] },
+  { id: "keynes", name: "Keynes", initials: "Ke", color: C.accentAmaranth, parent: "Keynes", marketers: ["Keynes CPG", "Keynes Travel & Hospitality", "Keynes Retail"] },
 ];
 
 const ChevronDown = () => (
@@ -50,23 +60,80 @@ export default function DS1App() {
 
   const navItems = [
     { id: "home", label: "Home", icon: "⌂" },
+    { id: "agents", label: "Agents", icon: "◇" },
     { id: "projects", label: "Projects", icon: "◳" },
     { id: "history", label: "History", icon: "↻" },
     { id: "settings", label: "Settings", icon: "✦" },
     ...(activeAgency.id === "dstillery" ? [{ id: "admin", label: "Admin", icon: "⚙" }] : []),
   ];
 
+  const PROTO_TABS = [
+    { id: "workspace", label: "A · Workspace shell" },
+    { id: "chat", label: "B · Chat-first" },
+    { id: "single", label: "C · Single surface" },
+  ];
+  const PROTO_DESC = {
+    workspace: "Full sidebar + canvas. Best for power users managing multiple marketers.",
+    chat: "One chat spine. Canvas opens when output is worth manipulating. Recommended.",
+    single: "Minimal single-surface view. No sidebar, canvas only when needed.",
+  };
+  const [protoTab, setProtoTab] = useState("chat");
+
+  const SUBAGENT_VIEWS = ["explorer", "domainseeded", "brief", "pixel"];
+
   return (
-    <div style={s.shell}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
       <style>{FONTS}</style>
       <style>{`
         @keyframes fadeUp {
           from { opacity: 0; transform: translateY(12px); }
           to { opacity: 1; transform: translateY(0); }
         }
+        @keyframes spectrumSlide {
+          from { background-position: 200% center; }
+          to { background-position: -200% center; }
+        }
         * { box-sizing: border-box; }
+        body { font-family: 'Source Sans 3', Helvetica, sans-serif; }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Urbanist', Arial, sans-serif; }
+        .spectrum-bar {
+          height: 3px;
+          flex-shrink: 0;
+          background: linear-gradient(90deg, #FFFFFF 0%, #FF8B2C 28%, #FF2A1D 50%, #AA004E 75%, #6B0031 100%);
+        }
+        .spectrum-bar.active {
+          background-size: 200% 100%;
+          animation: spectrumSlide 1.8s linear infinite;
+        }
       `}</style>
 
+      {/* Prototype top bar — only visible in subagent views */}
+      {SUBAGENT_VIEWS.includes(activeView) && (
+      <div style={{ display: "flex", alignItems: "center", gap: "0", height: "36px", borderBottom: `1px solid ${C.border}`, backgroundColor: C.bgSidebar, flexShrink: 0, paddingLeft: "16px" }}>
+        <span style={{ fontSize: "12px", fontWeight: 700, color: C.text, fontFamily: "Menlo, 'SF Mono', monospace", marginRight: "16px", letterSpacing: "0.3px" }}>DS-1</span>
+        {PROTO_TABS.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setProtoTab(tab.id)}
+            style={{
+              height: "100%", padding: "0 14px", border: "none", borderRight: `1px solid ${C.border}`,
+              backgroundColor: protoTab === tab.id ? C.bg : "transparent",
+              color: protoTab === tab.id ? C.text : C.textSecondary,
+              fontSize: "12px", fontWeight: protoTab === tab.id ? 600 : 400,
+              cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
+              borderBottom: protoTab === tab.id ? `2px solid ${C.text}` : "none",
+              boxSizing: "border-box",
+            }}
+          >{tab.label}</button>
+        ))}
+        <span style={{ fontSize: "12px", color: C.textTertiary, marginLeft: "16px", fontStyle: "italic" }}>{PROTO_DESC[protoTab]}</span>
+      </div>
+      )}
+
+      {/* Spectrum brand bar */}
+      <div className="spectrum-bar" />
+
+      <div style={{ ...s.shell, flex: 1, height: 0 }}>
       {/* Sidebar */}
       <aside style={{ ...s.sidebar, width: collapsed ? "60px" : "260px", minWidth: collapsed ? "60px" : "260px" }}>
         {/* Logo + collapse toggle */}
@@ -164,7 +231,7 @@ export default function DS1App() {
                         >
                           <span style={{ fontSize: "10px", color: C.textTertiary, width: "10px" }}>▾</span>
                           <span style={{ fontSize: "13px", fontWeight: 700, color: parentSelectable ? C.text : C.textTertiary }}>{activeAgency.parent}</span>
-                          <span style={{ fontSize: "11px", color: C.textTertiary, fontFamily: "'Space Mono', monospace" }}>({activeAgency.marketers.length})</span>
+                          <span style={{ fontSize: "11px", color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace" }}>({activeAgency.marketers.length})</span>
                           {!parentSelectable && <span style={{ fontSize: "10px", color: C.textTertiary, marginLeft: "auto", backgroundColor: C.bgHover, padding: "1px 6px", borderRadius: "3px" }}>Parent</span>}
                           {parentSelectable && selectedMarketer === activeAgency.parent && <span style={{ color: C.accentGreen, fontSize: "13px", marginLeft: "auto" }}>✓</span>}
                         </div>
@@ -253,6 +320,7 @@ export default function DS1App() {
         {activeView === "settings" && <SettingsView onNavigate={navigate} />}
         {activeView === "admin" && <AdminView agency={activeAgency} onNavigate={navigate} />}
       </main>
+      </div>
     </div>
   );
 }
@@ -284,12 +352,15 @@ function AgentsLibrary({ onNavigate }) {
   return (
     <div style={s.content}>
       <Breadcrumb onNavigate={onNavigate} current="Agents" />
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", maxWidth: "720px", animation: "fadeUp 0.5s ease-out", marginBottom: "20px" }}>
-        <div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px", maxWidth: "720px", animation: "fadeUp 0.5s ease-out", marginBottom: "20px" }}>
+        <div style={{ flex: "1 1 240px" }}>
           <h1 style={s.heading}>All agents</h1>
           <p style={s.subheading}>Every DS-1 agent, plus any workflows you build yourself.</p>
         </div>
-        <button onClick={() => setShowBuilder(true)} style={{ padding: "9px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600, border: "none", backgroundColor: C.text, color: "#fff", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", flexShrink: 0 }}>+ Build your own</button>
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "flex-end", marginLeft: "auto" }}>
+          <button disabled style={{ whiteSpace: "nowrap", padding: "9px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600, border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textTertiary, cursor: "not-allowed", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>Build your own (coming soon)</button>
+          <a href="https://dstillery.com" target="_blank" rel="noopener noreferrer" style={{ whiteSpace: "nowrap", padding: "9px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600, border: "none", backgroundColor: C.actionBg, color: "#fff", cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif", textDecoration: "none" }}>MCP Connection</a>
+        </div>
       </div>
 
       {/* Search */}
@@ -300,7 +371,7 @@ function AgentsLibrary({ onNavigate }) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search agents by name or what they do..."
-          style={{ width: "100%", padding: "12px 16px 12px 40px", borderRadius: "10px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "14px", fontFamily: "'DM Sans', sans-serif", outline: "none", boxSizing: "border-box" }}
+          style={{ width: "100%", padding: "12px 16px 12px 40px", borderRadius: "10px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "14px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", outline: "none", boxSizing: "border-box" }}
         />
       </div>
 
@@ -318,7 +389,7 @@ function AgentsLibrary({ onNavigate }) {
                 display: "flex", alignItems: "flex-start", gap: "12px",
                 padding: "16px", borderRadius: "10px", textAlign: "left",
                 border: `1px solid ${C.border}`, backgroundColor: C.bg,
-                cursor: a.route ? "pointer" : "default", fontFamily: "'DM Sans', sans-serif",
+                cursor: a.route ? "pointer" : "default", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
                 transition: "all 0.15s ease", opacity: a.route || a.custom ? 1 : 0.7,
               }}
               onMouseEnter={(e) => { if (a.route || a.custom) e.currentTarget.style.backgroundColor = C.bgSecondary; }}
@@ -364,7 +435,7 @@ function WorkflowBuilderModal({ agents, onClose, onCreate }) {
     });
   };
 
-  const inputStyle = { width: "100%", padding: "10px 14px", borderRadius: "8px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "14px", fontFamily: "'DM Sans', sans-serif", outline: "none", boxSizing: "border-box" };
+  const inputStyle = { width: "100%", padding: "10px 14px", borderRadius: "8px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "14px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", outline: "none", boxSizing: "border-box" };
 
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "24px", animation: "fadeIn 0.2s ease-out" }}>
@@ -399,7 +470,7 @@ function WorkflowBuilderModal({ agents, onClose, onCreate }) {
                   const a = agents.find(x => x.id === id);
                   return (
                     <div key={id} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 10px", borderRadius: "8px", border: `1px solid ${C.border}`, backgroundColor: C.bgSecondary }}>
-                      <span style={{ fontSize: "11px", fontWeight: 700, color: C.textTertiary, fontFamily: "'Space Mono', monospace", flexShrink: 0 }}>{idx + 1}</span>
+                      <span style={{ fontSize: "11px", fontWeight: 700, color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0 }}>{idx + 1}</span>
                       <span style={{ flex: 1, fontSize: "13px", fontWeight: 600, color: C.text }}>{a?.title}</span>
                       <button onClick={() => moveStep(idx, -1)} disabled={idx === 0} style={{ ...miniBtn, opacity: idx === 0 ? 0.3 : 1 }}>↑</button>
                       <button onClick={() => moveStep(idx, 1)} disabled={idx === steps.length - 1} style={{ ...miniBtn, opacity: idx === steps.length - 1 ? 0.3 : 1 }}>↓</button>
@@ -413,7 +484,7 @@ function WorkflowBuilderModal({ agents, onClose, onCreate }) {
             {/* available agents to add */}
             <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
               {agents.filter(a => !steps.includes(a.id)).map(a => (
-                <button key={a.id} onClick={() => toggleStep(a.id)} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 12px", borderRadius: "16px", fontSize: "12px", fontWeight: 500, border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textSecondary, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
+                <button key={a.id} onClick={() => toggleStep(a.id)} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 12px", borderRadius: "16px", fontSize: "12px", fontWeight: 500, border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textSecondary, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>
                   <span style={{ color: a.color }}>+</span> {a.title}
                 </button>
               ))}
@@ -431,8 +502,8 @@ function WorkflowBuilderModal({ agents, onClose, onCreate }) {
         </div>
 
         <div style={{ padding: "16px 24px", borderTop: `1px solid ${C.borderLight}`, display: "flex", justifyContent: "flex-end", gap: "10px", position: "sticky", bottom: 0, backgroundColor: C.bg, borderRadius: "0 0 16px 16px" }}>
-          <button onClick={onClose} style={{ padding: "10px 18px", borderRadius: "8px", fontSize: "14px", fontWeight: 600, border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>Cancel</button>
-          <button onClick={create} disabled={!canCreate} style={{ padding: "10px 20px", borderRadius: "8px", fontSize: "14px", fontWeight: 600, border: "none", backgroundColor: canCreate ? C.text : C.bgHover, color: canCreate ? "#fff" : C.textTertiary, cursor: canCreate ? "pointer" : "not-allowed", fontFamily: "'DM Sans', sans-serif" }}>Create agent</button>
+          <button onClick={onClose} style={{ padding: "10px 18px", borderRadius: "8px", fontSize: "14px", fontWeight: 600, border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>Cancel</button>
+          <button onClick={create} disabled={!canCreate} style={{ padding: "10px 20px", borderRadius: "8px", fontSize: "14px", fontWeight: 600, border: "none", backgroundColor: canCreate ? C.text : C.bgHover, color: canCreate ? "#fff" : C.textTertiary, cursor: canCreate ? "pointer" : "not-allowed", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>Create agent</button>
         </div>
       </div>
     </div>
@@ -502,7 +573,7 @@ function HomeView({ agency, onNavigate }) {
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); startChat(); } }}
               placeholder={attachedProject ? `Ask anything within ${attachedProject.name}…` : "Ask DS-1 anything..."}
               rows={2}
-              style={{ width: "100%", padding: "15px 18px 6px", border: "none", backgroundColor: "transparent", color: C.text, fontSize: "15px", fontFamily: "'DM Sans', sans-serif", outline: "none", resize: "none", lineHeight: "1.5", boxSizing: "border-box" }}
+              style={{ width: "100%", padding: "15px 18px 6px", border: "none", backgroundColor: "transparent", color: C.text, fontSize: "15px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", outline: "none", resize: "none", lineHeight: "1.5", boxSizing: "border-box" }}
             />
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 14px 14px" }}>
               <div style={{ display: "flex", gap: "4px", position: "relative" }}>
@@ -552,7 +623,7 @@ function HomeView({ agency, onNavigate }) {
                   padding: "14px", borderRadius: "10px", textAlign: "left",
                   border: `1px solid ${hovered === wf.id ? "#d3d1cb" : C.border}`,
                   backgroundColor: hovered === wf.id ? C.bgSecondary : C.bg,
-                  cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
+                  cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
                   transition: "all 0.15s ease",
                 }}
               >
@@ -580,7 +651,7 @@ function HomeView({ agency, onNavigate }) {
                 <div style={{ fontSize: "14px", color: C.text }}>{row.text}</div>
                 <div style={{ fontSize: "11px", color: C.textTertiary, marginTop: "1px" }}>{row.agent}</div>
               </div>
-              <span style={{ fontSize: "12px", color: C.textTertiary, fontFamily: "'Space Mono', monospace", flexShrink: 0 }}>{row.meta}</span>
+              <span style={{ fontSize: "12px", color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0 }}>{row.meta}</span>
               <span style={{ fontSize: "14px", color: C.textTertiary, flexShrink: 0 }}>›</span>
             </div>
           ))}
@@ -605,7 +676,7 @@ function TaskChat({ task, onBack }) {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+    <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, overflow: "hidden" }}>
       <div style={briefHeaderStyle}>
         <button onClick={onBack} style={s.btnSecondary}>← Home</button>
         <div style={{ ...briefBadge, backgroundColor: task.dot + "18", color: task.dot }}>◷</div>
@@ -622,7 +693,7 @@ function TaskChat({ task, onBack }) {
               <div key={i} style={{ alignSelf: "flex-end", maxWidth: "80%", fontSize: "14px", color: "#fff", backgroundColor: C.text, padding: "10px 14px", borderRadius: "14px 14px 2px 14px", lineHeight: "1.5" }}>{m.text}</div>
             ) : (
               <div key={i} style={{ display: "flex", gap: "10px", maxWidth: "90%" }}>
-                <span style={{ fontSize: "11px", fontWeight: 700, color: C.accentBlue, fontFamily: "'Space Mono', monospace", flexShrink: 0, marginTop: "3px" }}>DS-1</span>
+                <span style={{ fontSize: "11px", fontWeight: 700, color: C.accentBlue, fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0, marginTop: "3px" }}>DS-1</span>
                 <div style={{ fontSize: "14px", color: C.text, lineHeight: "1.6", backgroundColor: C.bgSecondary, border: `1px solid ${C.borderLight}`, padding: "12px 14px", borderRadius: "2px 14px 14px 14px" }}>{m.text}</div>
               </div>
             )
@@ -638,7 +709,7 @@ function TaskChat({ task, onBack }) {
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
             placeholder="Continue the conversation…"
             rows={1}
-            style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "14px", fontFamily: "'DM Sans', sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "7px 0" }}
+            style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "14px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "7px 0" }}
           />
           <button onClick={send} style={{ width: "32px", height: "32px", borderRadius: "8px", border: "none", cursor: "pointer", backgroundColor: input.trim() ? C.text : C.bgHover, color: input.trim() ? "#fff" : C.textTertiary, fontSize: "15px", flexShrink: 0 }}>↑</button>
         </div>
@@ -683,7 +754,7 @@ function GeneralChat({ seed, onBack, onNavigate }) {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+    <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, overflow: "hidden" }}>
       <div style={briefHeaderStyle}>
         <button onClick={onBack} style={s.btnSecondary}>← Home</button>
         <div style={{ ...briefBadge, backgroundColor: C.accentBlue + "18", color: C.accentBlue }}>◎</div>
@@ -701,11 +772,11 @@ function GeneralChat({ seed, onBack, onNavigate }) {
             ) : (
               <div key={i} style={{ display: "flex", flexDirection: "column", gap: "10px", maxWidth: "90%" }}>
                 <div style={{ display: "flex", gap: "10px" }}>
-                  <span style={{ fontSize: "11px", fontWeight: 700, color: C.accentBlue, fontFamily: "'Space Mono', monospace", flexShrink: 0, marginTop: "3px" }}>DS-1</span>
+                  <span style={{ fontSize: "11px", fontWeight: 700, color: C.accentBlue, fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0, marginTop: "3px" }}>DS-1</span>
                   <div style={{ fontSize: "14px", color: C.text, lineHeight: "1.6", backgroundColor: C.bgSecondary, border: `1px solid ${C.borderLight}`, padding: "12px 14px", borderRadius: "2px 14px 14px 14px" }}>{m.text}</div>
                 </div>
                 {m.action && (
-                  <button onClick={() => onNavigate(m.action.route, m.action.route === "explorer" ? m.action.topic : null)} style={{ alignSelf: "flex-start", marginLeft: "34px", padding: "9px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600, border: "none", backgroundColor: C.text, color: "#fff", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>{m.action.label} →</button>
+                  <button onClick={() => onNavigate(m.action.route, m.action.route === "explorer" ? m.action.topic : null)} style={{ alignSelf: "flex-start", marginLeft: "34px", padding: "9px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600, border: "none", backgroundColor: C.actionBg, color: "#fff", cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>{m.action.label} →</button>
                 )}
               </div>
             )
@@ -721,7 +792,7 @@ function GeneralChat({ seed, onBack, onNavigate }) {
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
             placeholder={seed.project ? `Ask anything within ${seed.project.name}…` : "Ask DS-1 anything…"}
             rows={1}
-            style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "14px", fontFamily: "'DM Sans', sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "7px 0" }}
+            style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "14px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "7px 0" }}
           />
           <button onClick={send} style={{ width: "32px", height: "32px", borderRadius: "8px", border: "none", cursor: "pointer", backgroundColor: input.trim() ? C.text : C.bgHover, color: input.trim() ? "#fff" : C.textTertiary, fontSize: "15px", flexShrink: 0 }}>↑</button>
         </div>
@@ -760,7 +831,7 @@ function TasksPage({ onNavigate }) {
           <p style={s.subheading}>Everything your agents need you to look at.</p>
         </div>
         {tasks.length > 0 && (
-          <button onClick={() => setTasks([])} style={{ padding: "9px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600, border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textSecondary, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", flexShrink: 0 }}>Clear all</button>
+          <button onClick={() => setTasks([])} style={{ padding: "9px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600, border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textSecondary, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif", flexShrink: 0 }}>Clear all</button>
         )}
       </div>
 
@@ -772,7 +843,7 @@ function TasksPage({ onNavigate }) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search tasks by name or agent..."
-          style={{ width: "100%", padding: "12px 16px 12px 40px", borderRadius: "10px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "14px", fontFamily: "'DM Sans', sans-serif", outline: "none", boxSizing: "border-box" }}
+          style={{ width: "100%", padding: "12px 16px 12px 40px", borderRadius: "10px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "14px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", outline: "none", boxSizing: "border-box" }}
         />
       </div>
 
@@ -791,7 +862,7 @@ function TasksPage({ onNavigate }) {
                     <div style={{ fontSize: "14px", color: C.text }}>{row.text}</div>
                     <div style={{ fontSize: "11px", color: C.textTertiary, marginTop: "1px" }}>{row.agent}</div>
                   </div>
-                  <span style={{ fontSize: "12px", color: C.textTertiary, fontFamily: "'Space Mono', monospace", flexShrink: 0 }}>{row.meta}</span>
+                  <span style={{ fontSize: "12px", color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0 }}>{row.meta}</span>
                   <span style={{ fontSize: "14px", color: C.textTertiary, flexShrink: 0 }}>›</span>
                 </div>
               ))}
@@ -808,7 +879,7 @@ const homeS = {
     flex: 1, display: "flex", alignItems: "center", gap: "8px",
     padding: "12px 16px", borderRadius: "10px", fontSize: "13px", fontWeight: 500,
     border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textSecondary,
-    cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
+    cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
     transition: "all 0.15s ease", justifyContent: "center",
   },
   compactEntryHover: {
@@ -848,7 +919,7 @@ function CapCard({ name, initial, color, desc, delay, onClick }) {
         width: "40px", height: "40px", borderRadius: "8px",
         backgroundColor: color + "18", color: color,
         display: "flex", alignItems: "center", justifyContent: "center",
-        fontFamily: "'Space Mono', monospace", fontSize: "13px", fontWeight: 700, flexShrink: 0,
+        fontFamily: "Menlo, 'SF Mono', monospace", fontSize: "13px", fontWeight: 700, flexShrink: 0,
       }}>{initial}</div>
       <div>
         <h3 style={{ fontSize: "16px", fontWeight: 600, color: C.text, margin: "0 0 4px 0" }}>{name}</h3>
@@ -897,7 +968,7 @@ function Breadcrumb({ onNavigate, current }) {
         padding: "5px 12px", borderRadius: "6px",
         border: `1px solid ${C.border}`, backgroundColor: C.bg,
         color: C.textSecondary, cursor: "pointer", fontWeight: 500,
-        fontFamily: "'DM Sans', sans-serif", fontSize: "13px",
+        fontFamily: "'Source Sans 3', Helvetica, sans-serif", fontSize: "13px",
       }}>
         <span>⌂</span> Home
       </button>
@@ -910,12 +981,30 @@ function Breadcrumb({ onNavigate, current }) {
 function AudienceExplorerChat({ onBack, initialQuery }) {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([
-    { role: "assistant", text: "Welcome to Audience Explorer! Start by searching a keyword or topic to search and discover audiences from Dstillery's catalog.", time: new Date(), isIntro: true },
+    { role: "user", text: "Find prebuilt audiences for NY Knicks fans", time: new Date() },
+    { role: "assistant", time: new Date(), thinkTime: 11,
+      intro: "Here are the strongest matches from Dstillery's catalog for NY Knicks fans.",
+      groups: [
+        { label: "Sports & Entertainment", items: [
+          { path: "Sports > Basketball > NBA > NY Knicks Fans", size: "1,200,000", cpm: "$4.50" },
+          { path: "Sports > Basketball > NBA > NY Knicks Fans - Extended Scale", size: "4,800,000", cpm: "$3.80" },
+          { path: "Sports > Basketball > NBA Fans", size: "12,400,000", cpm: "$2.90" },
+        ]},
+        { label: "NY Sports & Local", items: [
+          { path: "Sports > NY Sports Fans", size: "8,200,000", cpm: "$3.20" },
+          { path: "Sports > Basketball > NBA > NY Knicks Fans - In-Market", size: "680,000", cpm: "$5.10" },
+        ]},
+      ],
+      summary: "5 audiences found. The Extended Scale segment offers the best reach at 4.8M. Ready to syndicate or refine?",
+      nextSteps: ["Syndicate NY Knicks Fans - Extended Scale", "Find similar audiences", "Build a compound audience"],
+      loadingSteps: ["Thinking...", "Finding prebuilt audiences..."],
+    },
   ]);
   const [loadingPhase, setLoadingPhase] = useState(null);
   const [attachedFiles, setAttachedFiles] = useState([]);
   const [placeholderIdx, setPlaceholderIdx] = useState(0);
   const [selected, setSelected] = useState([]);
+  const [canvasOpen, setCanvasOpen] = useState(true);
 
   const parseSize = (s) => parseInt(s.replace(/,/g, ""), 10) || 0;
   const fmtSize = (n) => n >= 1000000 ? (n / 1000000).toFixed(1) + "M" : n >= 1000 ? (n / 1000).toFixed(0) + "K" : n.toString();
@@ -941,7 +1030,7 @@ function AudienceExplorerChat({ onBack, initialQuery }) {
   const MOCK_RESPONSES = {
     knicks: {
       query: "NY Knicks",
-      intro: "Great idea. Here are some prebuilt audiences across different categories that could be a good fit for NY Knicks fans and related interests.",
+      intro: "Here's what matched in the catalog. Select audiences on the canvas and I can group, syndicate, or push them to The Trade Desk.",
       summary: "This mix targets core basketball fans as well as broader New York sports and lifestyle segments. Feel free to ask if you'd like more context on why these audience categories align.",
       nextSteps: [
         "Find more audiences similar to these",
@@ -987,7 +1076,7 @@ function AudienceExplorerChat({ onBack, initialQuery }) {
     },
     default: {
       query: "your search",
-      intro: "Here are some prebuilt audiences that match your search criteria.",
+      intro: "Here's what matched in the catalog. Select audiences on the canvas and I can group, syndicate, or push them to The Trade Desk.",
       summary: "These segments cover both high-intent and broader behavioral signals related to your search. Feel free to ask if you'd like more context on why these audience categories align.",
       nextSteps: [
         "Find more audiences similar to these",
@@ -1180,21 +1269,8 @@ function AudienceExplorerChat({ onBack, initialQuery }) {
   }, []);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-      {/* Header */}
-      <div style={{
-        padding: "14px 24px", borderBottom: `1px solid ${C.borderLight}`,
-        display: "flex", alignItems: "center", gap: "12px", flexShrink: 0,
-      }}>
-        <button onClick={onBack} style={s.btnSecondary}>← Back</button>
-        <div style={{
-          width: "28px", height: "28px", borderRadius: "6px",
-          backgroundColor: C.accentBlue + "18", color: C.accentBlue,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontFamily: "'Space Mono', monospace", fontSize: "10px", fontWeight: 700,
-        }}>AE</div>
-        <span style={{ fontSize: "15px", fontWeight: 600, color: C.text }}>Audience Explorer</span>
-      </div>
+    <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, overflow: "hidden" }}>
+      <AgentHeader onBack={onBack} badge="AE" color={C.accentBlue} name="Audience explorer" canvasOpen={canvasOpen} onToggleCanvas={() => setCanvasOpen(!canvasOpen)} hasCanvas={hasStarted} />
 
       {/* Entry hero (before first search) */}
       {!hasStarted ? (
@@ -1206,7 +1282,7 @@ function AudienceExplorerChat({ onBack, initialQuery }) {
             width: "56px", height: "56px", borderRadius: "14px",
             backgroundColor: C.accentBlue + "14", color: C.accentBlue,
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontFamily: "'Space Mono', monospace", fontSize: "16px", fontWeight: 700,
+            fontFamily: "Menlo, 'SF Mono', monospace", fontSize: "16px", fontWeight: 700,
             marginBottom: "24px",
             animation: "fadeUp 0.5s ease-out",
           }}>AE</div>
@@ -1235,7 +1311,7 @@ function AudienceExplorerChat({ onBack, initialQuery }) {
                 width: "100%", padding: "18px 60px 18px 22px",
                 borderRadius: "14px", border: `1px solid ${C.border}`,
                 backgroundColor: C.bg, color: C.text,
-                fontSize: "16px", fontFamily: "'DM Sans', sans-serif",
+                fontSize: "16px", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
                 outline: "none", boxSizing: "border-box",
                 boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
               }}
@@ -1281,7 +1357,7 @@ function AudienceExplorerChat({ onBack, initialQuery }) {
                 style={{
                   padding: "8px 16px", borderRadius: "20px", fontSize: "13px",
                   border: `1px solid ${C.border}`, backgroundColor: C.bg,
-                  color: C.textSecondary, cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
+                  color: C.textSecondary, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
                   fontWeight: 500, transition: "all 0.15s ease",
                 }}
               >{topic}</button>
@@ -1290,7 +1366,7 @@ function AudienceExplorerChat({ onBack, initialQuery }) {
         </div>
       ) : (
       <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+      <div style={{ width: canvasOpen ? "380px" : "100%", flexShrink: 0, borderRight: canvasOpen ? `1px solid ${C.borderLight}` : "none", display: "flex", flexDirection: "column", minWidth: 0 }}>
       {/* Messages */}
       <div style={{ flex: 1, overflowY: "auto", padding: "24px 32px" }}>
         {messages.map((msg, i) => (
@@ -1390,11 +1466,11 @@ function AudienceExplorerChat({ onBack, initialQuery }) {
                       <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "16px" }}>
                         {msg.files.map((file, fi) => {
                           const ftColors = {
-                            pdf: { icon: "PDF", color: "#e03e3e", bg: "#e03e3e14" },
-                            pptx: { icon: "PPTX", color: "#d9730d", bg: "#d9730d14" },
-                            xlsx: { icon: "XLSX", color: "#0f7b6c", bg: "#0f7b6c14" },
-                            csv: { icon: "CSV", color: "#2eaadc", bg: "#2eaadc14" },
-                            docx: { icon: "DOCX", color: "#6940a5", bg: "#6940a514" },
+                            pdf: { icon: "PDF", color: "#FF2A1D", bg: "#e03e3e14" },
+                            pptx: { icon: "PPTX", color: "#FF8B2C", bg: "#d9730d14" },
+                            xlsx: { icon: "XLSX", color: "#CC6F23", bg: "#0f7b6c14" },
+                            csv: { icon: "CSV", color: "#FF8B2C", bg: "#2eaadc14" },
+                            docx: { icon: "DOCX", color: "#AA004E", bg: "#6940a514" },
                           };
                           const ft = ftColors[file.type] || ftColors.pdf;
                           return (
@@ -1408,7 +1484,7 @@ function AudienceExplorerChat({ onBack, initialQuery }) {
                                 width: "36px", height: "36px", borderRadius: "6px",
                                 backgroundColor: ft.bg, color: ft.color,
                                 display: "flex", alignItems: "center", justifyContent: "center",
-                                fontFamily: "'Space Mono', monospace", fontSize: "9px", fontWeight: 700,
+                                fontFamily: "Menlo, 'SF Mono', monospace", fontSize: "9px", fontWeight: 700,
                                 flexShrink: 0,
                               }}>{ft.icon}</div>
                               <div style={{ flex: 1, minWidth: 0 }}>
@@ -1417,7 +1493,7 @@ function AudienceExplorerChat({ onBack, initialQuery }) {
                               </div>
                               <span style={{
                                 fontSize: "12px", fontWeight: 600, color: C.accentBlue,
-                                fontFamily: "'Space Mono', monospace", flexShrink: 0,
+                                fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0,
                               }}>↓ Download</span>
                             </div>
                           );
@@ -1429,77 +1505,6 @@ function AudienceExplorerChat({ onBack, initialQuery }) {
                     {msg.intro && (
                       <div style={chatS.bodyText}>{msg.intro}</div>
                     )}
-
-                    {/* Reach guidance hint */}
-                    {msg.groups && (
-                      <div style={{
-                        display: "flex", alignItems: "flex-start", gap: "8px",
-                        marginTop: "14px", padding: "10px 14px", borderRadius: "8px",
-                        backgroundColor: C.bgSidebar, border: `1px solid ${C.borderLight}`,
-                      }}>
-                        <span style={{ fontSize: "13px", flexShrink: 0 }}>ⓘ</span>
-                        <span style={{ fontSize: "12px", color: C.textSecondary, lineHeight: "1.5" }}>
-                          The number next to each audience is its <strong>estimated reach</strong> — how many addressable people are in that segment. The bar shows relative size within the group. Larger reach means broader targeting; smaller reach means a more focused, niche audience.
-                        </span>
-                      </div>
-                    )}
-
-                    {msg.groups && msg.groups.map((group, gi) => {
-                      const maxReach = Math.max(...group.items.map(it => parseSize(it.size)));
-                      return (
-                        <div key={gi} style={{ marginTop: "24px" }}>
-                          <div style={chatS.groupTitle}>{group.title}</div>
-                          <div style={{ ...chatS.bodyText, marginBottom: "12px" }}>{group.desc}</div>
-                          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                            {group.items.map((item, ii) => {
-                              const reach = parseSize(item.size);
-                              const pct = maxReach > 0 ? (reach / maxReach) * 100 : 0;
-                              const isSelected = selected.find(s => s.path === item.path);
-                              const segName = item.path.split(" > ").pop();
-                              const breadcrumb = item.path.split(" > ").slice(0, -1).join(" › ");
-                              return (
-                                <div
-                                  key={ii}
-                                  onClick={() => toggleSelect(item)}
-                                  style={{
-                                    display: "flex", alignItems: "center", gap: "14px",
-                                    padding: "14px 16px", borderRadius: "10px",
-                                    border: `1px solid ${isSelected ? C.accentBlue : C.border}`,
-                                    backgroundColor: isSelected ? C.accentBlue + "08" : C.bg,
-                                    cursor: "pointer", transition: "all 0.15s ease",
-                                  }}
-                                >
-                                  {/* Checkbox */}
-                                  <div style={{
-                                    width: "18px", height: "18px", borderRadius: "5px",
-                                    border: `1.5px solid ${isSelected ? C.accentBlue : C.border}`,
-                                    backgroundColor: isSelected ? C.accentBlue : "transparent",
-                                    display: "flex", alignItems: "center", justifyContent: "center",
-                                    flexShrink: 0, color: "#fff", fontSize: "11px",
-                                  }}>{isSelected ? "✓" : ""}</div>
-
-                                  {/* Name + breadcrumb */}
-                                  <div style={{ flex: 1, minWidth: 0 }}>
-                                    <div style={{ fontSize: "14px", fontWeight: 600, color: C.text }}>{segName}</div>
-                                    <div style={{ fontSize: "11px", color: C.textTertiary, marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{breadcrumb}</div>
-                                  </div>
-
-                                  {/* Reach bar + number */}
-                                  <div style={{ width: "140px", flexShrink: 0 }}>
-                                    <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "4px" }}>
-                                      <span style={{ fontSize: "13px", fontWeight: 600, color: C.text, fontFamily: "'Space Mono', monospace" }}>{fmtSize(reach)}</span>
-                                    </div>
-                                    <div style={{ height: "5px", borderRadius: "3px", backgroundColor: C.bgHover, overflow: "hidden" }}>
-                                      <div style={{ height: "100%", width: `${pct}%`, borderRadius: "3px", backgroundColor: group.items === group.items ? C.accentBlue : C.accentBlue, opacity: 0.4 + (pct / 100) * 0.6, transition: "width 0.3s ease" }} />
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })}
 
                     {msg.summary && (
                       <div style={{ ...chatS.bodyText, marginTop: "20px" }}>{msg.summary}</div>
@@ -1517,7 +1522,7 @@ function AudienceExplorerChat({ onBack, initialQuery }) {
                                 padding: "8px 14px", borderRadius: "8px", fontSize: "13px",
                                 fontWeight: 500, textAlign: "left",
                                 border: `1px solid ${C.border}`, backgroundColor: C.bg,
-                                color: C.text, cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
+                                color: C.text, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
                                 transition: "all 0.15s ease",
                               }}
                             >{step}</button>
@@ -1546,7 +1551,7 @@ function AudienceExplorerChat({ onBack, initialQuery }) {
 
       {/* Rich Input */}
       <div style={{
-        padding: "16px 32px 20px", borderTop: `1px solid ${C.borderLight}`,
+        padding: "12px 32px 16px", borderTop: `1px solid ${C.borderLight}`,
         flexShrink: 0, backgroundColor: C.bg,
       }}>
         <div style={{
@@ -1577,12 +1582,12 @@ function AudienceExplorerChat({ onBack, initialQuery }) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-            placeholder="Ask DS-1 anything..."
-            rows={2}
+            placeholder="Message audience explorer…"
+            rows={1}
             style={{
-              width: "100%", padding: "14px 16px 8px", border: "none",
+              width: "100%", padding: "10px 14px 4px", border: "none",
               backgroundColor: "transparent", color: C.text,
-              fontSize: "14px", fontFamily: "'DM Sans', sans-serif",
+              fontSize: "14px", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
               outline: "none", resize: "none", lineHeight: "1.5",
             }}
           />
@@ -1612,36 +1617,53 @@ function AudienceExplorerChat({ onBack, initialQuery }) {
 
       </div>
       </div>
-      {/* RIGHT — live selection canvas */}
-      <div style={{ width: "320px", flexShrink: 0, borderLeft: `1px solid ${C.borderLight}`, overflowY: "auto", padding: "24px 20px", backgroundColor: C.bgSecondary }}>
-        <div style={{ fontSize: "12px", fontWeight: 700, color: C.textTertiary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "14px" }}>Your selection</div>
-        {selected.length === 0 ? (
-          <div style={{ fontSize: "13px", color: C.textTertiary, lineHeight: "1.6" }}>Select audiences from the results and they'll collect here with combined reach and next actions.</div>
-        ) : (
-          <>
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "16px" }}>
-              {selected.map((item, i) => {
-                const segName = item.path.split(" > ").pop();
-                return (
-                  <div key={i} style={{ padding: "10px 12px", borderRadius: "8px", border: `1px solid ${C.border}`, backgroundColor: C.bg }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      <span style={{ flex: 1, fontSize: "13px", fontWeight: 600, color: C.text }}>{segName}</span>
-                      <span onClick={() => toggleSelect(item)} style={{ cursor: "pointer", color: C.textTertiary, fontSize: "14px" }}>×</span>
-                    </div>
-                    <div style={{ fontSize: "11px", color: C.textTertiary, fontFamily: "'Space Mono', monospace", marginTop: "2px" }}>{fmtSize(parseSize(item.size))}</div>
+      {/* RIGHT — matching audiences canvas */}
+      {canvasOpen && (
+      <div style={{ flex: 1, overflowY: "auto", padding: "24px clamp(20px,4vw,40px)", backgroundColor: C.bg, minWidth: 0 }}>
+        {(() => {
+          let groups = null;
+          for (let gi = messages.length - 1; gi >= 0; gi--) { if (messages[gi].groups) { groups = messages[gi].groups; break; } }
+          if (!groups) return (
+            <div style={{ color: C.textTertiary, fontSize: "14px", marginTop: "8px" }}>Audiences you find will appear here. Search from the chat to get matches.</div>
+          );
+          return (
+            <div style={{ maxWidth: "760px" }}>
+              <h2 style={{ fontSize: "17px", fontWeight: 700, color: C.text, margin: "0 0 2px" }}>Matching audiences</h2>
+              <p style={{ fontSize: "13px", color: C.textTertiary, margin: "0 0 22px" }}>Select rows to act on them from the chat.</p>
+              {groups.map((group, gi) => (
+                <div key={gi} style={{ marginBottom: "26px" }}>
+                  <div style={{ fontSize: "15px", fontWeight: 700, color: C.text, marginBottom: "2px" }}>{group.title}</div>
+                  <div style={{ fontSize: "13px", color: C.textTertiary, marginBottom: "12px", lineHeight: "1.5" }}>{group.desc}</div>
+                  <div style={{ border: `1px solid ${C.border}`, borderRadius: "10px", overflow: "hidden" }}>
+                    {group.items.map((item, ii) => {
+                      const isSelected = selected.find(sx => sx.path === item.path);
+                      const label = item.path.replace(/^Dstillery > /, "").split(" > ").join(" › ");
+                      return (
+                        <div key={ii} onClick={() => toggleSelect(item)} style={{ display: "flex", alignItems: "center", gap: "14px", padding: "13px 16px", borderBottom: ii < group.items.length - 1 ? `1px solid ${C.borderLight}` : "none", cursor: "pointer", backgroundColor: isSelected ? C.accentBlue + "0a" : C.bg, transition: "background-color 0.15s ease" }}>
+                          <div style={{ width: "18px", height: "18px", borderRadius: "5px", border: `1.5px solid ${isSelected ? C.accentBlue : C.border}`, backgroundColor: isSelected ? C.accentBlue : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#fff", fontSize: "11px" }}>{isSelected ? "✓" : ""}</div>
+                          <span style={{ flex: 1, fontSize: "13px", color: C.text, minWidth: 0 }}>{label}</span>
+                          <span style={{ fontSize: "13px", color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0 }}>{fmtSize(parseSize(item.size))}</span>
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
+                </div>
+              ))}
+              {selected.length > 0 && (
+                <div style={{ position: "sticky", bottom: 0, display: "flex", alignItems: "center", gap: "14px", padding: "14px 18px", borderRadius: "12px", backgroundColor: C.actionBg, color: "#fff", boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: "14px", fontWeight: 600 }}>{selected.length} selected</div>
+                    <div style={{ fontSize: "12px", opacity: 0.7, fontFamily: "Menlo, 'SF Mono', monospace" }}>{fmtSize(combinedReach)} combined reach</div>
+                  </div>
+                  <button onClick={() => setSelected([])} style={{ padding: "8px 12px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.3)", background: "transparent", color: "#fff", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>Clear</button>
+                  <button onClick={() => handleSend("lets syndicate this")} style={{ padding: "8px 14px", borderRadius: "8px", border: "none", background: "#fff", color: C.text, fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>Syndicate →</button>
+                </div>
+              )}
             </div>
-            <div style={{ padding: "12px 14px", borderRadius: "10px", backgroundColor: C.text, color: "#fff", marginBottom: "12px" }}>
-              <div style={{ fontSize: "13px", fontWeight: 600 }}>{selected.length} audience{selected.length > 1 ? "s" : ""} selected</div>
-              <div style={{ fontSize: "12px", opacity: 0.7, fontFamily: "'Space Mono', monospace" }}>{fmtSize(combinedReach)} combined reach</div>
-            </div>
-            <button style={{ width: "100%", padding: "10px", borderRadius: "8px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", marginBottom: "8px" }}>Build Compound</button>
-            <button onClick={() => handleSend("lets syndicate this")} style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "none", backgroundColor: C.text, color: "#fff", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>Syndicate →</button>
-          </>
-        )}
+          );
+        })()}
       </div>
+      )}
       </div>
       )}
     </div>
@@ -1656,7 +1678,7 @@ const chatS = {
     backgroundColor: C.accentBlue + "14",
     padding: "4px 10px",
     borderRadius: "6px",
-    fontFamily: "'Space Mono', monospace",
+    fontFamily: "Menlo, 'SF Mono', monospace",
     letterSpacing: "0.3px",
     flexShrink: 0,
     marginTop: "2px",
@@ -1678,7 +1700,7 @@ const chatS = {
     backgroundColor: C.accentBlue + "14",
     padding: "4px 10px",
     borderRadius: "6px",
-    fontFamily: "'Space Mono', monospace",
+    fontFamily: "Menlo, 'SF Mono', monospace",
     letterSpacing: "0.3px",
     flexShrink: 0,
     marginTop: "2px",
@@ -1760,7 +1782,7 @@ const chatS = {
     color: C.textTertiary,
     fontSize: "12px",
     fontWeight: 500,
-    fontFamily: "'DM Sans', sans-serif",
+    fontFamily: "'Source Sans 3', Helvetica, sans-serif",
     cursor: "pointer",
     transition: "color 0.15s ease, background-color 0.15s ease",
   },
@@ -1772,7 +1794,7 @@ const chatS = {
     color: C.text,
     fontSize: "13px",
     fontWeight: 600,
-    fontFamily: "'DM Sans', sans-serif",
+    fontFamily: "'Source Sans 3', Helvetica, sans-serif",
     cursor: "pointer",
   },
   selActionBtnGhost: {
@@ -1783,7 +1805,7 @@ const chatS = {
     color: "#fff",
     fontSize: "13px",
     fontWeight: 600,
-    fontFamily: "'DM Sans', sans-serif",
+    fontFamily: "'Source Sans 3', Helvetica, sans-serif",
     cursor: "pointer",
   },
 };
@@ -1816,28 +1838,33 @@ function BuildView({ onNavigate }) {
 
 
 function DomainSeededCanvas({ onBack }) {
-  const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
   const [seeds, setSeeds] = useState([]);
   const [building, setBuilding] = useState(false);
   const [built, setBuilt] = useState(false);
-  const [log, setLog] = useState([{ role: "ds1", text: "Tell me a topic, keyword, or seed domain and I'll surface relevant domains on the right. Pick up to 3 seeds and I'll model an audience from the people who visit them." }]);
+  const [canvasOpen, setCanvasOpen] = useState(true);
+  const [log, setLog] = useState([
+    { role: "user", text: "Build a domain seeded audience for sports fans" },
+    { role: "ds1", text: "I can build a domain seeded audience. I've pulled matching domains onto the canvas — pick up to 3 seeds." },
+  ]);
+  const [domainsVisible, setDomainsVisible] = useState(true);
 
   const MAX_SEEDS = 3;
 
   const ALL_DOMAINS = [
-    { domain: "nypost.com", reach: 96.7 }, { domain: "espn.com", reach: 62.8 },
-    { domain: "si.com", reach: 61.6 }, { domain: "nytimes.com", reach: 59.7 },
-    { domain: "cbssports.com", reach: 56.2 }, { domain: "sportingnews.com", reach: 51.1 },
-    { domain: "yahoo.com/sports", reach: 44.1 }, { domain: "basketball-reference.com", reach: 33.9 },
-    { domain: "clutchpoints.com", reach: 22.2 }, { domain: "bleacherreport.com", reach: 18.4 },
-    { domain: "foxsports.com", reach: 12.7 }, { domain: "nbcsports.com", reach: 11.6 },
-    { domain: "theathletic.com", reach: 9.3 }, { domain: "nba.com", reach: 2.7 },
-    { domain: "dailynews.com", reach: 2.6 },
+    { domain: "nypost.com", reach: 96.7 },
+    { domain: "espn.com", reach: 62.8 },
+    { domain: "si.com", reach: 61.6 },
+    { domain: "cbssports.com", reach: 56.2 },
+    { domain: "sportingnews.com", reach: 51.1 },
+    { domain: "basketball-reference.com", reach: 33.9 },
+    { domain: "clutchpoints.com", reach: 22.2 },
+    { domain: "bleacherreport.com", reach: 18.4 },
+    { domain: "foxsports.com", reach: 12.7 },
+    { domain: "nba.com", reach: 2.7 },
   ];
 
   const maxReach = Math.max(...ALL_DOMAINS.map(d => d.reach));
-  const filtered = search.trim() ? ALL_DOMAINS : [];
   const atMax = seeds.length >= MAX_SEEDS;
 
   const say = (text) => setLog(prev => [...prev, { role: "ds1", text }]);
@@ -1845,8 +1872,9 @@ function DomainSeededCanvas({ onBack }) {
   const runSearch = () => {
     if (!query.trim()) return;
     setLog(prev => [...prev, { role: "user", text: query.trim() }]);
-    setSearch(query.trim());
-    setTimeout(() => say(`Found ${ALL_DOMAINS.length} domains in our graph for "${query.trim()}". Pick up to ${MAX_SEEDS} to seed your audience.`), 400);
+    setDomainsVisible(true);
+    setTimeout(() => say(`I've pulled matching domains onto the canvas — pick up to ${MAX_SEEDS} seeds.`), 400);
+    setQuery("");
   };
 
   const toggleSeed = (domain) => {
@@ -1861,6 +1889,8 @@ function DomainSeededCanvas({ onBack }) {
   const handleBuild = () => {
     setBuilding(true);
     say("Modeling an audience from the shared behaviors of people who visit your seed domains…");
+    const seededReach = seeds.reduce((sum, s) => { const d = ALL_DOMAINS.find(x => x.domain === s); return sum + (d ? d.reach : 0); }, 0);
+    const modeledReach = (seededReach * 3.2).toFixed(1);
     setTimeout(() => { setBuilding(false); setBuilt(true); say(`Done. I modeled a ~${modeledReach}M ID-based audience from your ${seeds.length} seed${seeds.length > 1 ? "s" : ""}. Ready to syndicate.`); }, 2000);
   };
 
@@ -1868,117 +1898,118 @@ function DomainSeededCanvas({ onBack }) {
   const modeledReach = (seededReach * 3.2).toFixed(1);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-      <div style={briefHeaderStyle}>
-        <button onClick={onBack} style={s.btnSecondary}>← Back</button>
-        <div style={{ ...briefBadge, backgroundColor: C.accentGreen + "18", color: C.accentGreen }}>DS</div>
-        <span style={{ fontSize: "15px", fontWeight: 600, color: C.text, flex: 1 }}>Domain Seeded Audience</span>
-        <span style={{ fontSize: "12px", color: C.textTertiary }}>{seeds.length}/{MAX_SEEDS} seeds</span>
-      </div>
+    <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, overflow: "hidden" }}>
+      <AgentHeader onBack={onBack} badge="DS" color={C.accentGreen} name="Domain seeded" canvasOpen={canvasOpen} onToggleCanvas={() => setCanvasOpen(!canvasOpen)} />
 
       <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
-        {/* LEFT — chat / seeds */}
-        <div style={{ width: "380px", flexShrink: 0, borderRight: `1px solid ${C.borderLight}`, display: "flex", flexDirection: "column", backgroundColor: C.bgSecondary }}>
-          <div style={{ flex: 1, overflowY: "auto", padding: "20px" }}>
+        {/* LEFT — chat */}
+        <div style={{ width: canvasOpen ? "380px" : "100%", flexShrink: 0, borderRight: canvasOpen ? `1px solid ${C.borderLight}` : "none", display: "flex", flexDirection: "column", backgroundColor: canvasOpen ? C.bgSecondary : C.bg }}>
+          <div style={{ flex: 1, overflowY: "auto", padding: "20px", boxSizing: "border-box" }}>
             {log.map((m, i) => (
               <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start", marginBottom: "12px" }}>
                 {m.role === "user" ? (
-                  <div style={{ maxWidth: "85%", fontSize: "13px", color: "#fff", backgroundColor: C.text, padding: "8px 12px", borderRadius: "12px 12px 2px 12px", lineHeight: "1.5" }}>{m.text}</div>
+                  <div style={{ maxWidth: "85%", fontSize: "13px", color: C.text, backgroundColor: C.bgHover, padding: "10px 14px", borderRadius: "14px 14px 2px 14px", lineHeight: "1.5" }}>{m.text}</div>
                 ) : (
-                  <div style={{ display: "flex", gap: "8px", maxWidth: "92%" }}>
-                    <span style={{ fontSize: "11px", fontWeight: 700, color: C.accentGreen, fontFamily: "'Space Mono', monospace", flexShrink: 0, marginTop: "2px" }}>DS-1</span>
-                    <div style={{ fontSize: "13px", color: C.textSecondary, lineHeight: "1.6" }}>{m.text}</div>
-                  </div>
+                  <div style={{ maxWidth: "88%", fontSize: "13px", color: C.text, backgroundColor: C.bg, border: `1px solid ${C.borderLight}`, padding: "10px 14px", borderRadius: "2px 14px 14px 14px", lineHeight: "1.5" }}>{m.text}</div>
                 )}
               </div>
             ))}
 
-            {/* Seeds */}
-            {seeds.length > 0 && (
-              <div style={{ marginTop: "8px", padding: "14px", borderRadius: "10px", border: `1px solid ${C.border}`, backgroundColor: C.bg }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
-                  <span style={{ fontSize: "12px", fontWeight: 700, color: atMax ? C.accentGreen : C.text }}>Seeds ({seeds.length}/{MAX_SEEDS})</span>
-                  <span style={{ fontSize: "11px", color: C.textTertiary, fontFamily: "'Space Mono', monospace" }}>{seededReach.toFixed(1)}M combined</span>
-                </div>
-                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "12px" }}>
+            {/* Seeds summary + build button */}
+            {seeds.length > 0 && !built && (
+              <div style={{ marginTop: "4px", padding: "12px 14px", borderRadius: "10px", border: `1px solid ${C.border}`, backgroundColor: C.bg }}>
+                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "10px" }}>
                   {seeds.map((s2) => (
-                    <span key={s2} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "5px 10px", borderRadius: "6px", fontSize: "12px", fontWeight: 500, backgroundColor: C.bgSecondary, border: `1px solid ${C.border}`, color: C.text }}>
-                      {s2}<span onClick={() => toggleSeed(s2)} style={{ cursor: "pointer", color: C.textTertiary, fontSize: "14px" }}>×</span>
+                    <span key={s2} style={{ display: "flex", alignItems: "center", gap: "5px", padding: "4px 10px", borderRadius: "6px", fontSize: "12px", fontWeight: 500, backgroundColor: C.bgSecondary, border: `1px solid ${C.border}`, color: C.text }}>
+                      {s2}<span onClick={() => toggleSeed(s2)} style={{ cursor: "pointer", color: C.textTertiary, fontSize: "13px", lineHeight: 1 }}>×</span>
                     </span>
                   ))}
                 </div>
-                <button onClick={handleBuild} disabled={building || built} style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "none", backgroundColor: built ? C.bgHover : C.accentGreen, color: built ? C.textTertiary : "#fff", fontSize: "13px", fontWeight: 600, cursor: building || built ? "default" : "pointer", fontFamily: "'DM Sans', sans-serif", opacity: building ? 0.6 : 1 }}>{building ? "Modeling…" : built ? "✓ Modeled" : "Build Audience →"}</button>
+                <button onClick={handleBuild} disabled={building} style={{ width: "100%", padding: "9px", borderRadius: "8px", border: "none", backgroundColor: C.actionBg, color: "#fff", fontSize: "13px", fontWeight: 600, cursor: building ? "default" : "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif", opacity: building ? 0.6 : 1 }}>{building ? "Modeling…" : "Build Audience →"}</button>
+              </div>
+            )}
+            {built && (
+              <div style={{ marginTop: "4px", padding: "12px 14px", borderRadius: "10px", border: `1px solid ${C.accentGreen}40`, backgroundColor: C.accentGreen + "08" }}>
+                <div style={{ fontSize: "13px", fontWeight: 600, color: C.text, marginBottom: "4px" }}>✓ ~{modeledReach}M modeled · ID-Based</div>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button onClick={() => { setBuilt(false); setSeeds([]); }} style={{ ...s.btnSecondary, fontSize: "12px", padding: "5px 12px" }}>Start over</button>
+                  <button style={{ ...s.btnPrimary, backgroundColor: C.text, fontSize: "12px", padding: "5px 12px" }}>Syndicate →</button>
+                </div>
               </div>
             )}
           </div>
 
-          {/* composer / search */}
+          {/* composer */}
           <div style={{ padding: "14px", borderTop: `1px solid ${C.borderLight}` }}>
             <div style={{ display: "flex", gap: "8px", alignItems: "flex-end", padding: "6px 6px 6px 12px", borderRadius: "12px", border: `1px solid ${C.border}`, backgroundColor: C.bg }}>
-              <textarea value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); runSearch(); } }} placeholder="Search a topic, keyword, or seed domain…" rows={1} style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "13px", fontFamily: "'DM Sans', sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "4px 0" }} />
+              <textarea value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); runSearch(); } }} placeholder="Message domain seeded…" rows={1} style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "13px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "4px 0" }} />
               <button onClick={runSearch} style={{ width: "30px", height: "30px", borderRadius: "8px", border: "none", cursor: "pointer", backgroundColor: query.trim() ? C.text : C.bgHover, color: query.trim() ? "#fff" : C.textTertiary, fontSize: "14px", flexShrink: 0 }}>↑</button>
             </div>
           </div>
         </div>
 
-        {/* RIGHT — live domain render */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "28px clamp(20px, 4vw, 48px)", minWidth: 0 }}>
-          <div style={{ maxWidth: "640px", margin: "0 auto" }}>
+        {/* RIGHT — domain list */}
+        {canvasOpen && (
+          <div style={{ flex: 1, overflowY: "auto", padding: "28px 32px", minWidth: 0, backgroundColor: C.bg }}>
+            <h2 style={{ fontSize: "18px", fontWeight: 700, color: C.text, margin: "0 0 4px" }}>Seed domains</h2>
+            <p style={{ fontSize: "13px", color: C.textTertiary, margin: "0 0 20px" }}>Pick up to {MAX_SEEDS} — bars show monthly device reach (M).</p>
+
             {built && (
-              <div style={{ display: "flex", alignItems: "center", gap: "14px", padding: "16px 18px", borderRadius: "12px", backgroundColor: C.accentGreen + "12", border: `1px solid ${C.accentGreen}40`, marginBottom: "20px" }}>
-                <span style={{ fontSize: "18px" }}>✓</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "14px", padding: "14px 18px", borderRadius: "10px", backgroundColor: C.accentGreen + "12", border: `1px solid ${C.accentGreen}40`, marginBottom: "20px" }}>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: "14px", fontWeight: 600, color: C.text }}>Audience modeled from {seeds.length} seed{seeds.length > 1 ? "s" : ""}</div>
-                  <div style={{ fontSize: "12px", color: C.textSecondary, marginTop: "2px", fontFamily: "'Space Mono', monospace" }}>~{modeledReach}M modeled reach · ID-Based</div>
+                  <div style={{ fontSize: "12px", color: C.textSecondary, marginTop: "2px", fontFamily: "Menlo, 'SF Mono', monospace" }}>~{modeledReach}M modeled reach · ID-Based</div>
                 </div>
                 <button onClick={() => { setBuilt(false); setSeeds([]); }} style={s.btnSecondary}>Start over</button>
                 <button style={{ ...s.btnPrimary, backgroundColor: C.text }}>Syndicate →</button>
               </div>
             )}
 
-            {!search.trim() ? (
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "60vh", textAlign: "center" }}>
-                <div style={{ width: "52px", height: "52px", borderRadius: "13px", backgroundColor: C.accentGreen + "14", color: C.accentGreen, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", marginBottom: "18px" }}>⊞</div>
-                <div style={{ fontSize: "17px", fontWeight: 600, color: C.text, marginBottom: "6px" }}>Search for domains to get started</div>
-                <div style={{ fontSize: "14px", color: C.textTertiary, maxWidth: "380px", lineHeight: "1.5", marginBottom: "20px" }}>Use the chat on the left — enter a topic, brief, or seed domain and relevant domains appear here.</div>
-                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "center" }}>
-                  {["sports", "basketball", "nypost.com", "ny news"].map(ex => (
-                    <button key={ex} onClick={() => { setQuery(ex); setLog(prev => [...prev, { role: "user", text: ex }]); setSearch(ex); setTimeout(() => say(`Found ${ALL_DOMAINS.length} domains in our graph for "${ex}". Pick up to ${MAX_SEEDS} to seed your audience.`), 400); }} style={{ padding: "7px 14px", borderRadius: "20px", fontSize: "13px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textSecondary, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontWeight: 500 }}>{ex}</button>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <>
-                <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", marginBottom: "16px", padding: "10px 14px", borderRadius: "8px", backgroundColor: C.bgSidebar, border: `1px solid ${C.borderLight}` }}>
-                  <span style={{ fontSize: "13px", flexShrink: 0 }}>ⓘ</span>
-                  <span style={{ fontSize: "12px", color: C.textSecondary, lineHeight: "1.5" }}>Each domain shows its <strong>estimated reach</strong> — how many people in Dstillery's graph regularly visit it. Pick up to <strong>{MAX_SEEDS} seeds</strong> and DS-1 models a new audience from their shared behaviors.</span>
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-                  {filtered.map((d) => {
-                    const isSeeded = seeds.includes(d.domain);
-                    const pct = (d.reach / maxReach) * 100;
-                    const disabled = atMax && !isSeeded;
-                    return (
-                      <div key={d.domain} onClick={() => toggleSeed(d.domain)} style={{ padding: "14px 16px", borderRadius: "10px", border: `1px solid ${isSeeded ? C.accentGreen : C.border}`, backgroundColor: isSeeded ? C.accentGreen + "08" : C.bg, cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.45 : 1, transition: "all 0.15s ease" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
-                          <span style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: C.accentGreen, flexShrink: 0 }} />
-                          <span style={{ fontSize: "14px", fontWeight: 600, color: C.text, flex: 1 }}>{d.domain}</span>
-                          <span style={{ width: "22px", height: "22px", borderRadius: "6px", border: `1px solid ${isSeeded ? C.accentGreen : C.border}`, backgroundColor: isSeeded ? C.accentGreen : "transparent", color: isSeeded ? "#fff" : C.textTertiary, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", flexShrink: 0 }}>{isSeeded ? "✓" : "+"}</span>
-                        </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                          <div style={{ flex: 1, height: "5px", borderRadius: "3px", backgroundColor: C.bgHover, overflow: "hidden" }}>
-                            <div style={{ height: "100%", width: `${pct}%`, borderRadius: "3px", backgroundColor: C.accentBlue, opacity: 0.4 + (pct / 100) * 0.6 }} />
-                          </div>
-                          <span style={{ fontSize: "12px", color: C.textTertiary, fontFamily: "'Space Mono', monospace", flexShrink: 0 }}>{d.reach}M</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </>
-            )}
+            <div style={{ border: `1px solid ${C.border}`, borderRadius: "10px", overflow: "hidden" }}>
+              {ALL_DOMAINS.map((d, i) => {
+                const isSeeded = seeds.includes(d.domain);
+                const pct = (d.reach / maxReach) * 100;
+                const disabled = atMax && !isSeeded;
+                return (
+                  <div
+                    key={d.domain}
+                    onClick={() => !disabled && toggleSeed(d.domain)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: "14px",
+                      padding: "13px 16px",
+                      borderBottom: i < ALL_DOMAINS.length - 1 ? `1px solid ${C.borderLight}` : "none",
+                      backgroundColor: isSeeded ? C.accentGreen + "08" : C.bg,
+                      cursor: disabled ? "not-allowed" : "pointer",
+                      opacity: disabled ? 0.45 : 1,
+                      transition: "background-color 0.1s ease",
+                    }}
+                  >
+                    {/* Checkbox */}
+                    <div style={{
+                      width: "16px", height: "16px", borderRadius: "3px", flexShrink: 0,
+                      border: `1.5px solid ${isSeeded ? C.accentGreen : C.border}`,
+                      backgroundColor: isSeeded ? C.accentGreen : "transparent",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
+                      {isSeeded && <span style={{ color: "#fff", fontSize: "10px", lineHeight: 1 }}>✓</span>}
+                    </div>
+
+                    {/* Domain name */}
+                    <span style={{ fontSize: "14px", color: C.text, width: "180px", flexShrink: 0 }}>{d.domain}</span>
+
+                    {/* Reach bar */}
+                    <div style={{ flex: 1, height: "6px", borderRadius: "3px", backgroundColor: C.bgHover, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${pct}%`, borderRadius: "3px", backgroundColor: "#c8c4bc" }} />
+                    </div>
+
+                    {/* Reach number */}
+                    <span style={{ fontSize: "12px", color: C.textSecondary, fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0, width: "36px", textAlign: "right" }}>{d.reach}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
@@ -1986,29 +2017,22 @@ function DomainSeededCanvas({ onBack }) {
 
 
 function PixelCreator({ onBack }) {
-  const [marketer, setMarketer] = useState("");
   const [draftType, setDraftType] = useState("Site Visitor");
   const [draftCodes, setDraftCodes] = useState("");
-  const [draftDesc, setDraftDesc] = useState("");
   const [agreed, setAgreed] = useState(false);
-  const [batch, setBatch] = useState([]); // {key, code, type, description, status, id, loads}
+  const [batch, setBatch] = useState([]);
   const [copied, setCopied] = useState(null);
-  const [log, setLog] = useState([{ role: "ds1", text: "I can create tracking pixels for you — one at a time or in bulk. Pick a marketer, then add audience codes (one per line for a batch) and I'll render each pixel and its tags on the right." }]);
+  const [log, setLog] = useState([
+    { role: "user", text: "Create a conversion pixel for fjallraven checkout" },
+    { role: "ds1", text: "Sounds like a tracking pixel. I've opened the pixel canvas — add codes there or tell me what to create." },
+  ]);
   const [input, setInput] = useState("");
-
-  const brand = marketer.trim() || "your brand";
-  const typeAbbr = (t) => t.toUpperCase().split(" ")[0];
+  const [canvasOpen, setCanvasOpen] = useState(true);
 
   const PIXEL_TYPES = [
-    { value: "Site Visitor", desc: "tracks website visitors" },
-    { value: "Conversion", desc: "tracks completed actions" },
-    { value: "Ad Viewer", desc: "tracks ad impressions" },
-  ];
-
-  const PREVIOUS_PIXELS = [
-    { code: "fjallraven-homepage-2026", type: "SITE", id: "874203", date: "2 days ago", loads: 8420 },
-    { code: "fjallraven-checkout-conv", type: "CONV", id: "873991", date: "May 28, 2026", loads: 612 },
-    { code: "fjallraven-spring-display", type: "AD", id: "873544", date: "May 20, 2026", loads: 1340 },
+    { value: "Site Visitor" },
+    { value: "Conversion" },
+    { value: "Ad Viewer" },
   ];
 
   const tagFor = (code, kind) => kind === "js"
@@ -2016,26 +2040,34 @@ function PixelCreator({ onBack }) {
     : `<img width="1" height="1" src="//action.dstillery.com/orbserv/nspix?adv=cl161902600414132&ns=5973&nc=${code}&ncv=64" />`;
 
   const say = (text) => setLog(prev => [...prev, { role: "ds1", text }]);
-
   const cleanCode = (s) => s.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
   const addToBatch = () => {
     const codes = draftCodes.split("\n").map(cleanCode).filter(Boolean);
     if (codes.length === 0) return;
-    const additions = codes.map((code, i) => ({ key: Date.now() + "-" + i, code, type: draftType, description: draftDesc.trim(), status: "draft" }));
+    const additions = codes.map((code, i) => ({ key: Date.now() + "-" + i, code, type: draftType, status: "draft" }));
     setBatch(prev => [...prev, ...additions]);
-    setDraftCodes(""); setDraftDesc("");
-    say(`Added ${additions.length} ${draftType} pixel${additions.length !== 1 ? "s" : ""} to the batch${codes.length > 1 ? " — bulk create is ready when you are." : "."}`);
+    setDraftCodes("");
+    say(`Added ${additions.length} ${draftType} pixel${additions.length !== 1 ? "s" : ""} to the batch.`);
   };
-
-  const removeFromBatch = (key) => setBatch(prev => prev.filter(p => p.key !== key));
 
   const createAll = () => {
     const drafts = batch.filter(p => p.status === "draft");
-    if (drafts.length === 0 || !agreed) return;
+    // if nothing in batch yet, use current codes
+    if (drafts.length === 0) {
+      const codes = draftCodes.split("\n").map(cleanCode).filter(Boolean);
+      if (codes.length === 0 || !agreed) return;
+      let n = 874790;
+      const created = codes.map((code, i) => ({ key: Date.now() + "-" + i, code, type: draftType, status: "created", id: String(n + i), loads: 0 }));
+      setBatch(created);
+      setDraftCodes("");
+      say(`Created ${created.length} pixel${created.length !== 1 ? "s" : ""}. Tags are ready on the right — each needs 1,000 loads before segments unlock.`);
+      return;
+    }
+    if (!agreed) return;
     let n = 874790;
     setBatch(prev => prev.map(p => p.status === "draft" ? { ...p, status: "created", id: String(n++), loads: 0 } : p));
-    say(`Created ${drafts.length} pixel${drafts.length !== 1 ? "s" : ""} for ${brand}. Tags are ready on the right — each needs 1,000 loads before segments and SegRank unlock.`);
+    say(`Created ${drafts.length} pixel${drafts.length !== 1 ? "s" : ""}. Tags are ready on the right.`);
   };
 
   const copy = (text, key) => {
@@ -2043,211 +2075,188 @@ function PixelCreator({ onBack }) {
     setCopied(key); setTimeout(() => setCopied(null), 1600);
   };
 
-  // light NL: "add conversion pixel for checkout" / "bulk add homepage, checkout, promo" / "create"
   const runInput = () => {
     const raw = input.trim();
     if (!raw) return;
-    const t = raw.toLowerCase();
     setLog(prev => [...prev, { role: "user", text: raw }]);
     setInput("");
-    if (/\b(create|generate|make) (all|them|the pixels|batch)\b/.test(t) || t === "create" || t === "create all") {
-      setTimeout(createAll, 400); return;
-    }
-    const type = /conversion|convert|checkout|purchase/.test(t) ? "Conversion" : /ad ?viewer|impression/.test(t) ? "Ad Viewer" : "Site Visitor";
+    const t = raw.toLowerCase();
+    const type = /conversion|convert|checkout|purchase/.test(t) ? "Conversion" : /ad.?viewer|impression/.test(t) ? "Ad Viewer" : "Site Visitor";
     const codeMatch = raw.match(/(?:for|called|named)\s+([a-z0-9 ,\-]+)/i);
     const codes = (codeMatch ? codeMatch[1] : "").split(/[,]/).map(cleanCode).filter(Boolean);
     if (codes.length) {
-      const additions = codes.map((code, i) => ({ key: Date.now() + "-" + i, code, type, description: "", status: "draft" }));
-      setBatch(prev => [...prev, ...additions]);
-      setTimeout(() => say(`Added ${additions.length} ${type} pixel${additions.length !== 1 ? "s" : ""} to the batch.`), 400);
+      setDraftType(type);
+      setDraftCodes(codes.join("\n"));
+      setTimeout(() => say(`Got it — I've pre-filled the code${codes.length > 1 ? "s" : ""} on the canvas. Agree to the terms and hit Create all.`), 400);
     } else {
-      setTimeout(() => say("Tell me the audience code(s) — e.g. \"add a conversion pixel for checkout\" or use the fields above to bulk-add several at once."), 400);
+      setTimeout(() => say("Tell me the audience code — e.g. \"create a conversion pixel for checkout\"."), 400);
     }
   };
-
-  const inputStyle = { width: "100%", padding: "10px 12px", borderRadius: "8px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "13px", fontFamily: "'DM Sans', sans-serif", outline: "none", boxSizing: "border-box" };
-  const draftCount = batch.filter(p => p.status === "draft").length;
 
   const CodeBlock = ({ label, code, ckey }) => (
     <div style={{ marginTop: "8px" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "4px" }}>
         <span style={{ fontSize: "11px", fontWeight: 600, color: C.textTertiary }}>{label}</span>
-        <button onClick={() => copy(code, ckey)} style={{ padding: "2px 10px", borderRadius: "5px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: copied === ckey ? C.accentGreen : C.textSecondary, fontSize: "11px", fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>{copied === ckey ? "✓ Copied" : "Copy"}</button>
+        <button onClick={() => copy(code, ckey)} style={{ padding: "2px 10px", borderRadius: "5px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: copied === ckey ? C.accentGreen : C.textSecondary, fontSize: "11px", fontWeight: 600, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>{copied === ckey ? "✓ Copied" : "Copy"}</button>
       </div>
-      <div style={{ padding: "10px 12px", borderRadius: "6px", backgroundColor: "#2b2926", overflowX: "auto" }}>
-        <code style={{ fontSize: "11px", fontFamily: "'Space Mono', monospace", color: "#e8e5e0", lineHeight: "1.5", whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{code}</code>
+      <div style={{ padding: "10px 12px", borderRadius: "6px", backgroundColor: "#1A1917", overflowX: "auto" }}>
+        <code style={{ fontSize: "11px", fontFamily: "Menlo, 'SF Mono', monospace", color: "#e8e5e0", lineHeight: "1.5", whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{code}</code>
       </div>
     </div>
   );
 
+  const canCreate = draftCodes.trim().length > 0 || batch.filter(p => p.status === "draft").length > 0;
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-      <div style={briefHeaderStyle}>
-        <button onClick={onBack} style={s.btnSecondary}>← Back</button>
-        <div style={{ ...briefBadge, backgroundColor: C.accentPink + "18", color: C.accentPink }}>PX</div>
-        <span style={{ fontSize: "15px", fontWeight: 600, color: C.text, flex: 1 }}>Create Pixels</span>
-        <span style={{ fontSize: "12px", color: C.textTertiary }}>{batch.length} in batch</span>
-      </div>
+    <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, overflow: "hidden" }}>
+      <AgentHeader onBack={onBack} badge="PX" color={C.accentPink} name="Pixel creator" canvasOpen={canvasOpen} onToggleCanvas={() => setCanvasOpen(!canvasOpen)} />
 
       <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
-        {/* LEFT — chat / controls */}
-        <div style={{ width: "380px", flexShrink: 0, borderRight: `1px solid ${C.borderLight}`, display: "flex", flexDirection: "column", backgroundColor: C.bgSecondary }}>
-          <div style={{ flex: 1, overflowY: "auto", padding: "20px" }}>
+        {/* LEFT — chat */}
+        <div style={{ width: canvasOpen ? "380px" : "100%", flexShrink: 0, borderRight: canvasOpen ? `1px solid ${C.borderLight}` : "none", display: "flex", flexDirection: "column", backgroundColor: canvasOpen ? C.bgSecondary : C.bg }}>
+          <div style={{ flex: 1, overflowY: "auto", padding: "20px", boxSizing: "border-box" }}>
             {log.map((m, i) => (
               <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start", marginBottom: "12px" }}>
                 {m.role === "user" ? (
-                  <div style={{ maxWidth: "85%", fontSize: "13px", color: "#fff", backgroundColor: C.text, padding: "8px 12px", borderRadius: "12px 12px 2px 12px", lineHeight: "1.5" }}>{m.text}</div>
+                  <div style={{ maxWidth: "85%", fontSize: "13px", color: C.text, backgroundColor: C.bgHover, padding: "10px 14px", borderRadius: "14px 14px 2px 14px", lineHeight: "1.5" }}>{m.text}</div>
                 ) : (
-                  <div style={{ display: "flex", gap: "8px", maxWidth: "92%" }}>
-                    <span style={{ fontSize: "11px", fontWeight: 700, color: C.accentPink, fontFamily: "'Space Mono', monospace", flexShrink: 0, marginTop: "2px" }}>DS-1</span>
-                    <div style={{ fontSize: "13px", color: C.textSecondary, lineHeight: "1.6" }}>{m.text}</div>
-                  </div>
+                  <div style={{ maxWidth: "88%", fontSize: "13px", color: C.text, backgroundColor: C.bg, border: `1px solid ${C.borderLight}`, padding: "10px 14px", borderRadius: "2px 14px 14px 14px", lineHeight: "1.5" }}>{m.text}</div>
                 )}
               </div>
             ))}
-
-            {/* Builder */}
-            <div style={{ marginTop: "8px", padding: "14px", borderRadius: "10px", border: `1px solid ${C.border}`, backgroundColor: C.bg }}>
-              <div style={{ fontSize: "12px", fontWeight: 700, color: C.text, marginBottom: "10px" }}>Add pixels</div>
-              <select style={{ ...inputStyle, marginBottom: "8px" }} value={marketer} onChange={(e) => setMarketer(e.target.value)}>
-                <option value="">Select marketer…</option>
-                <option>Fjällräven</option>
-                <option>Matchaful</option>
-                <option>NSM Demo</option>
-                <option>Esther Test Marketer</option>
-              </select>
-              <div style={{ display: "flex", gap: "4px", marginBottom: "8px" }}>
-                {PIXEL_TYPES.map(pt => (
-                  <button key={pt.value} onClick={() => setDraftType(pt.value)} title={pt.desc} style={{ flex: 1, padding: "7px 4px", borderRadius: "6px", fontSize: "11px", fontWeight: 600, border: `1px solid ${draftType === pt.value ? C.accentPink : C.border}`, backgroundColor: draftType === pt.value ? C.accentPink + "14" : C.bg, color: draftType === pt.value ? C.accentPink : C.textSecondary, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>{pt.value.split(" ")[0]}</button>
-                ))}
-              </div>
-              <textarea value={draftCodes} onChange={(e) => setDraftCodes(e.target.value)} rows={3} placeholder={"Audience codes — one per line for bulk:\nhomepage\ncheckout\nspring-promo"} style={{ ...inputStyle, resize: "vertical", lineHeight: "1.5", marginBottom: "8px", fontFamily: "'Space Mono', monospace", fontSize: "12px" }} />
-              <input style={{ ...inputStyle, marginBottom: "10px" }} value={draftDesc} onChange={(e) => setDraftDesc(e.target.value)} placeholder="Description (optional)" />
-              <button onClick={addToBatch} disabled={!marketer || !draftCodes.trim()} style={{ width: "100%", padding: "9px", borderRadius: "8px", border: "none", backgroundColor: (marketer && draftCodes.trim()) ? C.text : C.bgHover, color: (marketer && draftCodes.trim()) ? "#fff" : C.textTertiary, fontSize: "13px", fontWeight: 600, cursor: (marketer && draftCodes.trim()) ? "pointer" : "default", fontFamily: "'DM Sans', sans-serif" }}>+ Add to batch</button>
-            </div>
-
-            {/* T&C + Create */}
-            <label style={{ display: "flex", alignItems: "flex-start", gap: "8px", margin: "14px 2px", cursor: "pointer" }}>
-              <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} style={{ marginTop: "2px" }} />
-              <span style={{ fontSize: "12px", color: C.textSecondary, lineHeight: "1.5" }}>I agree to the pixel terms & conditions.</span>
-            </label>
-            <button onClick={createAll} disabled={draftCount === 0 || !agreed} style={{ width: "100%", padding: "11px", borderRadius: "8px", border: "none", backgroundColor: (draftCount > 0 && agreed) ? C.accentPink : C.bgHover, color: (draftCount > 0 && agreed) ? "#fff" : C.textTertiary, fontSize: "14px", fontWeight: 600, cursor: (draftCount > 0 && agreed) ? "pointer" : "default", fontFamily: "'DM Sans', sans-serif" }}>Create {draftCount > 0 ? draftCount : ""} pixel{draftCount !== 1 ? "s" : ""}</button>
           </div>
 
           {/* composer */}
           <div style={{ padding: "14px", borderTop: `1px solid ${C.borderLight}` }}>
             <div style={{ display: "flex", gap: "8px", alignItems: "flex-end", padding: "6px 6px 6px 12px", borderRadius: "12px", border: `1px solid ${C.border}`, backgroundColor: C.bg }}>
-              <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); runInput(); } }} placeholder="e.g. add a conversion pixel for checkout" rows={1} style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "13px", fontFamily: "'DM Sans', sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "4px 0" }} />
+              <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); runInput(); } }} placeholder="Message pixel creator…" rows={1} style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "13px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "4px 0" }} />
               <button onClick={runInput} style={{ width: "30px", height: "30px", borderRadius: "8px", border: "none", cursor: "pointer", backgroundColor: input.trim() ? C.text : C.bgHover, color: input.trim() ? "#fff" : C.textTertiary, fontSize: "14px", flexShrink: 0 }}>↑</button>
             </div>
           </div>
         </div>
 
-        {/* RIGHT — live batch render */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "28px clamp(20px, 4vw, 48px)", minWidth: 0 }}>
-          <div style={{ maxWidth: "640px", margin: "0 auto" }}>
-            <h2 style={{ fontSize: "16px", fontWeight: 700, color: C.text, margin: "0 0 4px" }}>Pixel batch for {brand}</h2>
-            <p style={{ fontSize: "13px", color: C.textTertiary, margin: "0 0 20px" }}>Pixels render here as you add them. Bulk-create them all at once.</p>
+        {/* RIGHT — canvas */}
+        {canvasOpen && (
+          <div style={{ flex: 1, overflowY: "auto", padding: "28px 32px", minWidth: 0, backgroundColor: C.bg }}>
+            <h2 style={{ fontSize: "18px", fontWeight: 700, color: C.text, margin: "0 0 4px" }}>Pixel batch</h2>
+            <p style={{ fontSize: "13px", color: C.textTertiary, margin: "0 0 20px" }}>Structured creation lives here — the chat narrates and can trigger it.</p>
 
-            {batch.length === 0 ? (
-              <div style={{ padding: "40px 20px", textAlign: "center", border: `1px dashed ${C.border}`, borderRadius: "12px", color: C.textTertiary, fontSize: "14px" }}>
-                No pixels yet. Add audience codes on the left — one per line to create several at once.
+            <div style={{ border: `1px solid ${C.border}`, borderRadius: "12px", padding: "20px", backgroundColor: C.bg }}>
+              {/* Type tabs */}
+              <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+                {PIXEL_TYPES.map(pt => (
+                  <button
+                    key={pt.value}
+                    onClick={() => setDraftType(pt.value)}
+                    style={{
+                      padding: "7px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 500,
+                      border: `1px solid ${draftType === pt.value ? C.accentPink : C.border}`,
+                      backgroundColor: draftType === pt.value ? C.accentPink + "12" : "transparent",
+                      color: draftType === pt.value ? C.accentPink : C.textSecondary,
+                      cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
+                    }}
+                  >{pt.value}</button>
+                ))}
               </div>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                {batch.map((p) => (
-                  <div key={p.key} style={{ border: `1px solid ${p.status === "created" ? C.accentGreen + "55" : C.border}`, borderRadius: "12px", backgroundColor: C.bg, overflow: "hidden" }}>
+
+              {/* Code textarea */}
+              <textarea
+                value={draftCodes}
+                onChange={(e) => setDraftCodes(e.target.value)}
+                rows={4}
+                placeholder={"Audience codes — one per line for bulk\nfjallraven-checkout-conv"}
+                style={{
+                  width: "100%", padding: "12px 14px", borderRadius: "8px",
+                  border: `1px solid ${C.border}`, backgroundColor: C.bg,
+                  color: C.text, fontSize: "12px", fontFamily: "Menlo, 'SF Mono', monospace",
+                  outline: "none", resize: "vertical", lineHeight: "1.6",
+                  boxSizing: "border-box", marginBottom: "16px",
+                }}
+              />
+
+              {/* Terms + buttons */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", flex: 1 }}>
+                  <div
+                    onClick={() => setAgreed(!agreed)}
+                    style={{
+                      width: "16px", height: "16px", borderRadius: "3px", flexShrink: 0,
+                      border: `1.5px solid ${agreed ? C.accentPink : C.border}`,
+                      backgroundColor: agreed ? C.accentPink : "transparent",
+                      display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
+                    }}
+                  >
+                    {agreed && <span style={{ color: "#fff", fontSize: "10px", lineHeight: 1 }}>✓</span>}
+                  </div>
+                  <span style={{ fontSize: "13px", color: C.textSecondary }}>I agree to Dstillery's pixel placement terms</span>
+                </label>
+                <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
+                  <button
+                    onClick={addToBatch}
+                    disabled={!draftCodes.trim()}
+                    style={{ padding: "8px 16px", borderRadius: "8px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: draftCodes.trim() ? C.text : C.textTertiary, fontSize: "13px", fontWeight: 500, cursor: draftCodes.trim() ? "pointer" : "default", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}
+                  >Add to batch</button>
+                  <button
+                    onClick={createAll}
+                    disabled={!agreed || !canCreate}
+                    style={{ padding: "8px 16px", borderRadius: "8px", border: "none", backgroundColor: (agreed && canCreate) ? C.accentPink : C.accentPink + "55", color: "#fff", fontSize: "13px", fontWeight: 600, cursor: (agreed && canCreate) ? "pointer" : "default", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}
+                  >Create all</button>
+                </div>
+              </div>
+            </div>
+
+            {/* Created pixels */}
+            {batch.filter(p => p.status === "created").length > 0 && (
+              <div style={{ marginTop: "20px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                {batch.filter(p => p.status === "created").map((p) => (
+                  <div key={p.key} style={{ border: `1px solid ${C.accentGreen}55`, borderRadius: "12px", backgroundColor: C.bg, overflow: "hidden" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "12px 14px", borderBottom: `1px solid ${C.borderLight}`, backgroundColor: C.bgSecondary }}>
-                      <span style={{ fontSize: "10px", fontWeight: 700, color: C.accentPink, backgroundColor: C.accentPink + "16", padding: "2px 8px", borderRadius: "4px", fontFamily: "'Space Mono', monospace" }}>{typeAbbr(p.type)}</span>
+                      <span style={{ fontSize: "10px", fontWeight: 700, color: C.accentPink, backgroundColor: C.accentPink + "16", padding: "2px 8px", borderRadius: "4px", fontFamily: "Menlo, 'SF Mono', monospace" }}>{p.type.toUpperCase().split(" ")[0]}</span>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: "13px", fontWeight: 600, color: C.text }}>{p.code}</div>
-                        {p.id && <div style={{ fontSize: "11px", color: C.textTertiary, fontFamily: "'Space Mono', monospace" }}>ID {p.id}</div>}
+                        {p.id && <div style={{ fontSize: "11px", color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace" }}>ID {p.id}</div>}
                       </div>
-                      {p.status === "created" ? (
-                        <span style={{ fontSize: "11px", fontWeight: 600, color: C.accentGreen }}>✓ Created</span>
-                      ) : (
-                        <span onClick={() => removeFromBatch(p.key)} style={{ fontSize: "12px", color: C.textTertiary, cursor: "pointer" }}>Draft · remove ×</span>
-                      )}
+                      <span style={{ fontSize: "11px", fontWeight: 600, color: C.accentGreen }}>✓ Created</span>
                     </div>
-                    {p.status === "created" && (
-                      <div style={{ padding: "12px 14px" }}>
-                        <CodeBlock label="HTML Image Tag" code={tagFor(p.code, "img")} ckey={p.key + "-img"} />
-                        <CodeBlock label="JavaScript Tag" code={tagFor(p.code, "js")} ckey={p.key + "-js"} />
-                        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "10px" }}>
-                          <div style={{ flex: 1, height: "6px", borderRadius: "3px", backgroundColor: C.bgHover, overflow: "hidden" }}>
-                            <div style={{ height: "100%", width: "0%", backgroundColor: C.accentPink }} />
-                          </div>
-                          <span style={{ fontSize: "11px", color: C.textTertiary, fontFamily: "'Space Mono', monospace", flexShrink: 0 }}>Collecting… 0 / 1,000</span>
-                        </div>
-                      </div>
-                    )}
+                    <div style={{ padding: "12px 14px" }}>
+                      <CodeBlock label="HTML Image Tag" code={tagFor(p.code, "img")} ckey={p.key + "-img"} />
+                      <CodeBlock label="JavaScript Tag" code={tagFor(p.code, "js")} ckey={p.key + "-js"} />
+                    </div>
                   </div>
                 ))}
               </div>
             )}
 
-            {/* Existing pixels */}
-            <div style={{ marginTop: "28px" }}>
-              <div style={{ fontSize: "13px", fontWeight: 700, color: C.text, marginBottom: "8px" }}>All pixels for {brand}</div>
-              <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", padding: "10px 14px", borderRadius: "8px", backgroundColor: C.bgSidebar, border: `1px solid ${C.borderLight}`, marginBottom: "12px" }}>
-                <span style={{ fontSize: "13px", flexShrink: 0 }}>ⓘ</span>
-                <span style={{ fontSize: "12px", color: C.textSecondary, lineHeight: "1.5" }}>Each pixel needs <strong>1,000 loads</strong> before Dstillery can build segments and unlock SegRank data.</span>
+            {/* Draft batch */}
+            {batch.filter(p => p.status === "draft").length > 0 && (
+              <div style={{ marginTop: "16px", border: `1px solid ${C.border}`, borderRadius: "10px", overflow: "hidden" }}>
+                {batch.filter(p => p.status === "draft").map((p, i, arr) => (
+                  <div key={p.key} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "11px 14px", borderBottom: i < arr.length - 1 ? `1px solid ${C.borderLight}` : "none", backgroundColor: C.bg }}>
+                    <span style={{ fontSize: "10px", fontWeight: 700, color: C.accentPink, backgroundColor: C.accentPink + "16", padding: "2px 8px", borderRadius: "4px", fontFamily: "Menlo, 'SF Mono', monospace" }}>{p.type.toUpperCase().split(" ")[0]}</span>
+                    <span style={{ fontSize: "13px", color: C.text, flex: 1 }}>{p.code}</span>
+                    <span onClick={() => setBatch(prev => prev.filter(x => x.key !== p.key))} style={{ fontSize: "12px", color: C.textTertiary, cursor: "pointer" }}>Draft · remove ×</span>
+                  </div>
+                ))}
               </div>
-              <div style={{ border: `1px solid ${C.border}`, borderRadius: "10px", overflow: "hidden" }}>
-                {PREVIOUS_PIXELS.map((px, i, arr) => {
-                  const reached = px.loads >= 1000;
-                  const pct = Math.min(100, (px.loads / 1000) * 100);
-                  return (
-                    <div key={i} style={{ padding: "14px 16px", borderBottom: i < arr.length - 1 ? `1px solid ${C.borderLight}` : "none" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "10px" }}>
-                        <span style={{ fontSize: "10px", fontWeight: 700, color: C.textSecondary, backgroundColor: C.bgHover, padding: "2px 8px", borderRadius: "4px", fontFamily: "'Space Mono', monospace" }}>{px.type}</span>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: "13px", fontWeight: 600, color: C.text }}>{px.code}</div>
-                          <div style={{ fontSize: "11px", color: C.textTertiary, fontFamily: "'Space Mono', monospace" }}>ID {px.id} · {px.date}</div>
-                        </div>
-                        {reached
-                          ? <span style={{ fontSize: "11px", fontWeight: 600, color: C.accentGreen, backgroundColor: C.accentGreen + "14", padding: "3px 10px", borderRadius: "5px" }}>✓ Segments active</span>
-                          : <span style={{ fontSize: "11px", fontWeight: 600, color: C.accentOrange }}>{(1000 - px.loads).toLocaleString()} to go</span>}
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                        <div style={{ flex: 1, height: "6px", borderRadius: "3px", backgroundColor: C.bgHover, overflow: "hidden" }}>
-                          <div style={{ height: "100%", width: `${pct}%`, borderRadius: "3px", backgroundColor: reached ? C.accentGreen : C.accentPink }} />
-                        </div>
-                        <span style={{ fontSize: "11px", color: C.textTertiary, fontFamily: "'Space Mono', monospace", flexShrink: 0, minWidth: "92px", textAlign: "right" }}>{px.loads.toLocaleString()} / 1,000</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+            )}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
 }
 
 function AudienceBriefBuilder({ onBack }) {
-  const [stage, setStage] = useState("entry"); // entry | generating | draft
-  const [input, setInput] = useState("");
-  const [brandName, setBrandName] = useState("Matchaful");
-  const [genPhase, setGenPhase] = useState(null);
-  const [sections, setSections] = useState([]);
-  const [editingId, setEditingId] = useState(null);
-  const [showAdd, setShowAdd] = useState(false);
-  const [exported, setExported] = useState(false);
-  const [selectedProducts, setSelectedProducts] = useState([]);
-
   const DRAFT_SECTIONS = [
-    { id: "prebuilt", product: "Pre-built Audiences", desc: "10,000+ precise, ready-to-activate off-the-shelf audiences powered by event-level data. Identifies the inventory or devices with the highest behavioral intent for your target.", itemType: "bullet", items: ["Coffee Lovers", "Tea Drinkers", "Coffee & Tea", "Indie Coffee Shoppers", "Home Coffee Makers"] },
-    { id: "custombuilt", product: "Custom Built Audiences", desc: "Customized targeting that reaches prospects without first-party data, using unique combinations of 10,000+ pre-built audiences with and/or/not boolean logic.", itemType: "bullet", items: ["Coffee Lovers", "Tea Drinkers", "Coffee & Tea", "Indie Coffee Shoppers", "Home Coffee Makers"] },
-    { id: "customurl", product: "Custom Built URL Audiences", desc: "URL-seeded product that identifies users going to selected web pages and uses predictive modeling to find similar users. Available as ID-based or ID-free.", itemType: "url", items: ["www.bonappetit.com", "www.buzzfeed.com", "www.eater.com"] },
-    { id: "searchlookalike", product: "Custom Search Lookalikes", desc: "Finds the best opportunities to reach people actively searching for your or your competitor's brand keywords, using search data from a 2M+ opted-in panel.", itemType: "bullet", items: ["matcha latte", "oat milk matcha", "ceremonial matcha", "coffee alternatives", "matchaful"] },
-    { id: "customai", product: "Custom AI Audiences", desc: "Our lookalike solution harnesses your brand's first-party data, machine learning, and predictive targeting — refreshing every user every 24 hours.", itemType: "numbered", items: ["Dstillery pixel(s) placed on any active page", "One-time pull of a Trade Desk Conversion Details Report", "CRM list(s) sent over via LiveRamp"] },
-    { id: "predictivettd", product: "Predictive Contextual via The Trade Desk", desc: "First-to-market contextual integration powered by ID-free technology — privacy-safe behavioral targeting available in the public taxonomy.", itemType: "path", items: ["ID-free > Consumer > CPG > Food > Coffee Chain Shoppers", "ID-free > Consumer > CPG > Food > Soda Drinkers", "ID-free > Consumer > CPG > Food > Coffee Bean Shoppers"] },
-    { id: "partnership", product: "Partnership Audiences", desc: "Through business development partners, we access unique data sets around Auto, Entertainment, and CPG. Ready to activate in The Trade Desk or LiveRamp marketplaces.", itemType: "bullet", items: ["NIQ Dstillery CPG — Coffee Shoppers", "NIQ Dstillery CPG — Specialty Beverage Buyers"] },
+    { id: "prebuilt", product: "Pre-built Audiences", desc: "10,000+ ready-to-activate off-the-shelf audiences powered by event-level data.", itemType: "bullet", items: ["Coffee Lovers", "Tea Drinkers", "Indie Coffee Shoppers"] },
+    { id: "searchlookalike", product: "Custom Search Lookalikes", desc: "Reach people actively searching brand or competitor keywords, from a 2M+ opted-in panel.", itemType: "bullet", items: ["matcha latte", "ceremonial matcha", "coffee alternatives"] },
+    { id: "customai", product: "Custom AI Audiences", desc: "Lookalike modeling from your first-party data, re-scored every 24 hours.", itemType: "numbered", items: ["Dstillery pixel on active pages", "TTD Conversion Details Report", "CRM via LiveRamp"] },
+    { id: "predictivettd", product: "Predictive Contextual via The Trade Desk", desc: "First-to-market ID-free contextual in the public taxonomy.", itemType: "path", items: ["ID-free > CPG > Coffee Chain Shoppers", "ID-free > CPG > Coffee Bean Shoppers"] },
+    { id: "partnership", product: "Partnership Audiences", desc: "Unique partner data sets, ready in TTD or LiveRamp marketplaces.", itemType: "bullet", items: ["NIQ Dstillery CPG — Coffee Shoppers"] },
     { id: "all", product: "All Audiences", desc: "The full set of matched audiences across every product, ready to review.", itemType: "path", items: ["NIQ Dstillery CPG > Coffee Shoppers > Coffee Shopper", "NIQ Dstillery CPG > Coffee Shoppers > Dunkin Donuts Coffee Shopper", "NIQ Dstillery CPG > Coffee Shoppers > Starbucks Coffee Shopper", "NIQ Dstillery CPG > Coffee Shoppers > Green Mountain Coffee Shopper", "NIQ Dstillery CPG > Coffee Shoppers > Peets Coffee Shopper"] },
   ];
+
+  const DEFAULT_IDS = ["prebuilt", "searchlookalike", "customai", "predictivettd", "partnership"];
 
   const ADDABLE = [
     { id: "geo", product: "Custom Geo Audiences", desc: "Audiences built from location signals, geo-fencing, and point-of-interest visits.", itemType: "bullet", items: ["Specialty Coffee Shop Visitors", "Wellness Studio Visitors"] },
@@ -2255,27 +2264,11 @@ function AudienceBriefBuilder({ onBack }) {
     { id: "seasonal", product: "Seasonal Intent Audiences", desc: "Time-sensitive audiences modeled around seasonal purchase behavior.", itemType: "bullet", items: ["Summer Iced Beverage Intenders", "Back-to-Routine Shoppers"] },
   ];
 
-  const handleGenerate = (q) => {
-    const raw = typeof q === "string" ? q : input;
-    if (!raw.trim()) return;
-    // crude brand extraction for the mock
-    const m = raw.match(/brand is (\w+)/i);
-    if (m) setBrandName(m[1].charAt(0).toUpperCase() + m[1].slice(1));
-    setStage("generating");
-    setGenPhase("thinking");
-    setTimeout(() => setGenPhase("generating"), 900);
-    setTimeout(() => {
-      setSelectedProducts(DRAFT_SECTIONS.map(s => s.id));
-      setStage("select");
-      setGenPhase(null);
-    }, 2400);
-  };
-
-  const toggleProduct = (id) => setSelectedProducts(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
-  const confirmSelection = () => {
-    setSections(DRAFT_SECTIONS.filter(s => selectedProducts.includes(s.id)));
-    setStage("draft");
-  };
+  const [brandName] = useState("Matchaful");
+  const [sections, setSections] = useState(DRAFT_SECTIONS.filter(s => DEFAULT_IDS.includes(s.id)));
+  const [showAdd, setShowAdd] = useState(false);
+  const [exported, setExported] = useState(false);
+  const [canvasOpen, setCanvasOpen] = useState(true);
 
   const move = (idx, dir) => {
     setSections(prev => {
@@ -2289,6 +2282,15 @@ function AudienceBriefBuilder({ onBack }) {
   const removeSection = (id) => setSections(prev => prev.filter(s => s.id !== id));
   const addSection = (sec) => { setSections(prev => [...prev, sec]); setShowAdd(false); };
   const updateDesc = (id, val) => setSections(prev => prev.map(s => s.id === id ? { ...s, desc: val } : s));
+  const moveSection = (id, dir) => setSections(prev => {
+    const idx = prev.findIndex(s => s.id === id);
+    if (idx < 0) return prev;
+    const target = idx + dir;
+    if (target < 0 || target >= prev.length) return prev;
+    const next = [...prev];
+    [next[idx], next[target]] = [next[target], next[idx]];
+    return next;
+  });
 
   const handleExport = () => { setExported(true); setTimeout(() => setExported(false), 2500); };
 
@@ -2358,155 +2360,32 @@ function AudienceBriefBuilder({ onBack }) {
     setCommand("");
   };
 
-  // ENTRY
-  if (stage === "entry") {
-    return (
-      <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-        <div style={briefHeaderStyle}>
-          <button onClick={onBack} style={s.btnSecondary}>← Back</button>
-          <div style={{ ...briefBadge, backgroundColor: C.accentOrange + "18", color: C.accentOrange }}>AB</div>
-          <span style={{ fontSize: "15px", fontWeight: 600, color: C.text }}>Audience Brief</span>
-        </div>
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px" }}>
-          <div style={{ width: "52px", height: "52px", borderRadius: "13px", backgroundColor: C.accentOrange + "14", color: C.accentOrange, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", marginBottom: "20px", animation: "fadeUp 0.5s ease-out" }}>◫</div>
-          <h1 style={{ fontSize: "26px", fontWeight: 700, color: C.text, margin: "0 0 8px 0", textAlign: "center", animation: "fadeUp 0.5s ease-out", animationDelay: "0.05s", animationFillMode: "both" }}>Generate an audience brief</h1>
-          <p style={{ fontSize: "15px", color: C.textSecondary, margin: "0 0 28px 0", textAlign: "center", maxWidth: "440px", lineHeight: "1.5", animation: "fadeUp 0.5s ease-out", animationDelay: "0.1s", animationFillMode: "both" }}>
-            Describe your campaign — brand, target audience, and KPI. DS-1 will draft a brief with recommended products you can edit, reorder, and export.
-          </p>
-          <div style={{ width: "100%", maxWidth: "560px", animation: "fadeUp 0.5s ease-out", animationDelay: "0.15s", animationFillMode: "both" }}>
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleGenerate(); } }}
-              placeholder="e.g. I want to target people 25–35 who drink coffee and matcha. My brand is Matchaful and my KPI is reach."
-              rows={3}
-              style={{ width: "100%", padding: "16px 18px", borderRadius: "12px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "15px", fontFamily: "'DM Sans', sans-serif", outline: "none", resize: "none", lineHeight: "1.5", boxSizing: "border-box", boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}
-            />
-            <button onClick={() => handleGenerate()} style={{ marginTop: "12px", width: "100%", padding: "13px", borderRadius: "10px", border: "none", backgroundColor: input.trim() ? C.text : C.bgHover, color: input.trim() ? "#fff" : C.textTertiary, fontSize: "14px", fontWeight: 600, cursor: input.trim() ? "pointer" : "default", fontFamily: "'DM Sans', sans-serif", transition: "all 0.15s ease" }}>Generate brief</button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // GENERATING
-  if (stage === "generating") {
-    return (
-      <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-        <div style={briefHeaderStyle}>
-          <button onClick={onBack} style={s.btnSecondary}>← Back</button>
-          <div style={{ ...briefBadge, backgroundColor: C.accentOrange + "18", color: C.accentOrange }}>AB</div>
-          <span style={{ fontSize: "15px", fontWeight: 600, color: C.text }}>Audience Brief</span>
-        </div>
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "10px" }}>
-          <div style={{ fontSize: "14px", color: C.textSecondary, fontStyle: "italic" }}>Thinking...</div>
-          {genPhase === "generating" && <div style={{ fontSize: "14px", color: C.textSecondary, fontStyle: "italic" }}>Generating your brief...</div>}
-        </div>
-      </div>
-    );
-  }
-
-  // SELECT (product recommendation checklist)
-  if (stage === "select") {
-    return (
-      <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-        <div style={briefHeaderStyle}>
-          <button onClick={onBack} style={s.btnSecondary}>← Back</button>
-          <div style={{ ...briefBadge, backgroundColor: C.accentOrange + "18", color: C.accentOrange }}>AB</div>
-          <span style={{ fontSize: "15px", fontWeight: 600, color: C.text }}>Audience Brief</span>
-        </div>
-        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px", backgroundColor: "rgba(0,0,0,0.02)" }}>
-          <div style={{
-            width: "100%", maxWidth: "480px", backgroundColor: C.bg,
-            borderRadius: "16px", border: `1px solid ${C.border}`,
-            boxShadow: "0 12px 48px rgba(0,0,0,0.12)", overflow: "hidden",
-            animation: "popIn 0.25s cubic-bezier(0.4,0,0.2,1)",
-          }}>
-            <style>{`@keyframes popIn { from { opacity: 0; transform: scale(0.97) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }`}</style>
-            <div style={{ padding: "20px 22px 16px" }}>
-              <div style={{ fontSize: "17px", fontWeight: 700, color: C.text }}>Recommended products</div>
-              <div style={{ fontSize: "13px", color: C.textSecondary, marginTop: "4px", lineHeight: "1.5" }}>
-                Based on your campaign, here's what I recommend including. Select or deselect any before building your brief.
-              </div>
-            </div>
-            <div style={{ maxHeight: "44vh", overflowY: "auto", padding: "0 12px" }}>
-              {DRAFT_SECTIONS.map(sec => {
-                const on = selectedProducts.includes(sec.id);
-                return (
-                  <div key={sec.id} onClick={() => toggleProduct(sec.id)} style={{
-                    display: "flex", alignItems: "flex-start", gap: "12px",
-                    padding: "12px 10px", borderRadius: "8px", cursor: "pointer",
-                  }}>
-                    <div style={{
-                      width: "18px", height: "18px", borderRadius: "5px", marginTop: "1px",
-                      border: `1.5px solid ${on ? C.accentOrange : C.border}`,
-                      backgroundColor: on ? C.accentOrange : "transparent",
-                      color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: "11px", flexShrink: 0,
-                    }}>{on ? "✓" : ""}</div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: "14px", fontWeight: 600, color: on ? C.text : C.textTertiary }}>{sec.product}</div>
-                      <div style={{ fontSize: "12px", color: C.textTertiary, marginTop: "1px" }}>{sec.items.length} recommended audiences</div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            <div style={{ padding: "16px 22px", borderTop: `1px solid ${C.borderLight}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: "12px", color: C.textTertiary }}>{selectedProducts.length} of {DRAFT_SECTIONS.length} selected</span>
-              <button onClick={confirmSelection} disabled={selectedProducts.length === 0} style={{
-                padding: "10px 20px", borderRadius: "8px", border: "none",
-                backgroundColor: selectedProducts.length ? C.text : C.bgHover,
-                color: selectedProducts.length ? "#fff" : C.textTertiary,
-                fontSize: "14px", fontWeight: 600, cursor: selectedProducts.length ? "pointer" : "default",
-                fontFamily: "'DM Sans', sans-serif",
-              }}>Build brief →</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   // DRAFT
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-      <div style={briefHeaderStyle}>
-        <button onClick={onBack} style={s.btnSecondary}>← Back</button>
-        <div style={{ ...briefBadge, backgroundColor: C.accentOrange + "18", color: C.accentOrange }}>AB</div>
-        <span style={{ fontSize: "15px", fontWeight: 600, color: C.text, flex: 1 }}>Audience Brief</span>
-        {exported ? (
-          <span style={{ fontSize: "13px", fontWeight: 600, color: C.accentGreen }}>✓ Exported as PDF</span>
-        ) : (
-          <button onClick={handleExport} style={{ ...s.btnPrimary, backgroundColor: C.text }}>↓ Download PDF</button>
-        )}
-      </div>
+    <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, overflow: "hidden" }}>
+      <AgentHeader onBack={onBack} badge="AB" color={C.accentOrange} name="Audience brief" canvasOpen={canvasOpen} onToggleCanvas={() => setCanvasOpen(!canvasOpen)} />
 
       {/* Split: chat left, document right */}
       <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
 
         {/* LEFT — chat / edit panel */}
-        <div style={{ width: "380px", flexShrink: 0, borderRight: `1px solid ${C.borderLight}`, display: "flex", flexDirection: "column", backgroundColor: C.bgSecondary }}>
-          <div style={{ flex: 1, overflowY: "auto", padding: "20px" }}>
-            {/* the user's original request */}
-            <div style={{ fontSize: "11px", fontWeight: 600, color: C.textTertiary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>Your request</div>
-            <div style={{ fontSize: "13px", color: C.text, lineHeight: "1.6", padding: "12px 14px", borderRadius: "10px", backgroundColor: C.bg, border: `1px solid ${C.border}`, marginBottom: "20px" }}>
-              {input || "Generate an audience brief for this campaign."}
+        <div style={{ width: canvasOpen ? "380px" : "100%", flexShrink: 0, borderRight: canvasOpen ? `1px solid ${C.borderLight}` : "none", display: "flex", flexDirection: "column", backgroundColor: canvasOpen ? C.bgSecondary : C.bg }}>
+          <div style={{ flex: 1, overflowY: "auto", padding: "20px", maxWidth: canvasOpen ? "none" : "720px", width: "100%", margin: "0 auto", boxSizing: "border-box" }}>
+            {/* user request bubble */}
+            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "14px" }}>
+              <div style={{ maxWidth: "88%", fontSize: "13px", color: C.text, backgroundColor: C.bgHover, padding: "10px 14px", borderRadius: "14px 14px 2px 14px", lineHeight: "1.5" }}>Generate an audience brief for Matchaful</div>
             </div>
 
-            {/* DS-1 generated confirmation */}
-            <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
-              <span style={{ fontSize: "11px", fontWeight: 700, color: C.accentOrange, fontFamily: "'Space Mono', monospace", flexShrink: 0, marginTop: "2px" }}>DS-1</span>
-              <div style={{ fontSize: "13px", color: C.textSecondary, lineHeight: "1.6" }}>
-                I drafted your <strong>{brandName} x Dstillery</strong> brief with {sections.length} product{sections.length !== 1 ? "s" : ""}. Tell me to reorder, edit, or add products and you'll see it update on the right.
-              </div>
+            {/* DS-1 message */}
+            <div style={{ fontSize: "13px", color: C.textSecondary, lineHeight: "1.6", padding: "12px 14px", borderRadius: "12px", backgroundColor: C.bg, border: `1px solid ${C.borderLight}`, marginBottom: "16px" }}>
+              Drafting a client-ready brief now. The draft is on the canvas — reorder, remove, or add products there or just tell me.
             </div>
 
             {/* conversation log */}
             {cmdLog.map((m, i) => (
               <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start", marginBottom: "10px" }}>
                 {m.role === "user" ? (
-                  <div style={{ maxWidth: "85%", fontSize: "13px", color: "#fff", backgroundColor: C.text, padding: "8px 12px", borderRadius: "12px 12px 2px 12px", lineHeight: "1.5" }}>{m.text}</div>
+                  <div style={{ maxWidth: "88%", fontSize: "13px", color: C.text, backgroundColor: C.bgHover, padding: "10px 14px", borderRadius: "14px 14px 2px 14px", lineHeight: "1.5" }}>{m.text}</div>
                 ) : (
                   <div style={{ display: "flex", gap: "8px", maxWidth: "90%" }}>
                     <span style={{ fontSize: "11px", flexShrink: 0, marginTop: "2px", color: m.ok ? C.accentGreen : C.textTertiary }}>{m.ok ? "✓" : "ⓘ"}</span>
@@ -2517,6 +2396,11 @@ function AudienceBriefBuilder({ onBack }) {
             ))}
           </div>
 
+          {/* Brief badge */}
+          <div style={{ padding: "0 16px 4px" }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "5px 12px", borderRadius: "14px", fontSize: "12px", fontWeight: 600, fontFamily: "Menlo, 'SF Mono', monospace", color: C.accentOrange, backgroundColor: C.accentOrange + "12", border: `1px solid ${C.accentOrange}40` }}>Brief · {sections.length} sections</span>
+          </div>
+
           {/* composer */}
           <div style={{ padding: "14px", borderTop: `1px solid ${C.borderLight}` }}>
             <div style={{ display: "flex", gap: "8px", alignItems: "flex-end", padding: "6px 6px 6px 12px", borderRadius: "12px", border: `1px solid ${C.border}`, backgroundColor: C.bg }}>
@@ -2524,57 +2408,54 @@ function AudienceBriefBuilder({ onBack }) {
                 value={command}
                 onChange={(e) => setCommand(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); runCommand(); } }}
-                placeholder="Ask DS-1 to edit, reorder, or add a product…"
-                rows={2}
-                style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "13px", fontFamily: "'DM Sans', sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "4px 0" }}
+                placeholder="Message audience brief…"
+                rows={1}
+                style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "13px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "4px 0" }}
               />
               <button onClick={() => runCommand()} style={{ width: "30px", height: "30px", borderRadius: "8px", border: "none", cursor: "pointer", backgroundColor: command.trim() ? C.text : C.bgHover, color: command.trim() ? "#fff" : C.textTertiary, fontSize: "14px", flexShrink: 0 }}>↑</button>
-            </div>
-            <div style={{ display: "flex", gap: "6px", marginTop: "8px", flexWrap: "wrap" }}>
-              {["Move Custom AI to the top", "Remove Predictive Contextual"].map(ex => (
-                <button key={ex} onClick={() => runCommand(ex)} style={{ padding: "4px 10px", borderRadius: "14px", fontSize: "11px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textTertiary, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>{ex}</button>
-              ))}
             </div>
           </div>
         </div>
 
         {/* RIGHT — live document */}
+        {canvasOpen && (
         <div style={{ flex: 1, overflowY: "auto", padding: "32px clamp(20px, 4vw, 56px)", minWidth: 0 }}>
           <div style={{ maxWidth: "640px", margin: "0 auto" }}>
-            <div style={{ marginBottom: "24px" }}>
-              <div style={{ fontSize: "12px", fontWeight: 600, color: C.textTertiary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "4px" }}>Audience Brief</div>
-              <h1 style={{ fontSize: "26px", fontWeight: 700, color: C.text, margin: 0 }}>{brandName} x Dstillery</h1>
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px", marginBottom: "24px" }}>
+              <div>
+                <h1 style={{ fontSize: "26px", fontWeight: 700, color: C.text, margin: 0 }}>{brandName} × Dstillery</h1>
+                <div style={{ fontSize: "13px", color: C.textTertiary, marginTop: "4px" }}>Audience brief · {sections.length} product{sections.length !== 1 ? "s" : ""} · edit here or via chat</div>
+              </div>
+              {exported ? (
+                <span style={{ fontSize: "13px", fontWeight: 600, color: C.accentGreen, flexShrink: 0 }}>✓ Exported as PDF</span>
+              ) : (
+                <button onClick={handleExport} style={{ ...s.btnPrimary, backgroundColor: C.accentOrange, flexShrink: 0 }}>Export PDF</button>
+              )}
             </div>
 
-            {sections.map((sec) => (
-              <div key={sec.id} style={{ marginBottom: "12px", border: `1px solid ${C.border}`, borderRadius: "12px", backgroundColor: C.bg, overflow: "hidden" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "14px 16px", borderBottom: `1px solid ${C.borderLight}`, backgroundColor: C.bgSecondary }}>
+            {sections.map((sec, secIdx) => (
+              <div key={sec.id} style={{ marginBottom: "14px", border: `1px solid ${C.border}`, borderRadius: "12px", backgroundColor: C.bg, padding: "16px 18px" }}>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "10px", marginBottom: "8px" }}>
                   <span style={{ fontSize: "15px", fontWeight: 700, color: C.text, flex: 1 }}>{sec.product}</span>
-                  <button onClick={() => setEditingId(editingId === sec.id ? null : sec.id)} style={{ display: "flex", alignItems: "center", gap: "5px", padding: "6px 12px", borderRadius: "7px", cursor: "pointer", border: `1px solid ${editingId === sec.id ? C.accentBlue : C.border}`, backgroundColor: editingId === sec.id ? C.accentBlue : C.bg, color: editingId === sec.id ? "#fff" : C.textSecondary, fontSize: "12px", fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}>✎ {editingId === sec.id ? "Done" : "Edit"}</button>
-                  <button onClick={() => removeSection(sec.id)} style={{ display: "flex", alignItems: "center", gap: "5px", padding: "6px 12px", borderRadius: "7px", cursor: "pointer", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.accentRed, fontSize: "12px", fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}>✕ Remove</button>
-                </div>
-                <div style={{ padding: "14px 16px" }}>
-                  {editingId === sec.id ? (
-                    <textarea value={sec.desc} onChange={(e) => updateDesc(sec.id, e.target.value)} rows={3} style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: `1px solid ${C.accentBlue}`, backgroundColor: C.bg, color: C.text, fontSize: "13px", fontFamily: "'DM Sans', sans-serif", outline: "none", resize: "vertical", lineHeight: "1.6", boxSizing: "border-box", marginBottom: "12px" }} />
-                  ) : (
-                    <div style={{ fontSize: "13px", color: C.textSecondary, lineHeight: "1.6", marginBottom: "12px" }}>{sec.desc}</div>
-                  )}
-                  <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-                    {sec.items.map((it, ii) => (
-                      <div key={ii} style={{ display: "flex", gap: "8px", fontSize: "13px", color: C.text, lineHeight: "1.5" }}>
-                        <span style={{ color: C.textTertiary, flexShrink: 0, fontFamily: sec.itemType === "path" ? "'Space Mono', monospace" : "inherit" }}>{sec.itemType === "numbered" ? `${ii + 1}.` : "•"}</span>
-                        <span style={{ fontFamily: (sec.itemType === "path" || sec.itemType === "url") ? "'Space Mono', monospace" : "inherit", fontSize: (sec.itemType === "path" || sec.itemType === "url") ? "12px" : "13px", color: sec.itemType === "url" ? C.accentBlue : C.text }}>{it}</span>
-                      </div>
-                    ))}
+                  <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
+                    <button onClick={() => moveSection(sec.id, -1)} disabled={secIdx === 0} title="Move up" style={{ width: "30px", height: "28px", borderRadius: "7px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: secIdx === 0 ? C.borderLight : C.textSecondary, cursor: secIdx === 0 ? "default" : "pointer", fontSize: "13px", display: "flex", alignItems: "center", justifyContent: "center" }}>↑</button>
+                    <button onClick={() => moveSection(sec.id, 1)} disabled={secIdx === sections.length - 1} title="Move down" style={{ width: "30px", height: "28px", borderRadius: "7px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: secIdx === sections.length - 1 ? C.borderLight : C.textSecondary, cursor: secIdx === sections.length - 1 ? "default" : "pointer", fontSize: "13px", display: "flex", alignItems: "center", justifyContent: "center" }}>↓</button>
+                    <button onClick={() => removeSection(sec.id)} title="Remove" style={{ width: "30px", height: "28px", borderRadius: "7px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textSecondary, cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
                   </div>
+                </div>
+                <div style={{ fontSize: "13px", color: C.textSecondary, lineHeight: "1.6", marginBottom: "12px" }}>{sec.desc}</div>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  {sec.items.map((it, ii) => (
+                    <span key={ii} style={{ fontFamily: "Menlo, 'SF Mono', monospace", fontSize: "12px", color: C.accentOrange, padding: "5px 10px", borderRadius: "6px", border: `1px solid ${C.accentOrange}40`, backgroundColor: C.accentOrange + "0a", whiteSpace: "nowrap" }}>{it}</span>
+                  ))}
                 </div>
               </div>
             ))}
 
             {/* Add product */}
             <div style={{ position: "relative", marginTop: "4px" }}>
-              <button onClick={() => setShowAdd(!showAdd)} style={{ width: "100%", padding: "12px", borderRadius: "10px", border: `1px dashed ${C.border}`, backgroundColor: "transparent", color: C.textSecondary, cursor: "pointer", fontSize: "13px", fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}>
-                + Ask DS-1 to recommend another product
+              <button onClick={() => setShowAdd(!showAdd)} style={{ padding: "10px 16px", borderRadius: "8px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textSecondary, cursor: "pointer", fontSize: "13px", fontWeight: 600, fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>
+                + Add product
               </button>
               {showAdd && (
                 <div style={{ marginTop: "8px", border: `1px solid ${C.border}`, borderRadius: "10px", overflow: "hidden", boxShadow: "0 4px 16px rgba(0,0,0,0.06)" }}>
@@ -2592,14 +2473,31 @@ function AudienceBriefBuilder({ onBack }) {
             </div>
           </div>
         </div>
+        )}
       </div>
     </div>
   );
 }
 
 const briefHeaderStyle = { padding: "14px 24px", borderBottom: `1px solid ${C.borderLight}`, display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 };
-const briefBadge = { width: "28px", height: "28px", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Space Mono', monospace", fontSize: "10px", fontWeight: 700 };
-const briefIconBtn = { width: "26px", height: "26px", borderRadius: "6px", border: "none", backgroundColor: "transparent", color: C.textTertiary, cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'DM Sans', sans-serif" };
+const briefBadge = { width: "28px", height: "28px", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Menlo, 'SF Mono', monospace", fontSize: "10px", fontWeight: 700 };
+const briefIconBtn = { width: "26px", height: "26px", borderRadius: "6px", border: "none", backgroundColor: "transparent", color: C.textTertiary, cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Source Sans 3', Helvetica, sans-serif" };
+
+function AgentHeader({ onBack, badge, color, name, canvasOpen, onToggleCanvas, hasCanvas = true, loading = false }) {
+  return (
+    <>
+      <div style={briefHeaderStyle}>
+        <button onClick={onBack} title="Back to home" style={{ border: "none", background: "transparent", color: C.textSecondary, fontSize: "22px", lineHeight: 1, cursor: "pointer", padding: "0 4px", flexShrink: 0 }}>‹</button>
+        <div style={{ ...briefBadge, backgroundColor: color + "18", color }}>{badge}</div>
+        <span style={{ fontSize: "15px", fontWeight: 600, color: C.text, flex: 1, fontFamily: "'Urbanist', Arial, sans-serif" }}>DS-1 · {name}</span>
+        {hasCanvas && (
+          <button onClick={onToggleCanvas} style={s.btnSecondary}>{canvasOpen ? "Hide canvas" : "Show canvas"}</button>
+        )}
+      </div>
+      <div className={`spectrum-bar${loading ? " active" : ""}`} />
+    </>
+  );
+}
 
 function ProjectsView({ agency, onNavigate }) {
   const [openProject, setOpenProject] = useState(null);
@@ -2636,7 +2534,7 @@ function ProjectsView({ agency, onNavigate }) {
           <button onClick={() => setOpenProject(null)} style={{
             display: "flex", alignItems: "center", gap: "6px", padding: "5px 12px", borderRadius: "6px",
             border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textSecondary,
-            cursor: "pointer", fontWeight: 500, fontFamily: "'DM Sans', sans-serif", fontSize: "13px",
+            cursor: "pointer", fontWeight: 500, fontFamily: "'Source Sans 3', Helvetica, sans-serif", fontSize: "13px",
           }}>← Projects</button>
         </div>
 
@@ -2656,15 +2554,15 @@ function ProjectsView({ agency, onNavigate }) {
           {/* New chat in project */}
           <button style={{
             width: "100%", padding: "14px 18px", borderRadius: "10px", marginBottom: "24px",
-            border: "none", backgroundColor: C.text, color: "#fff",
+            border: "none", backgroundColor: C.actionBg, color: "#fff",
             fontSize: "14px", fontWeight: 600, cursor: "pointer", textAlign: "left",
-            fontFamily: "'DM Sans', sans-serif", animation: "fadeUp 0.5s ease-out", animationDelay: "0.05s", animationFillMode: "both",
+            fontFamily: "'Source Sans 3', Helvetica, sans-serif", animation: "fadeUp 0.5s ease-out", animationDelay: "0.05s", animationFillMode: "both",
           }}>+ New chat in this project</button>
 
           {/* Project instructions */}
           <div style={projS.section}>
-            <div style={projS.sectionTitle}>Project Instructions</div>
-            <div style={projS.sectionDesc}>DS-1 applies these to every conversation in this project</div>
+            <div style={projS.sectionTitle}>Project description</div>
+            <div style={projS.sectionDesc}>What this project is for and how DS-1 should approach it</div>
             <div style={{
               marginTop: "12px", padding: "14px 16px", borderRadius: "10px",
               backgroundColor: C.bgSidebar, border: `1px solid ${C.borderLight}`,
@@ -2676,13 +2574,13 @@ function ProjectsView({ agency, onNavigate }) {
           <div style={projS.section}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div>
-                <div style={projS.sectionTitle}>Project Knowledge</div>
-                <div style={projS.sectionDesc}>{p.files} files scoped to this project</div>
+                <div style={projS.sectionTitle}>Relevant files</div>
+                <div style={projS.sectionDesc}>{p.files} files DS-1 uses as context in this project</div>
               </div>
               <button style={{
                 padding: "6px 14px", borderRadius: "6px", fontSize: "12px", fontWeight: 600,
                 border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text,
-                cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
+                cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
               }}>+ Add</button>
             </div>
             <div style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -2700,7 +2598,7 @@ function ProjectsView({ agency, onNavigate }) {
                     width: "32px", height: "32px", borderRadius: "6px",
                     backgroundColor: f.color + "14", color: f.color,
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontFamily: "'Space Mono', monospace", fontSize: "8px", fontWeight: 700,
+                    fontFamily: "Menlo, 'SF Mono', monospace", fontSize: "8px", fontWeight: 700,
                   }}>{f.type}</div>
                   <span style={{ fontSize: "14px", fontWeight: 500, color: C.text }}>{f.name}</span>
                 </div>
@@ -2724,7 +2622,7 @@ function ProjectsView({ agency, onNavigate }) {
                   border: `1px solid ${C.border}`, backgroundColor: C.bg, cursor: "pointer",
                 }}>
                   <span style={{ flex: 1, fontSize: "14px", fontWeight: 500, color: C.text }}>{c.title}</span>
-                  <span style={{ fontSize: "12px", color: C.textTertiary, fontFamily: "'Space Mono', monospace" }}>{c.time}</span>
+                  <span style={{ fontSize: "12px", color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace" }}>{c.time}</span>
                 </div>
               ))}
             </div>
@@ -2745,8 +2643,8 @@ function ProjectsView({ agency, onNavigate }) {
         </div>
         <button onClick={() => setShowNew(true)} style={{
           padding: "9px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600,
-          border: "none", backgroundColor: C.text, color: "#fff",
-          cursor: "pointer", fontFamily: "'DM Sans', sans-serif", flexShrink: 0,
+          border: "none", backgroundColor: C.actionBg, color: "#fff",
+          cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif", flexShrink: 0,
         }}>+ New project</button>
       </div>
 
@@ -2760,7 +2658,7 @@ function ProjectsView({ agency, onNavigate }) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search projects..."
-          style={{ width: "100%", padding: "12px 16px 12px 40px", borderRadius: "10px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "14px", fontFamily: "'DM Sans', sans-serif", outline: "none", boxSizing: "border-box" }}
+          style={{ width: "100%", padding: "12px 16px 12px 40px", borderRadius: "10px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "14px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", outline: "none", boxSizing: "border-box" }}
         />
       </div>
 
@@ -2789,7 +2687,7 @@ function ProjectsView({ agency, onNavigate }) {
             }}>◳</div>
             <div style={{ fontSize: "15px", fontWeight: 600, color: C.text, marginBottom: "4px" }}>{p.name}</div>
             <div style={{ fontSize: "13px", color: C.textSecondary, lineHeight: "1.5", marginBottom: "16px" }}>{p.desc}</div>
-            <div style={{ display: "flex", gap: "14px", fontSize: "12px", color: C.textTertiary, fontFamily: "'Space Mono', monospace" }}>
+            <div style={{ display: "flex", gap: "14px", fontSize: "12px", color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace" }}>
               <span>{p.convos} chats</span>
               <span>{p.files} files</span>
               <span>{p.audiences} audiences</span>
@@ -2831,7 +2729,7 @@ function NewProjectModal({ onClose }) {
   const inputStyle = {
     width: "100%", padding: "10px 14px", borderRadius: "8px",
     border: `1px solid ${C.border}`, backgroundColor: C.bg,
-    color: C.text, fontSize: "14px", fontFamily: "'DM Sans', sans-serif",
+    color: C.text, fontSize: "14px", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
     outline: "none", boxSizing: "border-box",
   };
 
@@ -2905,13 +2803,13 @@ function NewProjectModal({ onClose }) {
           <button onClick={onClose} style={{
             padding: "10px 18px", borderRadius: "8px", fontSize: "14px", fontWeight: 600,
             border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text,
-            cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
+            cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
           }}>Cancel</button>
           <button onClick={onClose} disabled={!canCreate} style={{
             padding: "10px 20px", borderRadius: "8px", fontSize: "14px", fontWeight: 600,
-            border: "none", backgroundColor: C.text, color: "#fff",
+            border: "none", backgroundColor: C.actionBg, color: "#fff",
             cursor: canCreate ? "pointer" : "not-allowed", opacity: canCreate ? 1 : 0.4,
-            fontFamily: "'DM Sans', sans-serif",
+            fontFamily: "'Source Sans 3', Helvetica, sans-serif",
           }}>Create project</button>
         </div>
       </div>
@@ -2963,7 +2861,7 @@ function HistoryView({ agency, onNavigate }) {
   // Transcript detail view
   if (openConv) {
     return (
-      <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+      <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, overflow: "hidden" }}>
         <div style={briefHeaderStyle}>
           <button onClick={() => setOpenConv(null)} style={s.btnSecondary}>← History</button>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -2974,7 +2872,7 @@ function HistoryView({ agency, onNavigate }) {
             <button onClick={() => setAssigningId(assigningId === openConv.id ? null : openConv.id)} style={{
               display: "flex", alignItems: "center", gap: "6px", padding: "7px 12px", borderRadius: "8px",
               border: `1px solid ${C.border}`, backgroundColor: openConv.project ? C.accentBlue + "14" : C.bg,
-              color: openConv.project ? C.accentBlue : C.textSecondary, cursor: "pointer", fontSize: "12px", fontWeight: 600, fontFamily: "'DM Sans', sans-serif",
+              color: openConv.project ? C.accentBlue : C.textSecondary, cursor: "pointer", fontSize: "12px", fontWeight: 600, fontFamily: "'Source Sans 3', Helvetica, sans-serif",
             }}>◳ {openConv.project || "Assign to project"} <span style={{ fontSize: "10px" }}>▾</span></button>
             {assigningId === openConv.id && <AssignMenu current={openConv.project} options={PROJECT_OPTIONS} onPick={(p) => assign(openConv.id, p)} />}
           </div>
@@ -2986,7 +2884,7 @@ function HistoryView({ agency, onNavigate }) {
                 <div key={i} style={{ alignSelf: "flex-end", maxWidth: "80%", fontSize: "14px", color: "#fff", backgroundColor: C.text, padding: "10px 14px", borderRadius: "14px 14px 2px 14px", lineHeight: "1.5" }}>{m.text}</div>
               ) : (
                 <div key={i} style={{ display: "flex", gap: "10px", maxWidth: "90%" }}>
-                  <span style={{ fontSize: "11px", fontWeight: 700, color: C.accentBlue, fontFamily: "'Space Mono', monospace", flexShrink: 0, marginTop: "3px" }}>DS-1</span>
+                  <span style={{ fontSize: "11px", fontWeight: 700, color: C.accentBlue, fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0, marginTop: "3px" }}>DS-1</span>
                   <div style={{ fontSize: "14px", color: C.text, lineHeight: "1.6", backgroundColor: C.bgSecondary, border: `1px solid ${C.borderLight}`, padding: "12px 14px", borderRadius: "2px 14px 14px 14px" }}>{m.text}</div>
                 </div>
               )
@@ -3001,7 +2899,7 @@ function HistoryView({ agency, onNavigate }) {
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendInHistory(); } }}
               placeholder="Continue this conversation…"
               rows={1}
-              style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "14px", fontFamily: "'DM Sans', sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "7px 0" }}
+              style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "14px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "7px 0" }}
             />
             <button onClick={sendInHistory} style={{ width: "32px", height: "32px", borderRadius: "8px", border: "none", cursor: "pointer", backgroundColor: draft.trim() ? C.text : C.bgHover, color: draft.trim() ? "#fff" : C.textTertiary, fontSize: "15px", flexShrink: 0 }}>↑</button>
           </div>
@@ -3041,7 +2939,7 @@ function HistoryView({ agency, onNavigate }) {
               <button onClick={() => setAssigningId(assigningId === conv.id ? null : conv.id)} style={{
                 display: "flex", alignItems: "center", gap: "6px",
                 fontSize: "12px", fontWeight: 600, cursor: "pointer",
-                padding: "4px 10px", borderRadius: "6px", fontFamily: "'DM Sans', sans-serif",
+                padding: "4px 10px", borderRadius: "6px", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
                 border: `1px solid ${conv.project ? "transparent" : C.border}`,
                 color: conv.project ? C.accentBlue : C.textTertiary,
                 backgroundColor: conv.project ? C.accentBlue + "14" : C.bg,
@@ -3102,7 +3000,7 @@ function SettingsView({ onNavigate }) {
           border: `1px solid ${value === opt.value ? C.text : C.border}`,
           backgroundColor: value === opt.value ? C.text : C.bg,
           color: value === opt.value ? "#fff" : C.textSecondary,
-          cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
+          cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
           transition: "all 0.15s ease", whiteSpace: "nowrap",
         }}>{opt.label}</button>
       ))}
@@ -3158,7 +3056,7 @@ function SettingsView({ onNavigate }) {
                 border: `1px solid ${voiceMode === opt.value ? C.text : C.border}`,
                 backgroundColor: voiceMode === opt.value ? C.text : C.bg,
                 color: voiceMode === opt.value ? "#fff" : C.textSecondary,
-                cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
+                cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
                 transition: "all 0.15s ease",
               }}>{opt.label}</button>
             ))}
@@ -3187,7 +3085,7 @@ function SettingsView({ onNavigate }) {
                 style={{
                   width: "100%", padding: "12px 14px", borderRadius: "8px",
                   border: `1px solid ${C.border}`, backgroundColor: C.bg,
-                  color: C.text, fontSize: "13px", fontFamily: "'DM Sans', sans-serif",
+                  color: C.text, fontSize: "13px", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
                   outline: "none", resize: "vertical", lineHeight: "1.6",
                   boxSizing: "border-box",
                 }}
@@ -3196,8 +3094,8 @@ function SettingsView({ onNavigate }) {
                 <button style={{
                   marginTop: "8px", padding: "7px 16px", borderRadius: "6px",
                   fontSize: "12px", fontWeight: 600, border: "none",
-                  backgroundColor: C.text, color: "#fff", cursor: "pointer",
-                  fontFamily: "'DM Sans', sans-serif",
+                  backgroundColor: C.actionBg, color: "#fff", cursor: "pointer",
+                  fontFamily: "'Source Sans 3', Helvetica, sans-serif",
                 }}>Save style</button>
               )}
             </div>
@@ -3553,7 +3451,7 @@ function AdminView({ agency, onNavigate }) {
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
                   <span style={{ fontSize: "12px", fontWeight: 600, color: C.textSecondary }}>
                     Marketplace providers
-                    <span style={{ fontSize: "10px", fontWeight: 600, color: C.textTertiary, backgroundColor: C.bgHover, padding: "1px 6px", borderRadius: "3px", marginLeft: "6px", fontFamily: "'Space Mono', monospace" }}>via LiveRamp MCP</span>
+                    <span style={{ fontSize: "10px", fontWeight: 600, color: C.textTertiary, backgroundColor: C.bgHover, padding: "1px 6px", borderRadius: "3px", marginLeft: "6px", fontFamily: "Menlo, 'SF Mono', monospace" }}>via LiveRamp MCP</span>
                   </span>
                   <span style={{ fontSize: "11px", color: C.textTertiary }}>{lrSelected.length} of {LIVERAMP_PROVIDERS.length} selected</span>
                 </div>
@@ -3567,7 +3465,7 @@ function AdminView({ agency, onNavigate }) {
                         border: `1px solid ${on ? C.accentGreen : C.border}`,
                         backgroundColor: on ? C.accentGreen + "10" : C.bg,
                         color: on ? C.text : C.textTertiary, cursor: "pointer",
-                        fontFamily: "'DM Sans', sans-serif", transition: "all 0.15s ease",
+                        fontFamily: "'Source Sans 3', Helvetica, sans-serif", transition: "all 0.15s ease",
                       }}>
                         <span style={{ color: on ? C.accentGreen : C.textTertiary }}>{on ? "✓" : "+"}</span>
                         {p}
@@ -3596,7 +3494,7 @@ function AdminView({ agency, onNavigate }) {
                   width: "100%", padding: "16px", borderRadius: "8px",
                   border: `1px dashed ${C.border}`, backgroundColor: "transparent",
                   color: C.textTertiary, cursor: "pointer", fontSize: "13px",
-                  fontFamily: "'DM Sans', sans-serif",
+                  fontFamily: "'Source Sans 3', Helvetica, sans-serif",
                 }}>+ Upload taxonomy file (CSV, XLSX)</button>
               </div>
             )}
@@ -3686,7 +3584,7 @@ const adminS = {
   agencyDot: {
     width: "36px", height: "36px", borderRadius: "8px",
     display: "flex", alignItems: "center", justifyContent: "center",
-    fontFamily: "'Space Mono', monospace", fontSize: "12px", fontWeight: 700,
+    fontFamily: "Menlo, 'SF Mono', monospace", fontSize: "12px", fontWeight: 700,
     flexShrink: 0,
   },
   progressBar: {
@@ -3711,7 +3609,7 @@ const adminS = {
   },
   catCount: {
     fontSize: "12px", color: C.textTertiary,
-    fontFamily: "'Space Mono', monospace",
+    fontFamily: "Menlo, 'SF Mono', monospace",
     marginLeft: "auto",
   },
   toolList: {
@@ -3742,7 +3640,7 @@ const adminS = {
     fontWeight: 700,
     padding: "2px 8px",
     borderRadius: "4px",
-    fontFamily: "'Space Mono', monospace",
+    fontFamily: "Menlo, 'SF Mono', monospace",
     letterSpacing: "0.3px",
     cursor: "pointer",
     transition: "all 0.15s ease",
@@ -3756,7 +3654,7 @@ const adminS = {
   provBadge: {
     width: "36px", height: "36px", borderRadius: "8px",
     display: "flex", alignItems: "center", justifyContent: "center",
-    fontFamily: "'Space Mono', monospace", fontSize: "13px", fontWeight: 700,
+    fontFamily: "Menlo, 'SF Mono', monospace", fontSize: "13px", fontWeight: 700,
     flexShrink: 0,
   },
 };
@@ -3832,7 +3730,7 @@ const actS = {
     border: `1px solid ${C.borderLight}`,
     padding: "4px 10px",
     borderRadius: "6px",
-    fontFamily: "'Space Mono', monospace",
+    fontFamily: "Menlo, 'SF Mono', monospace",
     whiteSpace: "nowrap",
     flexShrink: 0,
   },
@@ -3841,11 +3739,11 @@ const actS = {
 const s = {
   shell: {
     display: "flex",
-    minHeight: "100vh",
     width: "100%",
-    fontFamily: "'DM Sans', sans-serif",
+    fontFamily: "'Source Sans 3', Helvetica, sans-serif",
     color: C.text,
     backgroundColor: C.bg,
+    overflow: "hidden",
   },
 
   // Sidebar
@@ -3856,9 +3754,8 @@ const s = {
     borderRight: `1px solid ${C.borderLight}`,
     display: "flex",
     flexDirection: "column",
-    height: "100vh",
-    position: "sticky",
-    top: 0,
+    height: "100%",
+    flexShrink: 0,
     transition: "width 0.2s ease, min-width 0.2s ease",
     overflow: "hidden",
   },
@@ -3889,23 +3786,23 @@ const s = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontFamily: "'Space Mono', monospace",
+    fontFamily: "Menlo, 'SF Mono', monospace",
     fontSize: "12px",
     fontWeight: 700,
     cursor: "pointer",
     margin: "0 auto",
   },
   logoMark: {
-    backgroundColor: C.text,
+    backgroundColor: C.actionBg,
     borderRadius: "8px",
     padding: "5px 10px",
   },
   logoText: {
-    fontFamily: "'Space Mono', monospace",
+    fontFamily: "'Urbanist', Arial, sans-serif",
     fontWeight: 700,
     fontSize: "14px",
     color: "#fff",
-    letterSpacing: "-0.5px",
+    letterSpacing: "0.5px",
   },
 
   // Agency switcher
@@ -3927,7 +3824,7 @@ const s = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontFamily: "'Space Mono', monospace",
+    fontFamily: "Menlo, 'SF Mono', monospace",
     fontSize: "11px",
     fontWeight: 700,
     flexShrink: 0,
@@ -3975,7 +3872,7 @@ const s = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontFamily: "'Space Mono', monospace",
+    fontFamily: "Menlo, 'SF Mono', monospace",
     fontSize: "10px",
     fontWeight: 700,
     flexShrink: 0,
@@ -4000,7 +3897,7 @@ const s = {
     borderRadius: "6px",
     border: "none",
     cursor: "pointer",
-    fontFamily: "'DM Sans', sans-serif",
+    fontFamily: "'Source Sans 3', Helvetica, sans-serif",
     fontSize: "14px",
     transition: "all 0.15s ease",
     textAlign: "left",
@@ -4022,7 +3919,7 @@ const s = {
     width: "7px",
     height: "7px",
     borderRadius: "50%",
-    backgroundColor: C.accentGreen,
+    backgroundColor: C.accentOrangeDark,
   },
 
   // Main area
@@ -4030,7 +3927,9 @@ const s = {
     flex: 1,
     minWidth: 0,
     overflowY: "auto",
-    height: "100vh",
+    height: "100%",
+    display: "flex",
+    flexDirection: "column",
   },
   content: {
     padding: "48px clamp(20px, 5vw, 64px)",
@@ -4047,6 +3946,7 @@ const s = {
     color: C.text,
     margin: 0,
     letterSpacing: "-0.5px",
+    fontFamily: "'Urbanist', Arial, sans-serif",
   },
   subheading: {
     fontSize: "15px",
@@ -4107,7 +4007,7 @@ const s = {
     marginTop: "24px", paddingTop: "16px", borderTop: `1px solid ${C.borderLight}`,
   },
   cardAction: (color) => ({
-    fontSize: "13px", fontWeight: 600, color: color, fontFamily: "'Space Mono', monospace",
+    fontSize: "13px", fontWeight: 600, color: color, fontFamily: "Menlo, 'SF Mono', monospace",
   }),
 
   // Recent activity
@@ -4126,7 +4026,7 @@ const s = {
     fontSize: "12px", color: C.textTertiary, display: "block", marginTop: "2px",
   },
   recentTime: {
-    fontSize: "12px", color: C.textTertiary, fontFamily: "'Space Mono', monospace", flexShrink: 0,
+    fontSize: "12px", color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0,
   },
 
   // Notification styles
@@ -4143,7 +4043,7 @@ const s = {
     fontSize: "12px",
     color: C.textTertiary,
     marginTop: "3px",
-    fontFamily: "'Space Mono', monospace",
+    fontFamily: "Menlo, 'SF Mono', monospace",
   },
   statusBadge: (bg, color) => ({
     display: "inline-block",
@@ -4153,17 +4053,17 @@ const s = {
     backgroundColor: bg,
     padding: "2px 8px",
     borderRadius: "4px",
-    fontFamily: "'Space Mono', monospace",
+    fontFamily: "Menlo, 'SF Mono', monospace",
   }),
   btnPrimary: {
     padding: "6px 16px",
     borderRadius: "6px",
     border: "none",
-    backgroundColor: C.accentGreen,
+    backgroundColor: C.actionBg,
     color: "#fff",
     fontSize: "13px",
     fontWeight: 600,
-    fontFamily: "'DM Sans', sans-serif",
+    fontFamily: "'Source Sans 3', Helvetica, sans-serif",
     cursor: "pointer",
   },
   btnSecondary: {
@@ -4174,7 +4074,7 @@ const s = {
     color: C.text,
     fontSize: "13px",
     fontWeight: 500,
-    fontFamily: "'DM Sans', sans-serif",
+    fontFamily: "'Source Sans 3', Helvetica, sans-serif",
     cursor: "pointer",
   },
   emptyState: {
