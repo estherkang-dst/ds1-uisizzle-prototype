@@ -3,18 +3,18 @@
 import { useState, useEffect } from "react";
 
 const FONTS = `
-@import url('https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600&family=Source+Sans+3:wght@400;500;600&display=swap');
 `;
 
 const C = {
-  bg: "#FFFFFF",
+  bg: "#FEFCFA",          // warm white — not pure #FFF
   bgSecondary: "#F5F4F1",
-  bgSidebar: "#F5F4F1",
+  bgSidebar: "#F0EEE9",
   bgHover: "#EBE9E5",
-  bgCard: "#FFFFFF",
+  bgCard: "#FEFCFA",
   border: "#D6D4D1",
   borderLight: "#E7E5E1",
-  text: "#030101",
+  text: "#1C1A17",        // warm near-black — not pure #000
   textSecondary: "#5D5B58",
   textTertiary: "#8A8884",
   // brand primary
@@ -67,20 +67,6 @@ export default function DS1App() {
     ...(activeAgency.id === "dstillery" ? [{ id: "admin", label: "Admin", icon: "⚙" }] : []),
   ];
 
-  const PROTO_TABS = [
-    { id: "workspace", label: "A · Workspace shell" },
-    { id: "chat", label: "B · Chat-first" },
-    { id: "single", label: "C · Single surface" },
-  ];
-  const PROTO_DESC = {
-    workspace: "Full sidebar + canvas. Best for power users managing multiple marketers.",
-    chat: "One chat spine. Canvas opens when output is worth manipulating. Recommended.",
-    single: "Minimal single-surface view. No sidebar, canvas only when needed.",
-  };
-  const [protoTab, setProtoTab] = useState("chat");
-
-  const SUBAGENT_VIEWS = ["explorer", "domainseeded", "brief", "pixel"];
-
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
       <style>{FONTS}</style>
@@ -94,8 +80,16 @@ export default function DS1App() {
           to { background-position: -200% center; }
         }
         * { box-sizing: border-box; }
-        body { font-family: 'Source Sans 3', Helvetica, sans-serif; }
-        h1, h2, h3, h4, h5, h6 { font-family: 'Urbanist', Arial, sans-serif; }
+        body {
+          font-family: 'Source Sans 3', Helvetica, sans-serif;
+          font-size: 15px;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+        h1, h2, h3, h4, h5, h6 {
+          font-family: 'Urbanist', Arial, sans-serif;
+          -webkit-font-smoothing: antialiased;
+        }
         .spectrum-bar {
           height: 3px;
           flex-shrink: 0;
@@ -106,29 +100,6 @@ export default function DS1App() {
           animation: spectrumSlide 1.8s linear infinite;
         }
       `}</style>
-
-      {/* Prototype top bar — only visible in subagent views */}
-      {SUBAGENT_VIEWS.includes(activeView) && (
-      <div style={{ display: "flex", alignItems: "center", gap: "0", height: "36px", borderBottom: `1px solid ${C.border}`, backgroundColor: C.bgSidebar, flexShrink: 0, paddingLeft: "16px" }}>
-        <span style={{ fontSize: "12px", fontWeight: 700, color: C.text, fontFamily: "Menlo, 'SF Mono', monospace", marginRight: "16px", letterSpacing: "0.3px" }}>DS-1</span>
-        {PROTO_TABS.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setProtoTab(tab.id)}
-            style={{
-              height: "100%", padding: "0 14px", border: "none", borderRight: `1px solid ${C.border}`,
-              backgroundColor: protoTab === tab.id ? C.bg : "transparent",
-              color: protoTab === tab.id ? C.text : C.textSecondary,
-              fontSize: "12px", fontWeight: protoTab === tab.id ? 600 : 400,
-              cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
-              borderBottom: protoTab === tab.id ? `2px solid ${C.text}` : "none",
-              boxSizing: "border-box",
-            }}
-          >{tab.label}</button>
-        ))}
-        <span style={{ fontSize: "12px", color: C.textTertiary, marginLeft: "16px", fontStyle: "italic" }}>{PROTO_DESC[protoTab]}</span>
-      </div>
-      )}
 
       {/* Spectrum brand bar */}
       <div className="spectrum-bar" />
@@ -206,7 +177,7 @@ export default function DS1App() {
                       </div>
                       <span style={s.dropdownItemText}>{agency.name}</span>
                       {agency.id === activeAgency.id && (
-                        <span style={{ color: C.accentGreen, fontSize: "14px", marginLeft: "auto" }}>✓</span>
+                        <span style={{ color: C.accentGreen, fontSize: "15px", marginLeft: "auto" }}>✓</span>
                       )}
                     </div>
                   ))}
@@ -230,10 +201,10 @@ export default function DS1App() {
                           }}
                         >
                           <span style={{ fontSize: "10px", color: C.textTertiary, width: "10px" }}>▾</span>
-                          <span style={{ fontSize: "13px", fontWeight: 700, color: parentSelectable ? C.text : C.textTertiary }}>{activeAgency.parent}</span>
-                          <span style={{ fontSize: "11px", color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace" }}>({activeAgency.marketers.length})</span>
+                          <span style={{ fontSize: "14px", fontWeight: 500, color: parentSelectable ? C.text : C.textTertiary }}>{activeAgency.parent}</span>
+                          <span style={{ fontSize: "13px", color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace" }}>({activeAgency.marketers.length})</span>
                           {!parentSelectable && <span style={{ fontSize: "10px", color: C.textTertiary, marginLeft: "auto", backgroundColor: C.bgHover, padding: "1px 6px", borderRadius: "3px" }}>Parent</span>}
-                          {parentSelectable && selectedMarketer === activeAgency.parent && <span style={{ color: C.accentGreen, fontSize: "13px", marginLeft: "auto" }}>✓</span>}
+                          {parentSelectable && selectedMarketer === activeAgency.parent && <span style={{ color: C.accentGreen, fontSize: "14px", marginLeft: "auto" }}>✓</span>}
                         </div>
 
                         {/* Child marketers = projects */}
@@ -247,8 +218,8 @@ export default function DS1App() {
                               backgroundColor: selectedMarketer === m ? C.bgHover : "transparent",
                             }}
                           >
-                            <span style={{ fontSize: "13px", color: C.text }}>{m}</span>
-                            {selectedMarketer === m && <span style={{ color: C.accentGreen, fontSize: "13px", marginLeft: "auto" }}>✓</span>}
+                            <span style={{ fontSize: "14px", color: C.text }}>{m}</span>
+                            {selectedMarketer === m && <span style={{ color: C.accentGreen, fontSize: "14px", marginLeft: "auto" }}>✓</span>}
                           </div>
                         ))}
                       </>
@@ -289,7 +260,7 @@ export default function DS1App() {
           <div style={{ padding: "12px 8px" }}>
             <button
               onClick={() => setCollapsed(false)}
-              style={{ ...s.collapseBtn, width: "100%", fontSize: "14px" }}
+              style={{ ...s.collapseBtn, width: "100%", fontSize: "15px" }}
               title="Expand sidebar"
             >›</button>
           </div>
@@ -299,7 +270,7 @@ export default function DS1App() {
         <div style={{ ...s.sidebarFooter, justifyContent: collapsed ? "center" : "flex-start" }}>
           <div style={{ ...s.statusRow, justifyContent: collapsed ? "center" : "flex-start" }}>
             <div style={s.statusDot} />
-            {!collapsed && <span style={{ fontSize: "12px", color: C.textTertiary }}>Connected</span>}
+            {!collapsed && <span style={{ fontSize: "13px", color: C.textTertiary }}>Connected</span>}
           </div>
         </div>
       </aside>
@@ -358,25 +329,25 @@ function AgentsLibrary({ onNavigate }) {
           <p style={s.subheading}>Every DS-1 agent, plus any workflows you build yourself.</p>
         </div>
         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "flex-end", marginLeft: "auto" }}>
-          <button disabled style={{ whiteSpace: "nowrap", padding: "9px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600, border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textTertiary, cursor: "not-allowed", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>Build your own (coming soon)</button>
-          <a href="https://dstillery.com" target="_blank" rel="noopener noreferrer" style={{ whiteSpace: "nowrap", padding: "9px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600, border: "none", backgroundColor: C.actionBg, color: "#fff", cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif", textDecoration: "none" }}>MCP Connection</a>
+          <button disabled style={{ whiteSpace: "nowrap", padding: "9px 16px", borderRadius: "8px", fontSize: "14px", fontWeight: 500, border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textTertiary, cursor: "not-allowed", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>Build your own (coming soon)</button>
+          <a href="https://dstillery.com" target="_blank" rel="noopener noreferrer" style={{ whiteSpace: "nowrap", padding: "9px 16px", borderRadius: "8px", fontSize: "14px", fontWeight: 500, border: "none", backgroundColor: C.actionBg, color: "#fff", cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif", textDecoration: "none" }}>MCP Connection</a>
         </div>
       </div>
 
       {/* Search */}
       <div style={{ position: "relative", maxWidth: "720px", marginBottom: "24px", animation: "fadeUp 0.5s ease-out", animationDelay: "0.04s", animationFillMode: "both" }}>
-        <span style={{ position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)", color: C.textTertiary, fontSize: "14px" }}>⌕</span>
+        <span style={{ position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)", color: C.textTertiary, fontSize: "15px" }}>⌕</span>
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search agents by name or what they do..."
-          style={{ width: "100%", padding: "12px 16px 12px 40px", borderRadius: "10px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "14px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", outline: "none", boxSizing: "border-box" }}
+          style={{ width: "100%", padding: "12px 16px 12px 40px", borderRadius: "10px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "15px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", outline: "none", boxSizing: "border-box" }}
         />
       </div>
 
       {filtered.length === 0 ? (
-        <div style={{ maxWidth: "720px", padding: "24px", textAlign: "center", fontSize: "14px", color: C.textTertiary, fontStyle: "italic" }}>
+        <div style={{ maxWidth: "720px", padding: "24px", textAlign: "center", fontSize: "15px", color: C.textTertiary, fontStyle: "italic" }}>
           No agents match "{search}".
         </div>
       ) : (
@@ -397,12 +368,12 @@ function AgentsLibrary({ onNavigate }) {
             >
               <div style={{ width: "34px", height: "34px", borderRadius: "8px", backgroundColor: a.color + "18", color: a.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "15px", flexShrink: 0 }}>{a.icon}</div>
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: "14px", fontWeight: 600, color: C.text, display: "flex", alignItems: "center", gap: "6px" }}>
+                <div style={{ fontSize: "15px", fontWeight: 500, color: C.text, display: "flex", alignItems: "center", gap: "6px" }}>
                   {a.title}
-                  {a.custom && <span style={{ fontSize: "10px", fontWeight: 600, color: C.accentPurple, backgroundColor: C.accentPurple + "16", padding: "1px 6px", borderRadius: "3px" }}>Custom</span>}
-                  {!a.route && !a.custom && <span style={{ fontSize: "10px", fontWeight: 600, color: C.textTertiary, backgroundColor: C.bgHover, padding: "1px 6px", borderRadius: "3px" }}>Soon</span>}
+                  {a.custom && <span style={{ fontSize: "10px", fontWeight: 500, color: C.accentPurple, backgroundColor: C.accentPurple + "16", padding: "1px 6px", borderRadius: "3px" }}>Custom</span>}
+                  {!a.route && !a.custom && <span style={{ fontSize: "10px", fontWeight: 500, color: C.textTertiary, backgroundColor: C.bgHover, padding: "1px 6px", borderRadius: "3px" }}>Soon</span>}
                 </div>
-                <div style={{ fontSize: "12px", color: C.textTertiary, marginTop: "3px", lineHeight: "1.5" }}>{a.desc}</div>
+                <div style={{ fontSize: "13px", color: C.textTertiary, marginTop: "3px", lineHeight: "1.5" }}>{a.desc}</div>
               </div>
             </button>
           ))}
@@ -435,7 +406,7 @@ function WorkflowBuilderModal({ agents, onClose, onCreate }) {
     });
   };
 
-  const inputStyle = { width: "100%", padding: "10px 14px", borderRadius: "8px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "14px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", outline: "none", boxSizing: "border-box" };
+  const inputStyle = { width: "100%", padding: "10px 14px", borderRadius: "8px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "15px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", outline: "none", boxSizing: "border-box" };
 
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "24px", animation: "fadeIn 0.2s ease-out" }}>
@@ -443,25 +414,25 @@ function WorkflowBuilderModal({ agents, onClose, onCreate }) {
       <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: "540px", maxHeight: "85vh", overflowY: "auto", backgroundColor: C.bg, borderRadius: "16px", boxShadow: "0 12px 48px rgba(0,0,0,0.18)", animation: "popIn 0.25s cubic-bezier(0.4,0,0.2,1)" }}>
         <div style={{ padding: "20px 24px 16px", borderBottom: `1px solid ${C.borderLight}`, position: "sticky", top: 0, backgroundColor: C.bg, borderRadius: "16px 16px 0 0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
-            <div style={{ fontSize: "17px", fontWeight: 700, color: C.text }}>Build your own agent</div>
-            <div style={{ fontSize: "13px", color: C.textTertiary, marginTop: "2px" }}>Chain existing agents into a custom workflow.</div>
+            <div style={{ fontSize: "17px", fontWeight: 500, color: C.text }}>Build your own agent</div>
+            <div style={{ fontSize: "14px", color: C.textTertiary, marginTop: "2px" }}>Chain existing agents into a custom workflow.</div>
           </div>
           <button onClick={onClose} style={{ width: "30px", height: "30px", borderRadius: "8px", border: "none", backgroundColor: C.bgHover, color: C.textSecondary, cursor: "pointer", fontSize: "16px" }}>×</button>
         </div>
 
         <div style={{ padding: "22px 24px" }}>
           <div style={{ marginBottom: "18px" }}>
-            <div style={{ fontSize: "13px", fontWeight: 600, color: C.text, marginBottom: "6px" }}>Name</div>
+            <div style={{ fontSize: "14px", fontWeight: 500, color: C.text, marginBottom: "6px" }}>Name</div>
             <input style={inputStyle} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Sports campaign launcher" />
           </div>
           <div style={{ marginBottom: "18px" }}>
-            <div style={{ fontSize: "13px", fontWeight: 600, color: C.text, marginBottom: "6px" }}>Description <span style={{ fontWeight: 400, color: C.textTertiary }}>(optional)</span></div>
+            <div style={{ fontSize: "14px", fontWeight: 500, color: C.text, marginBottom: "6px" }}>Description <span style={{ fontWeight: 400, color: C.textTertiary }}>(optional)</span></div>
             <input style={inputStyle} value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="What does this workflow do?" />
           </div>
 
           <div style={{ marginBottom: "18px" }}>
-            <div style={{ fontSize: "13px", fontWeight: 600, color: C.text, marginBottom: "2px" }}>Steps</div>
-            <div style={{ fontSize: "12px", color: C.textTertiary, marginBottom: "10px" }}>Pick the agents this workflow runs, in order.</div>
+            <div style={{ fontSize: "14px", fontWeight: 500, color: C.text, marginBottom: "2px" }}>Steps</div>
+            <div style={{ fontSize: "13px", color: C.textTertiary, marginBottom: "10px" }}>Pick the agents this workflow runs, in order.</div>
 
             {/* selected ordered steps */}
             {steps.length > 0 && (
@@ -470,8 +441,8 @@ function WorkflowBuilderModal({ agents, onClose, onCreate }) {
                   const a = agents.find(x => x.id === id);
                   return (
                     <div key={id} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 10px", borderRadius: "8px", border: `1px solid ${C.border}`, backgroundColor: C.bgSecondary }}>
-                      <span style={{ fontSize: "11px", fontWeight: 700, color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0 }}>{idx + 1}</span>
-                      <span style={{ flex: 1, fontSize: "13px", fontWeight: 600, color: C.text }}>{a?.title}</span>
+                      <span style={{ fontSize: "13px", fontWeight: 500, color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0 }}>{idx + 1}</span>
+                      <span style={{ flex: 1, fontSize: "14px", fontWeight: 500, color: C.text }}>{a?.title}</span>
                       <button onClick={() => moveStep(idx, -1)} disabled={idx === 0} style={{ ...miniBtn, opacity: idx === 0 ? 0.3 : 1 }}>↑</button>
                       <button onClick={() => moveStep(idx, 1)} disabled={idx === steps.length - 1} style={{ ...miniBtn, opacity: idx === steps.length - 1 ? 0.3 : 1 }}>↓</button>
                       <button onClick={() => toggleStep(id)} style={miniBtn}>×</button>
@@ -484,7 +455,7 @@ function WorkflowBuilderModal({ agents, onClose, onCreate }) {
             {/* available agents to add */}
             <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
               {agents.filter(a => !steps.includes(a.id)).map(a => (
-                <button key={a.id} onClick={() => toggleStep(a.id)} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 12px", borderRadius: "16px", fontSize: "12px", fontWeight: 500, border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textSecondary, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>
+                <button key={a.id} onClick={() => toggleStep(a.id)} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 12px", borderRadius: "16px", fontSize: "13px", fontWeight: 500, border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textSecondary, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>
                   <span style={{ color: a.color }}>+</span> {a.title}
                 </button>
               ))}
@@ -492,7 +463,7 @@ function WorkflowBuilderModal({ agents, onClose, onCreate }) {
           </div>
 
           <div style={{ marginBottom: "4px" }}>
-            <div style={{ fontSize: "13px", fontWeight: 600, color: C.text, marginBottom: "8px" }}>Color</div>
+            <div style={{ fontSize: "14px", fontWeight: 500, color: C.text, marginBottom: "8px" }}>Color</div>
             <div style={{ display: "flex", gap: "8px" }}>
               {colors.map(c => (
                 <button key={c} onClick={() => setColor(c)} style={{ width: "28px", height: "28px", borderRadius: "8px", backgroundColor: c, border: color === c ? `2px solid ${C.text}` : "2px solid transparent", cursor: "pointer", padding: 0 }} />
@@ -502,15 +473,15 @@ function WorkflowBuilderModal({ agents, onClose, onCreate }) {
         </div>
 
         <div style={{ padding: "16px 24px", borderTop: `1px solid ${C.borderLight}`, display: "flex", justifyContent: "flex-end", gap: "10px", position: "sticky", bottom: 0, backgroundColor: C.bg, borderRadius: "0 0 16px 16px" }}>
-          <button onClick={onClose} style={{ padding: "10px 18px", borderRadius: "8px", fontSize: "14px", fontWeight: 600, border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>Cancel</button>
-          <button onClick={create} disabled={!canCreate} style={{ padding: "10px 20px", borderRadius: "8px", fontSize: "14px", fontWeight: 600, border: "none", backgroundColor: canCreate ? C.text : C.bgHover, color: canCreate ? "#fff" : C.textTertiary, cursor: canCreate ? "pointer" : "not-allowed", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>Create agent</button>
+          <button onClick={onClose} style={{ padding: "10px 18px", borderRadius: "8px", fontSize: "15px", fontWeight: 500, border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>Cancel</button>
+          <button onClick={create} disabled={!canCreate} style={{ padding: "10px 20px", borderRadius: "8px", fontSize: "15px", fontWeight: 500, border: "none", backgroundColor: canCreate ? C.text : C.bgHover, color: canCreate ? "#fff" : C.textTertiary, cursor: canCreate ? "pointer" : "not-allowed", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>Create agent</button>
         </div>
       </div>
     </div>
   );
 }
 
-const miniBtn = { width: "24px", height: "24px", borderRadius: "6px", border: "none", backgroundColor: "transparent", color: C.textTertiary, cursor: "pointer", fontSize: "13px", flexShrink: 0 };
+const miniBtn = { width: "24px", height: "24px", borderRadius: "6px", border: "none", backgroundColor: "transparent", color: C.textTertiary, cursor: "pointer", fontSize: "14px", flexShrink: 0 };
 
 function HomeView({ agency, onNavigate }) {
   const [hovered, setHovered] = useState(null);
@@ -550,8 +521,8 @@ function HomeView({ agency, onNavigate }) {
       <div style={{ width: "100%", maxWidth: "680px", marginTop: "12vh" }}>
         {/* Title */}
         <div style={{ textAlign: "center", marginBottom: "28px", animation: "fadeUp 0.5s ease-out" }}>
-          <div style={{ fontSize: "13px", fontWeight: 600, color: C.textTertiary, marginBottom: "6px" }}>{agency.name}</div>
-          <h1 style={{ fontSize: "30px", fontWeight: 700, color: C.text, margin: 0, letterSpacing: "-0.5px" }}>What are you working on?</h1>
+          <div style={{ fontSize: "14px", fontWeight: 500, color: C.textTertiary, marginBottom: "6px" }}>{agency.name}</div>
+          <h1 style={{ fontSize: "30px", fontWeight: 500, color: C.text, margin: 0, letterSpacing: "-0.5px" }}>What are you working on?</h1>
         </div>
 
         {/* Chat composer */}
@@ -560,10 +531,10 @@ function HomeView({ agency, onNavigate }) {
             {/* Attached project chip */}
             {attachedProject && (
               <div style={{ padding: "12px 14px 0" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "5px 10px", borderRadius: "8px", backgroundColor: attachedProject.color + "14", border: `1px solid ${attachedProject.color}40`, fontSize: "12px", fontWeight: 600, color: C.text }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "5px 10px", borderRadius: "8px", backgroundColor: attachedProject.color + "14", border: `1px solid ${attachedProject.color}40`, fontSize: "13px", fontWeight: 500, color: C.text }}>
                   <span style={{ color: attachedProject.color }}>◳</span>
                   {attachedProject.name}
-                  <span onClick={() => setAttachedProject(null)} style={{ cursor: "pointer", color: C.textTertiary, fontSize: "14px" }}>×</span>
+                  <span onClick={() => setAttachedProject(null)} style={{ cursor: "pointer", color: C.textTertiary, fontSize: "15px" }}>×</span>
                 </span>
               </div>
             )}
@@ -581,9 +552,9 @@ function HomeView({ agency, onNavigate }) {
                 <button onClick={() => setShowProjects(!showProjects)} style={{ ...chatS.actionBtn, color: attachedProject ? C.text : C.textTertiary }}>◳ Projects</button>
                 {showProjects && (
                   <div style={{ position: "absolute", bottom: "38px", left: 0, width: "260px", backgroundColor: C.bg, borderRadius: "10px", border: `1px solid ${C.border}`, boxShadow: "0 6px 24px rgba(0,0,0,0.1)", overflow: "hidden", zIndex: 10 }}>
-                    <div style={{ padding: "10px 14px", fontSize: "11px", fontWeight: 600, color: C.textTertiary, textTransform: "uppercase", letterSpacing: "0.5px", borderBottom: `1px solid ${C.borderLight}` }}>Attach a project</div>
+                    <div style={{ padding: "10px 14px", fontSize: "13px", fontWeight: 500, color: C.textTertiary, textTransform: "uppercase", letterSpacing: "0.5px", borderBottom: `1px solid ${C.borderLight}` }}>Attach a project</div>
                     {PROJECTS.map((p) => (
-                      <div key={p.name} onClick={() => { setAttachedProject(p); setShowProjects(false); }} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", cursor: "pointer", fontSize: "13px", color: C.text }}>
+                      <div key={p.name} onClick={() => { setAttachedProject(p); setShowProjects(false); }} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", cursor: "pointer", fontSize: "14px", color: C.text }}>
                         <span style={{ color: p.color }}>◳</span> {p.name}
                       </div>
                     ))}
@@ -597,7 +568,7 @@ function HomeView({ agency, onNavigate }) {
             </div>
           </div>
           {attachedProject && (
-            <div style={{ fontSize: "12px", color: C.textTertiary, marginTop: "8px", textAlign: "center" }}>
+            <div style={{ fontSize: "13px", color: C.textTertiary, marginTop: "8px", textAlign: "center" }}>
               DS-1 will answer using only the context, files, and audiences inside <strong>{attachedProject.name}</strong>.
             </div>
           )}
@@ -606,10 +577,10 @@ function HomeView({ agency, onNavigate }) {
         {/* Recommended agents */}
         <div style={{ marginTop: "28px", animation: "fadeUp 0.5s ease-out", animationDelay: "0.1s", animationFillMode: "both" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
-            <span style={{ fontSize: "14px", fontWeight: 700, color: C.text }}>
+            <span style={{ fontSize: "15px", fontWeight: 500, color: C.text }}>
               Recommended agents
             </span>
-            <span onClick={() => onNavigate("agents")} style={{ fontSize: "13px", color: C.text, cursor: "pointer", fontWeight: 700 }}>See all ›</span>
+            <span onClick={() => onNavigate("agents")} style={{ fontSize: "14px", color: C.text, cursor: "pointer", fontWeight: 500 }}>See all ›</span>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
             {workflows.map((wf) => (
@@ -629,8 +600,8 @@ function HomeView({ agency, onNavigate }) {
               >
                 <div style={{ width: "34px", height: "34px", borderRadius: "8px", backgroundColor: wf.color + "18", color: wf.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "15px", flexShrink: 0 }}>{wf.icon}</div>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: "14px", fontWeight: 600, color: C.text }}>{wf.title}</div>
-                  <div style={{ fontSize: "12px", color: C.textTertiary, marginTop: "1px" }}>{wf.desc}</div>
+                  <div style={{ fontSize: "15px", fontWeight: 500, color: C.text }}>{wf.title}</div>
+                  <div style={{ fontSize: "13px", color: C.textTertiary, marginTop: "1px" }}>{wf.desc}</div>
                 </div>
               </button>
             ))}
@@ -641,18 +612,18 @@ function HomeView({ agency, onNavigate }) {
       {/* Activity, tucked low with whitespace above */}
       <div style={{ width: "100%", maxWidth: "680px", marginTop: "auto", paddingTop: "80px", animation: "fadeUp 0.5s ease-out", animationDelay: "0.2s", animationFillMode: "both" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
-          <h2 style={{ fontSize: "14px", fontWeight: 700, color: C.text, margin: 0 }}>You have {TASKS.length} tasks from an agent to review</h2>
-          <span onClick={() => onNavigate("tasks")} style={{ fontSize: "13px", color: C.text, cursor: "pointer", fontWeight: 700 }}>View all ›</span>
+          <h2 style={{ fontSize: "15px", fontWeight: 500, color: C.text, margin: 0 }}>You have {TASKS.length} tasks from an agent to review</h2>
+          <span onClick={() => onNavigate("tasks")} style={{ fontSize: "14px", color: C.text, cursor: "pointer", fontWeight: 500 }}>View all ›</span>
         </div>
         <div style={{ display: "flex", flexDirection: "column" }}>
           {visibleTasks.map((row, i, arr) => (
             <div key={row.text} onClick={() => setOpenTask(row)} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "13px 2px", borderBottom: i < arr.length - 1 ? `1px solid ${C.borderLight}` : "none", cursor: "pointer" }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: "14px", color: C.text }}>{row.text}</div>
-                <div style={{ fontSize: "11px", color: C.textTertiary, marginTop: "1px" }}>{row.agent}</div>
+                <div style={{ fontSize: "15px", color: C.text }}>{row.text}</div>
+                <div style={{ fontSize: "13px", color: C.textTertiary, marginTop: "1px" }}>{row.agent}</div>
               </div>
-              <span style={{ fontSize: "12px", color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0 }}>{row.meta}</span>
-              <span style={{ fontSize: "14px", color: C.textTertiary, flexShrink: 0 }}>›</span>
+              <span style={{ fontSize: "13px", color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0 }}>{row.meta}</span>
+              <span style={{ fontSize: "15px", color: C.textTertiary, flexShrink: 0 }}>›</span>
             </div>
           ))}
         </div>
@@ -681,8 +652,8 @@ function TaskChat({ task, onBack }) {
         <button onClick={onBack} style={s.btnSecondary}>← Home</button>
         <div style={{ ...briefBadge, backgroundColor: task.dot + "18", color: task.dot }}>◷</div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: "14px", fontWeight: 600, color: C.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{task.text}</div>
-          <div style={{ fontSize: "11px", color: C.textTertiary }}>{task.agent}</div>
+          <div style={{ fontSize: "15px", fontWeight: 500, color: C.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{task.text}</div>
+          <div style={{ fontSize: "13px", color: C.textTertiary }}>{task.agent}</div>
         </div>
       </div>
 
@@ -690,11 +661,11 @@ function TaskChat({ task, onBack }) {
         <div style={{ maxWidth: "680px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "16px" }}>
           {messages.map((m, i) => (
             m.role === "user" ? (
-              <div key={i} style={{ alignSelf: "flex-end", maxWidth: "80%", fontSize: "14px", color: "#fff", backgroundColor: C.text, padding: "10px 14px", borderRadius: "14px 14px 2px 14px", lineHeight: "1.5" }}>{m.text}</div>
+              <div key={i} style={{ alignSelf: "flex-end", maxWidth: "80%", fontSize: "15px", color: "#fff", backgroundColor: C.text, padding: "10px 14px", borderRadius: "14px 14px 2px 14px", lineHeight: "1.5" }}>{m.text}</div>
             ) : (
               <div key={i} style={{ display: "flex", gap: "10px", maxWidth: "90%" }}>
-                <span style={{ fontSize: "11px", fontWeight: 700, color: C.accentBlue, fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0, marginTop: "3px" }}>DS-1</span>
-                <div style={{ fontSize: "14px", color: C.text, lineHeight: "1.6", backgroundColor: C.bgSecondary, border: `1px solid ${C.borderLight}`, padding: "12px 14px", borderRadius: "2px 14px 14px 14px" }}>{m.text}</div>
+                <span style={{ fontSize: "13px", fontWeight: 500, color: C.accentBlue, fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0, marginTop: "3px" }}>DS-1</span>
+                <div style={{ fontSize: "15px", color: C.text, lineHeight: "1.6", backgroundColor: C.bgSecondary, border: `1px solid ${C.borderLight}`, padding: "12px 14px", borderRadius: "2px 14px 14px 14px" }}>{m.text}</div>
               </div>
             )
           ))}
@@ -709,7 +680,7 @@ function TaskChat({ task, onBack }) {
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
             placeholder="Continue the conversation…"
             rows={1}
-            style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "14px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "7px 0" }}
+            style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "15px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "7px 0" }}
           />
           <button onClick={send} style={{ width: "32px", height: "32px", borderRadius: "8px", border: "none", cursor: "pointer", backgroundColor: input.trim() ? C.text : C.bgHover, color: input.trim() ? "#fff" : C.textTertiary, fontSize: "15px", flexShrink: 0 }}>↑</button>
         </div>
@@ -759,8 +730,8 @@ function GeneralChat({ seed, onBack, onNavigate }) {
         <button onClick={onBack} style={s.btnSecondary}>← Home</button>
         <div style={{ ...briefBadge, backgroundColor: C.accentBlue + "18", color: C.accentBlue }}>◎</div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: "14px", fontWeight: 600, color: C.text }}>New chat</div>
-          {seed.project && <div style={{ fontSize: "11px", color: C.textTertiary, display: "flex", alignItems: "center", gap: "5px" }}><span style={{ color: seed.project.color }}>◳</span>{seed.project.name}</div>}
+          <div style={{ fontSize: "15px", fontWeight: 500, color: C.text }}>New chat</div>
+          {seed.project && <div style={{ fontSize: "13px", color: C.textTertiary, display: "flex", alignItems: "center", gap: "5px" }}><span style={{ color: seed.project.color }}>◳</span>{seed.project.name}</div>}
         </div>
       </div>
 
@@ -768,15 +739,15 @@ function GeneralChat({ seed, onBack, onNavigate }) {
         <div style={{ maxWidth: "680px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "16px" }}>
           {messages.map((m, i) => (
             m.role === "user" ? (
-              <div key={i} style={{ alignSelf: "flex-end", maxWidth: "80%", fontSize: "14px", color: "#fff", backgroundColor: C.text, padding: "10px 14px", borderRadius: "14px 14px 2px 14px", lineHeight: "1.5" }}>{m.text}</div>
+              <div key={i} style={{ alignSelf: "flex-end", maxWidth: "80%", fontSize: "15px", color: "#fff", backgroundColor: C.text, padding: "10px 14px", borderRadius: "14px 14px 2px 14px", lineHeight: "1.5" }}>{m.text}</div>
             ) : (
               <div key={i} style={{ display: "flex", flexDirection: "column", gap: "10px", maxWidth: "90%" }}>
                 <div style={{ display: "flex", gap: "10px" }}>
-                  <span style={{ fontSize: "11px", fontWeight: 700, color: C.accentBlue, fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0, marginTop: "3px" }}>DS-1</span>
-                  <div style={{ fontSize: "14px", color: C.text, lineHeight: "1.6", backgroundColor: C.bgSecondary, border: `1px solid ${C.borderLight}`, padding: "12px 14px", borderRadius: "2px 14px 14px 14px" }}>{m.text}</div>
+                  <span style={{ fontSize: "13px", fontWeight: 500, color: C.accentBlue, fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0, marginTop: "3px" }}>DS-1</span>
+                  <div style={{ fontSize: "15px", color: C.text, lineHeight: "1.6", backgroundColor: C.bgSecondary, border: `1px solid ${C.borderLight}`, padding: "12px 14px", borderRadius: "2px 14px 14px 14px" }}>{m.text}</div>
                 </div>
                 {m.action && (
-                  <button onClick={() => onNavigate(m.action.route, m.action.route === "explorer" ? m.action.topic : null)} style={{ alignSelf: "flex-start", marginLeft: "34px", padding: "9px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600, border: "none", backgroundColor: C.actionBg, color: "#fff", cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>{m.action.label} →</button>
+                  <button onClick={() => onNavigate(m.action.route, m.action.route === "explorer" ? m.action.topic : null)} style={{ alignSelf: "flex-start", marginLeft: "34px", padding: "9px 16px", borderRadius: "8px", fontSize: "14px", fontWeight: 500, border: "none", backgroundColor: C.actionBg, color: "#fff", cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>{m.action.label} →</button>
                 )}
               </div>
             )
@@ -792,7 +763,7 @@ function GeneralChat({ seed, onBack, onNavigate }) {
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
             placeholder={seed.project ? `Ask anything within ${seed.project.name}…` : "Ask DS-1 anything…"}
             rows={1}
-            style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "14px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "7px 0" }}
+            style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "15px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "7px 0" }}
           />
           <button onClick={send} style={{ width: "32px", height: "32px", borderRadius: "8px", border: "none", cursor: "pointer", backgroundColor: input.trim() ? C.text : C.bgHover, color: input.trim() ? "#fff" : C.textTertiary, fontSize: "15px", flexShrink: 0 }}>↑</button>
         </div>
@@ -831,39 +802,39 @@ function TasksPage({ onNavigate }) {
           <p style={s.subheading}>Everything your agents need you to look at.</p>
         </div>
         {tasks.length > 0 && (
-          <button onClick={() => setTasks([])} style={{ padding: "9px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600, border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textSecondary, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif", flexShrink: 0 }}>Clear all</button>
+          <button onClick={() => setTasks([])} style={{ padding: "9px 16px", borderRadius: "8px", fontSize: "14px", fontWeight: 500, border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textSecondary, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif", flexShrink: 0 }}>Clear all</button>
         )}
       </div>
 
       {/* Search */}
       <div style={{ position: "relative", maxWidth: "720px", marginBottom: "28px", animation: "fadeUp 0.5s ease-out", animationDelay: "0.04s", animationFillMode: "both" }}>
-        <span style={{ position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)", color: C.textTertiary, fontSize: "14px" }}>⌕</span>
+        <span style={{ position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)", color: C.textTertiary, fontSize: "15px" }}>⌕</span>
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search tasks by name or agent..."
-          style={{ width: "100%", padding: "12px 16px 12px 40px", borderRadius: "10px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "14px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", outline: "none", boxSizing: "border-box" }}
+          style={{ width: "100%", padding: "12px 16px 12px 40px", borderRadius: "10px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "15px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", outline: "none", boxSizing: "border-box" }}
         />
       </div>
 
       {tasks.length === 0 ? (
-        <div style={{ maxWidth: "720px", padding: "24px 2px", fontSize: "14px", color: C.textTertiary, fontStyle: "italic" }}>You're all caught up — no tasks to review.</div>
+        <div style={{ maxWidth: "720px", padding: "24px 2px", fontSize: "15px", color: C.textTertiary, fontStyle: "italic" }}>You're all caught up — no tasks to review.</div>
       ) : filtered.length === 0 ? (
-        <div style={{ maxWidth: "720px", padding: "24px 2px", fontSize: "14px", color: C.textTertiary, fontStyle: "italic" }}>No tasks match "{search}".</div>
+        <div style={{ maxWidth: "720px", padding: "24px 2px", fontSize: "15px", color: C.textTertiary, fontStyle: "italic" }}>No tasks match "{search}".</div>
       ) : (
         months.map((month) => (
           <div key={month} style={{ maxWidth: "720px", marginBottom: "24px", animation: "fadeUp 0.5s ease-out", animationFillMode: "both" }}>
-            <div style={{ fontSize: "12px", fontWeight: 600, color: C.textTertiary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" }}>{month}</div>
+            <div style={{ fontSize: "13px", fontWeight: 500, color: C.textTertiary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" }}>{month}</div>
             <div style={{ display: "flex", flexDirection: "column" }}>
               {filtered.filter(t => t.month === month).map((row, i, arr) => (
                 <div key={row.text} onClick={() => setOpenTask(row)} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "13px 2px", borderBottom: i < arr.length - 1 ? `1px solid ${C.borderLight}` : "none", cursor: "pointer" }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: "14px", color: C.text }}>{row.text}</div>
-                    <div style={{ fontSize: "11px", color: C.textTertiary, marginTop: "1px" }}>{row.agent}</div>
+                    <div style={{ fontSize: "15px", color: C.text }}>{row.text}</div>
+                    <div style={{ fontSize: "13px", color: C.textTertiary, marginTop: "1px" }}>{row.agent}</div>
                   </div>
-                  <span style={{ fontSize: "12px", color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0 }}>{row.meta}</span>
-                  <span style={{ fontSize: "14px", color: C.textTertiary, flexShrink: 0 }}>›</span>
+                  <span style={{ fontSize: "13px", color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0 }}>{row.meta}</span>
+                  <span style={{ fontSize: "15px", color: C.textTertiary, flexShrink: 0 }}>›</span>
                 </div>
               ))}
             </div>
@@ -877,7 +848,7 @@ function TasksPage({ onNavigate }) {
 const homeS = {
   compactEntry: {
     flex: 1, display: "flex", alignItems: "center", gap: "8px",
-    padding: "12px 16px", borderRadius: "10px", fontSize: "13px", fontWeight: 500,
+    padding: "12px 16px", borderRadius: "10px", fontSize: "14px", fontWeight: 500,
     border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textSecondary,
     cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
     transition: "all 0.15s ease", justifyContent: "center",
@@ -891,13 +862,13 @@ function NotificationSection({ title, count, subtitle, color, children }) {
   return (
     <div style={{ marginBottom: "28px" }}>
       <div style={{ marginBottom: "4px" }}>
-        <span style={{ fontSize: "15px", fontWeight: 700, color: C.text }}>{title}</span>
+        <span style={{ fontSize: "15px", fontWeight: 500, color: C.text }}>{title}</span>
         <span style={{
-          fontSize: "13px", fontWeight: 600, color: color,
+          fontSize: "14px", fontWeight: 500, color: color,
           marginLeft: "6px",
         }}>({count})</span>
       </div>
-      <div style={{ fontSize: "13px", color: C.textTertiary, marginBottom: "12px" }}>{subtitle}</div>
+      <div style={{ fontSize: "14px", color: C.textTertiary, marginBottom: "12px" }}>{subtitle}</div>
       <div style={{
         border: `1px solid ${C.border}`, borderRadius: "10px", overflow: "hidden",
       }}>
@@ -919,11 +890,11 @@ function CapCard({ name, initial, color, desc, delay, onClick }) {
         width: "40px", height: "40px", borderRadius: "8px",
         backgroundColor: color + "18", color: color,
         display: "flex", alignItems: "center", justifyContent: "center",
-        fontFamily: "Menlo, 'SF Mono', monospace", fontSize: "13px", fontWeight: 700, flexShrink: 0,
+        fontFamily: "Menlo, 'SF Mono', monospace", fontSize: "14px", fontWeight: 500, flexShrink: 0,
       }}>{initial}</div>
       <div>
-        <h3 style={{ fontSize: "16px", fontWeight: 600, color: C.text, margin: "0 0 4px 0" }}>{name}</h3>
-        <p style={{ fontSize: "13px", color: C.textSecondary, margin: 0, lineHeight: "1.5" }}>{desc}</p>
+        <h3 style={{ fontSize: "16px", fontWeight: 500, color: C.text, margin: "0 0 4px 0" }}>{name}</h3>
+        <p style={{ fontSize: "14px", color: C.textSecondary, margin: 0, lineHeight: "1.5" }}>{desc}</p>
       </div>
       <span style={{ fontSize: "18px", color: C.textTertiary, marginLeft: "auto", flexShrink: 0 }}>→</span>
     </div>
@@ -960,7 +931,7 @@ function Breadcrumb({ onNavigate, current }) {
   return (
     <div style={{
       display: "flex", alignItems: "center", gap: "8px",
-      marginBottom: "20px", fontSize: "13px",
+      marginBottom: "20px", fontSize: "14px",
       animation: "fadeUp 0.4s ease-out",
     }}>
       <button onClick={() => onNavigate && onNavigate("home")} style={{
@@ -968,12 +939,12 @@ function Breadcrumb({ onNavigate, current }) {
         padding: "5px 12px", borderRadius: "6px",
         border: `1px solid ${C.border}`, backgroundColor: C.bg,
         color: C.textSecondary, cursor: "pointer", fontWeight: 500,
-        fontFamily: "'Source Sans 3', Helvetica, sans-serif", fontSize: "13px",
+        fontFamily: "'Source Sans 3', Helvetica, sans-serif", fontSize: "14px",
       }}>
         <span>⌂</span> Home
       </button>
       <span style={{ color: C.textTertiary }}>/</span>
-      <span style={{ color: C.text, fontWeight: 600 }}>{current}</span>
+      <span style={{ color: C.text, fontWeight: 500 }}>{current}</span>
     </div>
   );
 }
@@ -981,6 +952,7 @@ function Breadcrumb({ onNavigate, current }) {
 function AudienceExplorerChat({ onBack, initialQuery }) {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([
+    { role: "assistant", text: "I'm your Audience Explorer. Search Dstillery's catalog of 10,000+ pre-built audiences by keyword, topic, or vertical — then select and syndicate directly from here.", time: new Date(), isIntro: true },
     { role: "user", text: "Find prebuilt audiences for NY Knicks fans", time: new Date() },
     { role: "assistant", time: new Date(), thinkTime: 11,
       intro: "Here are the strongest matches from Dstillery's catalog for NY Knicks fans.",
@@ -1282,13 +1254,13 @@ function AudienceExplorerChat({ onBack, initialQuery }) {
             width: "56px", height: "56px", borderRadius: "14px",
             backgroundColor: C.accentBlue + "14", color: C.accentBlue,
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontFamily: "Menlo, 'SF Mono', monospace", fontSize: "16px", fontWeight: 700,
+            fontFamily: "Menlo, 'SF Mono', monospace", fontSize: "16px", fontWeight: 500,
             marginBottom: "24px",
             animation: "fadeUp 0.5s ease-out",
           }}>AE</div>
 
           <h1 style={{
-            fontSize: "28px", fontWeight: 700, color: C.text, margin: "0 0 8px 0",
+            fontSize: "28px", fontWeight: 500, color: C.text, margin: "0 0 8px 0",
             letterSpacing: "-0.5px", textAlign: "center",
             animation: "fadeUp 0.5s ease-out", animationDelay: "0.05s", animationFillMode: "both",
           }}>What audience are you looking for?</h1>
@@ -1355,7 +1327,7 @@ function AudienceExplorerChat({ onBack, initialQuery }) {
                 key={topic}
                 onClick={() => handleSend(topic)}
                 style={{
-                  padding: "8px 16px", borderRadius: "20px", fontSize: "13px",
+                  padding: "8px 16px", borderRadius: "20px", fontSize: "14px",
                   border: `1px solid ${C.border}`, backgroundColor: C.bg,
                   color: C.textSecondary, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
                   fontWeight: 500, transition: "all 0.15s ease",
@@ -1484,15 +1456,15 @@ function AudienceExplorerChat({ onBack, initialQuery }) {
                                 width: "36px", height: "36px", borderRadius: "6px",
                                 backgroundColor: ft.bg, color: ft.color,
                                 display: "flex", alignItems: "center", justifyContent: "center",
-                                fontFamily: "Menlo, 'SF Mono', monospace", fontSize: "9px", fontWeight: 700,
+                                fontFamily: "Menlo, 'SF Mono', monospace", fontSize: "9px", fontWeight: 500,
                                 flexShrink: 0,
                               }}>{ft.icon}</div>
                               <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ fontSize: "13px", fontWeight: 600, color: C.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{file.name}</div>
-                                <div style={{ fontSize: "11px", color: C.textTertiary, marginTop: "1px" }}>{file.size}</div>
+                                <div style={{ fontSize: "14px", fontWeight: 500, color: C.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{file.name}</div>
+                                <div style={{ fontSize: "13px", color: C.textTertiary, marginTop: "1px" }}>{file.size}</div>
                               </div>
                               <span style={{
-                                fontSize: "12px", fontWeight: 600, color: C.accentBlue,
+                                fontSize: "13px", fontWeight: 500, color: C.accentBlue,
                                 fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0,
                               }}>↓ Download</span>
                             </div>
@@ -1519,7 +1491,7 @@ function AudienceExplorerChat({ onBack, initialQuery }) {
                               key={si}
                               onClick={() => handleSend(step)}
                               style={{
-                                padding: "8px 14px", borderRadius: "8px", fontSize: "13px",
+                                padding: "8px 14px", borderRadius: "8px", fontSize: "14px",
                                 fontWeight: 500, textAlign: "left",
                                 border: `1px solid ${C.border}`, backgroundColor: C.bg,
                                 color: C.text, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
@@ -1564,14 +1536,14 @@ function AudienceExplorerChat({ onBack, initialQuery }) {
               {attachedFiles.map((file, i) => (
                 <div key={i} style={{
                   display: "flex", alignItems: "center", gap: "6px",
-                  padding: "4px 10px", borderRadius: "6px", fontSize: "12px",
+                  padding: "4px 10px", borderRadius: "6px", fontSize: "13px",
                   backgroundColor: C.bg, border: `1px solid ${C.borderLight}`,
                   color: C.text, fontWeight: 500,
                 }}>
                   <span style={{ fontSize: "10px" }}>📎</span>
                   {file}
                   <span onClick={() => setAttachedFiles(prev => prev.filter((_, fi) => fi !== i))}
-                    style={{ cursor: "pointer", color: C.textTertiary, fontSize: "14px", marginLeft: "2px" }}>×</span>
+                    style={{ cursor: "pointer", color: C.textTertiary, fontSize: "15px", marginLeft: "2px" }}>×</span>
                 </div>
               ))}
             </div>
@@ -1587,7 +1559,7 @@ function AudienceExplorerChat({ onBack, initialQuery }) {
             style={{
               width: "100%", padding: "10px 14px 4px", border: "none",
               backgroundColor: "transparent", color: C.text,
-              fontSize: "14px", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
+              fontSize: "15px", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
               outline: "none", resize: "none", lineHeight: "1.5",
             }}
           />
@@ -1608,7 +1580,7 @@ function AudienceExplorerChat({ onBack, initialQuery }) {
                 border: "none", cursor: "pointer",
                 backgroundColor: input.trim() || attachedFiles.length > 0 ? C.text : C.bgHover,
                 color: input.trim() || attachedFiles.length > 0 ? "#fff" : C.textTertiary,
-                fontSize: "14px", display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: "15px", display: "flex", alignItems: "center", justifyContent: "center",
                 transition: "all 0.15s ease",
               }}
             >↑</button>
@@ -1624,25 +1596,25 @@ function AudienceExplorerChat({ onBack, initialQuery }) {
           let groups = null;
           for (let gi = messages.length - 1; gi >= 0; gi--) { if (messages[gi].groups) { groups = messages[gi].groups; break; } }
           if (!groups) return (
-            <div style={{ color: C.textTertiary, fontSize: "14px", marginTop: "8px" }}>Audiences you find will appear here. Search from the chat to get matches.</div>
+            <div style={{ color: C.textTertiary, fontSize: "15px", marginTop: "8px" }}>Audiences you find will appear here. Search from the chat to get matches.</div>
           );
           return (
             <div style={{ maxWidth: "760px" }}>
-              <h2 style={{ fontSize: "17px", fontWeight: 700, color: C.text, margin: "0 0 2px" }}>Matching audiences</h2>
-              <p style={{ fontSize: "13px", color: C.textTertiary, margin: "0 0 22px" }}>Select rows to act on them from the chat.</p>
+              <h2 style={{ fontSize: "17px", fontWeight: 500, color: C.text, margin: "0 0 2px" }}>Matching audiences</h2>
+              <p style={{ fontSize: "14px", color: C.textTertiary, margin: "0 0 22px" }}>Select rows to act on them from the chat.</p>
               {groups.map((group, gi) => (
                 <div key={gi} style={{ marginBottom: "26px" }}>
-                  <div style={{ fontSize: "15px", fontWeight: 700, color: C.text, marginBottom: "2px" }}>{group.title}</div>
-                  <div style={{ fontSize: "13px", color: C.textTertiary, marginBottom: "12px", lineHeight: "1.5" }}>{group.desc}</div>
+                  <div style={{ fontSize: "15px", fontWeight: 500, color: C.text, marginBottom: "2px" }}>{group.title}</div>
+                  <div style={{ fontSize: "14px", color: C.textTertiary, marginBottom: "12px", lineHeight: "1.5" }}>{group.desc}</div>
                   <div style={{ border: `1px solid ${C.border}`, borderRadius: "10px", overflow: "hidden" }}>
                     {group.items.map((item, ii) => {
                       const isSelected = selected.find(sx => sx.path === item.path);
                       const label = item.path.replace(/^Dstillery > /, "").split(" > ").join(" › ");
                       return (
                         <div key={ii} onClick={() => toggleSelect(item)} style={{ display: "flex", alignItems: "center", gap: "14px", padding: "13px 16px", borderBottom: ii < group.items.length - 1 ? `1px solid ${C.borderLight}` : "none", cursor: "pointer", backgroundColor: isSelected ? C.accentBlue + "0a" : C.bg, transition: "background-color 0.15s ease" }}>
-                          <div style={{ width: "18px", height: "18px", borderRadius: "5px", border: `1.5px solid ${isSelected ? C.accentBlue : C.border}`, backgroundColor: isSelected ? C.accentBlue : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#fff", fontSize: "11px" }}>{isSelected ? "✓" : ""}</div>
-                          <span style={{ flex: 1, fontSize: "13px", color: C.text, minWidth: 0 }}>{label}</span>
-                          <span style={{ fontSize: "13px", color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0 }}>{fmtSize(parseSize(item.size))}</span>
+                          <div style={{ width: "18px", height: "18px", borderRadius: "5px", border: `1.5px solid ${isSelected ? C.accentBlue : C.border}`, backgroundColor: isSelected ? C.accentBlue : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#fff", fontSize: "13px" }}>{isSelected ? "✓" : ""}</div>
+                          <span style={{ flex: 1, fontSize: "14px", color: C.text, minWidth: 0 }}>{label}</span>
+                          <span style={{ fontSize: "14px", color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0 }}>{fmtSize(parseSize(item.size))}</span>
                         </div>
                       );
                     })}
@@ -1652,11 +1624,11 @@ function AudienceExplorerChat({ onBack, initialQuery }) {
               {selected.length > 0 && (
                 <div style={{ position: "sticky", bottom: 0, display: "flex", alignItems: "center", gap: "14px", padding: "14px 18px", borderRadius: "12px", backgroundColor: C.actionBg, color: "#fff", boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: "14px", fontWeight: 600 }}>{selected.length} selected</div>
-                    <div style={{ fontSize: "12px", opacity: 0.7, fontFamily: "Menlo, 'SF Mono', monospace" }}>{fmtSize(combinedReach)} combined reach</div>
+                    <div style={{ fontSize: "15px", fontWeight: 500 }}>{selected.length} selected</div>
+                    <div style={{ fontSize: "13px", opacity: 0.7, fontFamily: "Menlo, 'SF Mono', monospace" }}>{fmtSize(combinedReach)} combined reach</div>
                   </div>
-                  <button onClick={() => setSelected([])} style={{ padding: "8px 12px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.3)", background: "transparent", color: "#fff", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>Clear</button>
-                  <button onClick={() => handleSend("lets syndicate this")} style={{ padding: "8px 14px", borderRadius: "8px", border: "none", background: "#fff", color: C.text, fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>Syndicate →</button>
+                  <button onClick={() => setSelected([])} style={{ padding: "8px 12px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.3)", background: "transparent", color: "#fff", fontSize: "14px", fontWeight: 500, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>Clear</button>
+                  <button onClick={() => handleSend("lets syndicate this")} style={{ padding: "8px 14px", borderRadius: "8px", border: "none", background: "#fff", color: C.text, fontSize: "14px", fontWeight: 500, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>Syndicate →</button>
                 </div>
               )}
             </div>
@@ -1672,8 +1644,8 @@ function AudienceExplorerChat({ onBack, initialQuery }) {
 
 const chatS = {
   ds1Tag: {
-    fontSize: "11px",
-    fontWeight: 700,
+    fontSize: "13px",
+    fontWeight: 500,
     color: C.accentBlue,
     backgroundColor: C.accentBlue + "14",
     padding: "4px 10px",
@@ -1684,7 +1656,7 @@ const chatS = {
     marginTop: "2px",
   },
   introBox: {
-    fontSize: "14px",
+    fontSize: "15px",
     lineHeight: "1.6",
     color: C.text,
     backgroundColor: C.bgSidebar,
@@ -1694,8 +1666,8 @@ const chatS = {
     fontWeight: 500,
   },
   userTag: {
-    fontSize: "11px",
-    fontWeight: 700,
+    fontSize: "13px",
+    fontWeight: 500,
     color: C.accentBlue,
     backgroundColor: C.accentBlue + "14",
     padding: "4px 10px",
@@ -1710,7 +1682,7 @@ const chatS = {
     border: `1px solid ${C.borderLight}`,
     borderRadius: "12px 12px 4px 12px",
     padding: "10px 16px",
-    fontSize: "14px",
+    fontSize: "15px",
     color: C.text,
     maxWidth: "65%",
     lineHeight: "1.5",
@@ -1722,7 +1694,7 @@ const chatS = {
     padding: "20px",
   },
   bodyText: {
-    fontSize: "14px",
+    fontSize: "15px",
     lineHeight: "1.65",
     color: C.text,
   },
@@ -1730,7 +1702,7 @@ const chatS = {
     display: "flex",
     flexDirection: "column",
     gap: "2px",
-    fontSize: "13px",
+    fontSize: "14px",
     color: C.textTertiary,
     marginBottom: "14px",
     paddingLeft: "12px",
@@ -1739,7 +1711,7 @@ const chatS = {
   },
   groupTitle: {
     fontSize: "15px",
-    fontWeight: 700,
+    fontWeight: 500,
     color: C.text,
     marginBottom: "4px",
   },
@@ -1749,7 +1721,7 @@ const chatS = {
   audienceRow: {
     display: "flex",
     gap: "6px",
-    fontSize: "14px",
+    fontSize: "15px",
     lineHeight: "1.7",
     color: C.text,
   },
@@ -1761,7 +1733,7 @@ const chatS = {
     color: C.textTertiary,
   },
   stepRow: {
-    fontSize: "14px",
+    fontSize: "15px",
     lineHeight: "1.7",
     color: C.text,
     paddingLeft: "4px",
@@ -1770,7 +1742,7 @@ const chatS = {
     display: "flex",
     alignItems: "center",
     gap: "10px",
-    fontSize: "14px",
+    fontSize: "15px",
     lineHeight: "2",
     color: C.text,
   },
@@ -1780,7 +1752,7 @@ const chatS = {
     border: "none",
     backgroundColor: "transparent",
     color: C.textTertiary,
-    fontSize: "12px",
+    fontSize: "13px",
     fontWeight: 500,
     fontFamily: "'Source Sans 3', Helvetica, sans-serif",
     cursor: "pointer",
@@ -1792,8 +1764,8 @@ const chatS = {
     border: "none",
     backgroundColor: "#fff",
     color: C.text,
-    fontSize: "13px",
-    fontWeight: 600,
+    fontSize: "14px",
+    fontWeight: 500,
     fontFamily: "'Source Sans 3', Helvetica, sans-serif",
     cursor: "pointer",
   },
@@ -1803,8 +1775,8 @@ const chatS = {
     border: "1px solid rgba(255,255,255,0.2)",
     backgroundColor: "transparent",
     color: "#fff",
-    fontSize: "13px",
-    fontWeight: 600,
+    fontSize: "14px",
+    fontWeight: 500,
     fontFamily: "'Source Sans 3', Helvetica, sans-serif",
     cursor: "pointer",
   },
@@ -1844,6 +1816,7 @@ function DomainSeededCanvas({ onBack }) {
   const [built, setBuilt] = useState(false);
   const [canvasOpen, setCanvasOpen] = useState(true);
   const [log, setLog] = useState([
+    { role: "ds1", text: "I'm your Domain Seeded audience builder. Tell me a topic or brand, pick up to 3 seed domains from the canvas, and I'll model a custom audience from their shared visitors." },
     { role: "user", text: "Build a domain seeded audience for sports fans" },
     { role: "ds1", text: "I can build a domain seeded audience. I've pulled matching domains onto the canvas — pick up to 3 seeds." },
   ]);
@@ -1908,9 +1881,9 @@ function DomainSeededCanvas({ onBack }) {
             {log.map((m, i) => (
               <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start", marginBottom: "12px" }}>
                 {m.role === "user" ? (
-                  <div style={{ maxWidth: "85%", fontSize: "13px", color: C.text, backgroundColor: C.bgHover, padding: "10px 14px", borderRadius: "14px 14px 2px 14px", lineHeight: "1.5" }}>{m.text}</div>
+                  <div style={{ maxWidth: "85%", fontSize: "14px", color: C.text, backgroundColor: C.bgHover, padding: "10px 14px", borderRadius: "14px 14px 2px 14px", lineHeight: "1.5" }}>{m.text}</div>
                 ) : (
-                  <div style={{ maxWidth: "88%", fontSize: "13px", color: C.text, backgroundColor: C.bg, border: `1px solid ${C.borderLight}`, padding: "10px 14px", borderRadius: "2px 14px 14px 14px", lineHeight: "1.5" }}>{m.text}</div>
+                  <div style={{ maxWidth: "88%", fontSize: "14px", color: C.text, backgroundColor: C.bg, border: `1px solid ${C.borderLight}`, padding: "10px 14px", borderRadius: "2px 14px 14px 14px", lineHeight: "1.5" }}>{m.text}</div>
                 )}
               </div>
             ))}
@@ -1920,20 +1893,20 @@ function DomainSeededCanvas({ onBack }) {
               <div style={{ marginTop: "4px", padding: "12px 14px", borderRadius: "10px", border: `1px solid ${C.border}`, backgroundColor: C.bg }}>
                 <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "10px" }}>
                   {seeds.map((s2) => (
-                    <span key={s2} style={{ display: "flex", alignItems: "center", gap: "5px", padding: "4px 10px", borderRadius: "6px", fontSize: "12px", fontWeight: 500, backgroundColor: C.bgSecondary, border: `1px solid ${C.border}`, color: C.text }}>
-                      {s2}<span onClick={() => toggleSeed(s2)} style={{ cursor: "pointer", color: C.textTertiary, fontSize: "13px", lineHeight: 1 }}>×</span>
+                    <span key={s2} style={{ display: "flex", alignItems: "center", gap: "5px", padding: "4px 10px", borderRadius: "6px", fontSize: "13px", fontWeight: 500, backgroundColor: C.bgSecondary, border: `1px solid ${C.border}`, color: C.text }}>
+                      {s2}<span onClick={() => toggleSeed(s2)} style={{ cursor: "pointer", color: C.textTertiary, fontSize: "14px", lineHeight: 1 }}>×</span>
                     </span>
                   ))}
                 </div>
-                <button onClick={handleBuild} disabled={building} style={{ width: "100%", padding: "9px", borderRadius: "8px", border: "none", backgroundColor: C.actionBg, color: "#fff", fontSize: "13px", fontWeight: 600, cursor: building ? "default" : "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif", opacity: building ? 0.6 : 1 }}>{building ? "Modeling…" : "Build Audience →"}</button>
+                <button onClick={handleBuild} disabled={building} style={{ width: "100%", padding: "9px", borderRadius: "8px", border: "none", backgroundColor: C.actionBg, color: "#fff", fontSize: "14px", fontWeight: 500, cursor: building ? "default" : "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif", opacity: building ? 0.6 : 1 }}>{building ? "Modeling…" : "Build Audience →"}</button>
               </div>
             )}
             {built && (
               <div style={{ marginTop: "4px", padding: "12px 14px", borderRadius: "10px", border: `1px solid ${C.accentGreen}40`, backgroundColor: C.accentGreen + "08" }}>
-                <div style={{ fontSize: "13px", fontWeight: 600, color: C.text, marginBottom: "4px" }}>✓ ~{modeledReach}M modeled · ID-Based</div>
+                <div style={{ fontSize: "14px", fontWeight: 500, color: C.text, marginBottom: "4px" }}>✓ ~{modeledReach}M modeled · ID-Based</div>
                 <div style={{ display: "flex", gap: "8px" }}>
-                  <button onClick={() => { setBuilt(false); setSeeds([]); }} style={{ ...s.btnSecondary, fontSize: "12px", padding: "5px 12px" }}>Start over</button>
-                  <button style={{ ...s.btnPrimary, backgroundColor: C.text, fontSize: "12px", padding: "5px 12px" }}>Syndicate →</button>
+                  <button onClick={() => { setBuilt(false); setSeeds([]); }} style={{ ...s.btnSecondary, fontSize: "13px", padding: "5px 12px" }}>Start over</button>
+                  <button style={{ ...s.btnPrimary, backgroundColor: C.text, fontSize: "13px", padding: "5px 12px" }}>Syndicate →</button>
                 </div>
               </div>
             )}
@@ -1942,8 +1915,8 @@ function DomainSeededCanvas({ onBack }) {
           {/* composer */}
           <div style={{ padding: "14px", borderTop: `1px solid ${C.borderLight}` }}>
             <div style={{ display: "flex", gap: "8px", alignItems: "flex-end", padding: "6px 6px 6px 12px", borderRadius: "12px", border: `1px solid ${C.border}`, backgroundColor: C.bg }}>
-              <textarea value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); runSearch(); } }} placeholder="Message domain seeded…" rows={1} style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "13px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "4px 0" }} />
-              <button onClick={runSearch} style={{ width: "30px", height: "30px", borderRadius: "8px", border: "none", cursor: "pointer", backgroundColor: query.trim() ? C.text : C.bgHover, color: query.trim() ? "#fff" : C.textTertiary, fontSize: "14px", flexShrink: 0 }}>↑</button>
+              <textarea value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); runSearch(); } }} placeholder="Message domain seeded…" rows={1} style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "14px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "4px 0" }} />
+              <button onClick={runSearch} style={{ width: "30px", height: "30px", borderRadius: "8px", border: "none", cursor: "pointer", backgroundColor: query.trim() ? C.text : C.bgHover, color: query.trim() ? "#fff" : C.textTertiary, fontSize: "15px", flexShrink: 0 }}>↑</button>
             </div>
           </div>
         </div>
@@ -1951,14 +1924,14 @@ function DomainSeededCanvas({ onBack }) {
         {/* RIGHT — domain list */}
         {canvasOpen && (
           <div style={{ flex: 1, overflowY: "auto", padding: "28px 32px", minWidth: 0, backgroundColor: C.bg }}>
-            <h2 style={{ fontSize: "18px", fontWeight: 700, color: C.text, margin: "0 0 4px" }}>Seed domains</h2>
-            <p style={{ fontSize: "13px", color: C.textTertiary, margin: "0 0 20px" }}>Pick up to {MAX_SEEDS} — bars show monthly device reach (M).</p>
+            <h2 style={{ fontSize: "18px", fontWeight: 500, color: C.text, margin: "0 0 4px" }}>Seed domains</h2>
+            <p style={{ fontSize: "14px", color: C.textTertiary, margin: "0 0 20px" }}>Pick up to {MAX_SEEDS} — bars show monthly device reach (M).</p>
 
             {built && (
               <div style={{ display: "flex", alignItems: "center", gap: "14px", padding: "14px 18px", borderRadius: "10px", backgroundColor: C.accentGreen + "12", border: `1px solid ${C.accentGreen}40`, marginBottom: "20px" }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: "14px", fontWeight: 600, color: C.text }}>Audience modeled from {seeds.length} seed{seeds.length > 1 ? "s" : ""}</div>
-                  <div style={{ fontSize: "12px", color: C.textSecondary, marginTop: "2px", fontFamily: "Menlo, 'SF Mono', monospace" }}>~{modeledReach}M modeled reach · ID-Based</div>
+                  <div style={{ fontSize: "15px", fontWeight: 500, color: C.text }}>Audience modeled from {seeds.length} seed{seeds.length > 1 ? "s" : ""}</div>
+                  <div style={{ fontSize: "13px", color: C.textSecondary, marginTop: "2px", fontFamily: "Menlo, 'SF Mono', monospace" }}>~{modeledReach}M modeled reach · ID-Based</div>
                 </div>
                 <button onClick={() => { setBuilt(false); setSeeds([]); }} style={s.btnSecondary}>Start over</button>
                 <button style={{ ...s.btnPrimary, backgroundColor: C.text }}>Syndicate →</button>
@@ -1995,7 +1968,7 @@ function DomainSeededCanvas({ onBack }) {
                     </div>
 
                     {/* Domain name */}
-                    <span style={{ fontSize: "14px", color: C.text, width: "180px", flexShrink: 0 }}>{d.domain}</span>
+                    <span style={{ fontSize: "15px", color: C.text, width: "180px", flexShrink: 0 }}>{d.domain}</span>
 
                     {/* Reach bar */}
                     <div style={{ flex: 1, height: "6px", borderRadius: "3px", backgroundColor: C.bgHover, overflow: "hidden" }}>
@@ -2003,7 +1976,7 @@ function DomainSeededCanvas({ onBack }) {
                     </div>
 
                     {/* Reach number */}
-                    <span style={{ fontSize: "12px", color: C.textSecondary, fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0, width: "36px", textAlign: "right" }}>{d.reach}</span>
+                    <span style={{ fontSize: "13px", color: C.textSecondary, fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0, width: "36px", textAlign: "right" }}>{d.reach}</span>
                   </div>
                 );
               })}
@@ -2023,6 +1996,7 @@ function PixelCreator({ onBack }) {
   const [batch, setBatch] = useState([]);
   const [copied, setCopied] = useState(null);
   const [log, setLog] = useState([
+    { role: "ds1", text: "I'm your Pixel Creator. Add audience codes on the canvas — one per line for bulk — choose a pixel type, agree to the terms, and I'll generate the tags ready to deploy." },
     { role: "user", text: "Create a conversion pixel for fjallraven checkout" },
     { role: "ds1", text: "Sounds like a tracking pixel. I've opened the pixel canvas — add codes there or tell me what to create." },
   ]);
@@ -2096,11 +2070,11 @@ function PixelCreator({ onBack }) {
   const CodeBlock = ({ label, code, ckey }) => (
     <div style={{ marginTop: "8px" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "4px" }}>
-        <span style={{ fontSize: "11px", fontWeight: 600, color: C.textTertiary }}>{label}</span>
-        <button onClick={() => copy(code, ckey)} style={{ padding: "2px 10px", borderRadius: "5px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: copied === ckey ? C.accentGreen : C.textSecondary, fontSize: "11px", fontWeight: 600, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>{copied === ckey ? "✓ Copied" : "Copy"}</button>
+        <span style={{ fontSize: "13px", fontWeight: 500, color: C.textTertiary }}>{label}</span>
+        <button onClick={() => copy(code, ckey)} style={{ padding: "2px 10px", borderRadius: "5px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: copied === ckey ? C.accentGreen : C.textSecondary, fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>{copied === ckey ? "✓ Copied" : "Copy"}</button>
       </div>
       <div style={{ padding: "10px 12px", borderRadius: "6px", backgroundColor: "#1A1917", overflowX: "auto" }}>
-        <code style={{ fontSize: "11px", fontFamily: "Menlo, 'SF Mono', monospace", color: "#e8e5e0", lineHeight: "1.5", whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{code}</code>
+        <code style={{ fontSize: "13px", fontFamily: "Menlo, 'SF Mono', monospace", color: "#e8e5e0", lineHeight: "1.5", whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{code}</code>
       </div>
     </div>
   );
@@ -2118,9 +2092,9 @@ function PixelCreator({ onBack }) {
             {log.map((m, i) => (
               <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start", marginBottom: "12px" }}>
                 {m.role === "user" ? (
-                  <div style={{ maxWidth: "85%", fontSize: "13px", color: C.text, backgroundColor: C.bgHover, padding: "10px 14px", borderRadius: "14px 14px 2px 14px", lineHeight: "1.5" }}>{m.text}</div>
+                  <div style={{ maxWidth: "85%", fontSize: "14px", color: C.text, backgroundColor: C.bgHover, padding: "10px 14px", borderRadius: "14px 14px 2px 14px", lineHeight: "1.5" }}>{m.text}</div>
                 ) : (
-                  <div style={{ maxWidth: "88%", fontSize: "13px", color: C.text, backgroundColor: C.bg, border: `1px solid ${C.borderLight}`, padding: "10px 14px", borderRadius: "2px 14px 14px 14px", lineHeight: "1.5" }}>{m.text}</div>
+                  <div style={{ maxWidth: "88%", fontSize: "14px", color: C.text, backgroundColor: C.bg, border: `1px solid ${C.borderLight}`, padding: "10px 14px", borderRadius: "2px 14px 14px 14px", lineHeight: "1.5" }}>{m.text}</div>
                 )}
               </div>
             ))}
@@ -2129,8 +2103,8 @@ function PixelCreator({ onBack }) {
           {/* composer */}
           <div style={{ padding: "14px", borderTop: `1px solid ${C.borderLight}` }}>
             <div style={{ display: "flex", gap: "8px", alignItems: "flex-end", padding: "6px 6px 6px 12px", borderRadius: "12px", border: `1px solid ${C.border}`, backgroundColor: C.bg }}>
-              <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); runInput(); } }} placeholder="Message pixel creator…" rows={1} style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "13px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "4px 0" }} />
-              <button onClick={runInput} style={{ width: "30px", height: "30px", borderRadius: "8px", border: "none", cursor: "pointer", backgroundColor: input.trim() ? C.text : C.bgHover, color: input.trim() ? "#fff" : C.textTertiary, fontSize: "14px", flexShrink: 0 }}>↑</button>
+              <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); runInput(); } }} placeholder="Message pixel creator…" rows={1} style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "14px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "4px 0" }} />
+              <button onClick={runInput} style={{ width: "30px", height: "30px", borderRadius: "8px", border: "none", cursor: "pointer", backgroundColor: input.trim() ? C.text : C.bgHover, color: input.trim() ? "#fff" : C.textTertiary, fontSize: "15px", flexShrink: 0 }}>↑</button>
             </div>
           </div>
         </div>
@@ -2138,8 +2112,8 @@ function PixelCreator({ onBack }) {
         {/* RIGHT — canvas */}
         {canvasOpen && (
           <div style={{ flex: 1, overflowY: "auto", padding: "28px 32px", minWidth: 0, backgroundColor: C.bg }}>
-            <h2 style={{ fontSize: "18px", fontWeight: 700, color: C.text, margin: "0 0 4px" }}>Pixel batch</h2>
-            <p style={{ fontSize: "13px", color: C.textTertiary, margin: "0 0 20px" }}>Structured creation lives here — the chat narrates and can trigger it.</p>
+            <h2 style={{ fontSize: "18px", fontWeight: 500, color: C.text, margin: "0 0 4px" }}>Pixel batch</h2>
+            <p style={{ fontSize: "14px", color: C.textTertiary, margin: "0 0 20px" }}>Structured creation lives here — the chat narrates and can trigger it.</p>
 
             <div style={{ border: `1px solid ${C.border}`, borderRadius: "12px", padding: "20px", backgroundColor: C.bg }}>
               {/* Type tabs */}
@@ -2149,7 +2123,7 @@ function PixelCreator({ onBack }) {
                     key={pt.value}
                     onClick={() => setDraftType(pt.value)}
                     style={{
-                      padding: "7px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 500,
+                      padding: "7px 16px", borderRadius: "8px", fontSize: "14px", fontWeight: 500,
                       border: `1px solid ${draftType === pt.value ? C.accentPink : C.border}`,
                       backgroundColor: draftType === pt.value ? C.accentPink + "12" : "transparent",
                       color: draftType === pt.value ? C.accentPink : C.textSecondary,
@@ -2168,7 +2142,7 @@ function PixelCreator({ onBack }) {
                 style={{
                   width: "100%", padding: "12px 14px", borderRadius: "8px",
                   border: `1px solid ${C.border}`, backgroundColor: C.bg,
-                  color: C.text, fontSize: "12px", fontFamily: "Menlo, 'SF Mono', monospace",
+                  color: C.text, fontSize: "13px", fontFamily: "Menlo, 'SF Mono', monospace",
                   outline: "none", resize: "vertical", lineHeight: "1.6",
                   boxSizing: "border-box", marginBottom: "16px",
                 }}
@@ -2188,18 +2162,18 @@ function PixelCreator({ onBack }) {
                   >
                     {agreed && <span style={{ color: "#fff", fontSize: "10px", lineHeight: 1 }}>✓</span>}
                   </div>
-                  <span style={{ fontSize: "13px", color: C.textSecondary }}>I agree to Dstillery's pixel placement terms</span>
+                  <span style={{ fontSize: "14px", color: C.textSecondary }}>I agree to Dstillery's pixel placement terms</span>
                 </label>
                 <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
                   <button
                     onClick={addToBatch}
                     disabled={!draftCodes.trim()}
-                    style={{ padding: "8px 16px", borderRadius: "8px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: draftCodes.trim() ? C.text : C.textTertiary, fontSize: "13px", fontWeight: 500, cursor: draftCodes.trim() ? "pointer" : "default", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}
+                    style={{ padding: "8px 16px", borderRadius: "8px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: draftCodes.trim() ? C.text : C.textTertiary, fontSize: "14px", fontWeight: 500, cursor: draftCodes.trim() ? "pointer" : "default", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}
                   >Add to batch</button>
                   <button
                     onClick={createAll}
                     disabled={!agreed || !canCreate}
-                    style={{ padding: "8px 16px", borderRadius: "8px", border: "none", backgroundColor: (agreed && canCreate) ? C.accentPink : C.accentPink + "55", color: "#fff", fontSize: "13px", fontWeight: 600, cursor: (agreed && canCreate) ? "pointer" : "default", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}
+                    style={{ padding: "8px 16px", borderRadius: "8px", border: "none", backgroundColor: (agreed && canCreate) ? C.accentPink : C.accentPink + "55", color: "#fff", fontSize: "14px", fontWeight: 500, cursor: (agreed && canCreate) ? "pointer" : "default", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}
                   >Create all</button>
                 </div>
               </div>
@@ -2211,12 +2185,12 @@ function PixelCreator({ onBack }) {
                 {batch.filter(p => p.status === "created").map((p) => (
                   <div key={p.key} style={{ border: `1px solid ${C.accentGreen}55`, borderRadius: "12px", backgroundColor: C.bg, overflow: "hidden" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "12px 14px", borderBottom: `1px solid ${C.borderLight}`, backgroundColor: C.bgSecondary }}>
-                      <span style={{ fontSize: "10px", fontWeight: 700, color: C.accentPink, backgroundColor: C.accentPink + "16", padding: "2px 8px", borderRadius: "4px", fontFamily: "Menlo, 'SF Mono', monospace" }}>{p.type.toUpperCase().split(" ")[0]}</span>
+                      <span style={{ fontSize: "10px", fontWeight: 500, color: C.accentPink, backgroundColor: C.accentPink + "16", padding: "2px 8px", borderRadius: "4px", fontFamily: "Menlo, 'SF Mono', monospace" }}>{p.type.toUpperCase().split(" ")[0]}</span>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: "13px", fontWeight: 600, color: C.text }}>{p.code}</div>
-                        {p.id && <div style={{ fontSize: "11px", color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace" }}>ID {p.id}</div>}
+                        <div style={{ fontSize: "14px", fontWeight: 500, color: C.text }}>{p.code}</div>
+                        {p.id && <div style={{ fontSize: "13px", color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace" }}>ID {p.id}</div>}
                       </div>
-                      <span style={{ fontSize: "11px", fontWeight: 600, color: C.accentGreen }}>✓ Created</span>
+                      <span style={{ fontSize: "13px", fontWeight: 500, color: C.accentGreen }}>✓ Created</span>
                     </div>
                     <div style={{ padding: "12px 14px" }}>
                       <CodeBlock label="HTML Image Tag" code={tagFor(p.code, "img")} ckey={p.key + "-img"} />
@@ -2232,9 +2206,9 @@ function PixelCreator({ onBack }) {
               <div style={{ marginTop: "16px", border: `1px solid ${C.border}`, borderRadius: "10px", overflow: "hidden" }}>
                 {batch.filter(p => p.status === "draft").map((p, i, arr) => (
                   <div key={p.key} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "11px 14px", borderBottom: i < arr.length - 1 ? `1px solid ${C.borderLight}` : "none", backgroundColor: C.bg }}>
-                    <span style={{ fontSize: "10px", fontWeight: 700, color: C.accentPink, backgroundColor: C.accentPink + "16", padding: "2px 8px", borderRadius: "4px", fontFamily: "Menlo, 'SF Mono', monospace" }}>{p.type.toUpperCase().split(" ")[0]}</span>
-                    <span style={{ fontSize: "13px", color: C.text, flex: 1 }}>{p.code}</span>
-                    <span onClick={() => setBatch(prev => prev.filter(x => x.key !== p.key))} style={{ fontSize: "12px", color: C.textTertiary, cursor: "pointer" }}>Draft · remove ×</span>
+                    <span style={{ fontSize: "10px", fontWeight: 500, color: C.accentPink, backgroundColor: C.accentPink + "16", padding: "2px 8px", borderRadius: "4px", fontFamily: "Menlo, 'SF Mono', monospace" }}>{p.type.toUpperCase().split(" ")[0]}</span>
+                    <span style={{ fontSize: "14px", color: C.text, flex: 1 }}>{p.code}</span>
+                    <span onClick={() => setBatch(prev => prev.filter(x => x.key !== p.key))} style={{ fontSize: "13px", color: C.textTertiary, cursor: "pointer" }}>Draft · remove ×</span>
                   </div>
                 ))}
               </div>
@@ -2371,25 +2345,25 @@ function AudienceBriefBuilder({ onBack }) {
         {/* LEFT — chat / edit panel */}
         <div style={{ width: canvasOpen ? "380px" : "100%", flexShrink: 0, borderRight: canvasOpen ? `1px solid ${C.borderLight}` : "none", display: "flex", flexDirection: "column", backgroundColor: canvasOpen ? C.bgSecondary : C.bg }}>
           <div style={{ flex: 1, overflowY: "auto", padding: "20px", maxWidth: canvasOpen ? "none" : "720px", width: "100%", margin: "0 auto", boxSizing: "border-box" }}>
-            {/* user request bubble */}
-            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "14px" }}>
-              <div style={{ maxWidth: "88%", fontSize: "13px", color: C.text, backgroundColor: C.bgHover, padding: "10px 14px", borderRadius: "14px 14px 2px 14px", lineHeight: "1.5" }}>Generate an audience brief for Matchaful</div>
+            {/* DS-1 intro */}
+            <div style={{ fontSize: "14px", color: C.textSecondary, lineHeight: "1.6", padding: "12px 14px", borderRadius: "12px", backgroundColor: C.bg, border: `1px solid ${C.borderLight}`, marginBottom: "12px" }}>
+              I'm your Audience Brief builder. I've drafted a client-ready brief on the canvas — reorder or remove products with the arrows, add new ones below, or just tell me what to change.
             </div>
 
-            {/* DS-1 message */}
-            <div style={{ fontSize: "13px", color: C.textSecondary, lineHeight: "1.6", padding: "12px 14px", borderRadius: "12px", backgroundColor: C.bg, border: `1px solid ${C.borderLight}`, marginBottom: "16px" }}>
-              Drafting a client-ready brief now. The draft is on the canvas — reorder, remove, or add products there or just tell me.
+            {/* user request bubble */}
+            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "14px" }}>
+              <div style={{ maxWidth: "88%", fontSize: "14px", color: C.text, backgroundColor: C.bgHover, padding: "10px 14px", borderRadius: "14px 14px 2px 14px", lineHeight: "1.5" }}>Generate an audience brief for Matchaful</div>
             </div>
 
             {/* conversation log */}
             {cmdLog.map((m, i) => (
               <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start", marginBottom: "10px" }}>
                 {m.role === "user" ? (
-                  <div style={{ maxWidth: "88%", fontSize: "13px", color: C.text, backgroundColor: C.bgHover, padding: "10px 14px", borderRadius: "14px 14px 2px 14px", lineHeight: "1.5" }}>{m.text}</div>
+                  <div style={{ maxWidth: "88%", fontSize: "14px", color: C.text, backgroundColor: C.bgHover, padding: "10px 14px", borderRadius: "14px 14px 2px 14px", lineHeight: "1.5" }}>{m.text}</div>
                 ) : (
                   <div style={{ display: "flex", gap: "8px", maxWidth: "90%" }}>
-                    <span style={{ fontSize: "11px", flexShrink: 0, marginTop: "2px", color: m.ok ? C.accentGreen : C.textTertiary }}>{m.ok ? "✓" : "ⓘ"}</span>
-                    <div style={{ fontSize: "13px", color: C.textSecondary, lineHeight: "1.5" }}>{m.text}</div>
+                    <span style={{ fontSize: "13px", flexShrink: 0, marginTop: "2px", color: m.ok ? C.accentGreen : C.textTertiary }}>{m.ok ? "✓" : "ⓘ"}</span>
+                    <div style={{ fontSize: "14px", color: C.textSecondary, lineHeight: "1.5" }}>{m.text}</div>
                   </div>
                 )}
               </div>
@@ -2398,7 +2372,7 @@ function AudienceBriefBuilder({ onBack }) {
 
           {/* Brief badge */}
           <div style={{ padding: "0 16px 4px" }}>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "5px 12px", borderRadius: "14px", fontSize: "12px", fontWeight: 600, fontFamily: "Menlo, 'SF Mono', monospace", color: C.accentOrange, backgroundColor: C.accentOrange + "12", border: `1px solid ${C.accentOrange}40` }}>Brief · {sections.length} sections</span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "5px 12px", borderRadius: "14px", fontSize: "13px", fontWeight: 500, fontFamily: "Menlo, 'SF Mono', monospace", color: C.accentOrange, backgroundColor: C.accentOrange + "12", border: `1px solid ${C.accentOrange}40` }}>Brief · {sections.length} sections</span>
           </div>
 
           {/* composer */}
@@ -2410,9 +2384,9 @@ function AudienceBriefBuilder({ onBack }) {
                 onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); runCommand(); } }}
                 placeholder="Message audience brief…"
                 rows={1}
-                style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "13px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "4px 0" }}
+                style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "14px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "4px 0" }}
               />
-              <button onClick={() => runCommand()} style={{ width: "30px", height: "30px", borderRadius: "8px", border: "none", cursor: "pointer", backgroundColor: command.trim() ? C.text : C.bgHover, color: command.trim() ? "#fff" : C.textTertiary, fontSize: "14px", flexShrink: 0 }}>↑</button>
+              <button onClick={() => runCommand()} style={{ width: "30px", height: "30px", borderRadius: "8px", border: "none", cursor: "pointer", backgroundColor: command.trim() ? C.text : C.bgHover, color: command.trim() ? "#fff" : C.textTertiary, fontSize: "15px", flexShrink: 0 }}>↑</button>
             </div>
           </div>
         </div>
@@ -2423,11 +2397,11 @@ function AudienceBriefBuilder({ onBack }) {
           <div style={{ maxWidth: "640px", margin: "0 auto" }}>
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px", marginBottom: "24px" }}>
               <div>
-                <h1 style={{ fontSize: "26px", fontWeight: 700, color: C.text, margin: 0 }}>{brandName} × Dstillery</h1>
-                <div style={{ fontSize: "13px", color: C.textTertiary, marginTop: "4px" }}>Audience brief · {sections.length} product{sections.length !== 1 ? "s" : ""} · edit here or via chat</div>
+                <h1 style={{ fontSize: "26px", fontWeight: 500, color: C.text, margin: 0 }}>{brandName} × Dstillery</h1>
+                <div style={{ fontSize: "14px", color: C.textTertiary, marginTop: "4px" }}>Audience brief · {sections.length} product{sections.length !== 1 ? "s" : ""} · edit here or via chat</div>
               </div>
               {exported ? (
-                <span style={{ fontSize: "13px", fontWeight: 600, color: C.accentGreen, flexShrink: 0 }}>✓ Exported as PDF</span>
+                <span style={{ fontSize: "14px", fontWeight: 500, color: C.accentGreen, flexShrink: 0 }}>✓ Exported as PDF</span>
               ) : (
                 <button onClick={handleExport} style={{ ...s.btnPrimary, backgroundColor: C.accentOrange, flexShrink: 0 }}>Export PDF</button>
               )}
@@ -2436,17 +2410,17 @@ function AudienceBriefBuilder({ onBack }) {
             {sections.map((sec, secIdx) => (
               <div key={sec.id} style={{ marginBottom: "14px", border: `1px solid ${C.border}`, borderRadius: "12px", backgroundColor: C.bg, padding: "16px 18px" }}>
                 <div style={{ display: "flex", alignItems: "flex-start", gap: "10px", marginBottom: "8px" }}>
-                  <span style={{ fontSize: "15px", fontWeight: 700, color: C.text, flex: 1 }}>{sec.product}</span>
+                  <span style={{ fontSize: "15px", fontWeight: 500, color: C.text, flex: 1 }}>{sec.product}</span>
                   <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
-                    <button onClick={() => moveSection(sec.id, -1)} disabled={secIdx === 0} title="Move up" style={{ width: "30px", height: "28px", borderRadius: "7px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: secIdx === 0 ? C.borderLight : C.textSecondary, cursor: secIdx === 0 ? "default" : "pointer", fontSize: "13px", display: "flex", alignItems: "center", justifyContent: "center" }}>↑</button>
-                    <button onClick={() => moveSection(sec.id, 1)} disabled={secIdx === sections.length - 1} title="Move down" style={{ width: "30px", height: "28px", borderRadius: "7px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: secIdx === sections.length - 1 ? C.borderLight : C.textSecondary, cursor: secIdx === sections.length - 1 ? "default" : "pointer", fontSize: "13px", display: "flex", alignItems: "center", justifyContent: "center" }}>↓</button>
-                    <button onClick={() => removeSection(sec.id)} title="Remove" style={{ width: "30px", height: "28px", borderRadius: "7px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textSecondary, cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
+                    <button onClick={() => moveSection(sec.id, -1)} disabled={secIdx === 0} title="Move up" style={{ width: "30px", height: "28px", borderRadius: "7px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: secIdx === 0 ? C.borderLight : C.textSecondary, cursor: secIdx === 0 ? "default" : "pointer", fontSize: "14px", display: "flex", alignItems: "center", justifyContent: "center" }}>↑</button>
+                    <button onClick={() => moveSection(sec.id, 1)} disabled={secIdx === sections.length - 1} title="Move down" style={{ width: "30px", height: "28px", borderRadius: "7px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: secIdx === sections.length - 1 ? C.borderLight : C.textSecondary, cursor: secIdx === sections.length - 1 ? "default" : "pointer", fontSize: "14px", display: "flex", alignItems: "center", justifyContent: "center" }}>↓</button>
+                    <button onClick={() => removeSection(sec.id)} title="Remove" style={{ width: "30px", height: "28px", borderRadius: "7px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textSecondary, cursor: "pointer", fontSize: "15px", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
                   </div>
                 </div>
-                <div style={{ fontSize: "13px", color: C.textSecondary, lineHeight: "1.6", marginBottom: "12px" }}>{sec.desc}</div>
+                <div style={{ fontSize: "14px", color: C.textSecondary, lineHeight: "1.6", marginBottom: "12px" }}>{sec.desc}</div>
                 <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                   {sec.items.map((it, ii) => (
-                    <span key={ii} style={{ fontFamily: "Menlo, 'SF Mono', monospace", fontSize: "12px", color: C.accentOrange, padding: "5px 10px", borderRadius: "6px", border: `1px solid ${C.accentOrange}40`, backgroundColor: C.accentOrange + "0a", whiteSpace: "nowrap" }}>{it}</span>
+                    <span key={ii} style={{ fontFamily: "Menlo, 'SF Mono', monospace", fontSize: "13px", color: C.accentOrange, padding: "5px 10px", borderRadius: "6px", border: `1px solid ${C.accentOrange}40`, backgroundColor: C.accentOrange + "0a", whiteSpace: "nowrap" }}>{it}</span>
                   ))}
                 </div>
               </div>
@@ -2454,19 +2428,19 @@ function AudienceBriefBuilder({ onBack }) {
 
             {/* Add product */}
             <div style={{ position: "relative", marginTop: "4px" }}>
-              <button onClick={() => setShowAdd(!showAdd)} style={{ padding: "10px 16px", borderRadius: "8px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textSecondary, cursor: "pointer", fontSize: "13px", fontWeight: 600, fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>
+              <button onClick={() => setShowAdd(!showAdd)} style={{ padding: "10px 16px", borderRadius: "8px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textSecondary, cursor: "pointer", fontSize: "14px", fontWeight: 500, fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>
                 + Add product
               </button>
               {showAdd && (
                 <div style={{ marginTop: "8px", border: `1px solid ${C.border}`, borderRadius: "10px", overflow: "hidden", boxShadow: "0 4px 16px rgba(0,0,0,0.06)" }}>
                   {ADDABLE.filter(a => !sections.find(s2 => s2.id === a.id)).map(a => (
                     <div key={a.id} onClick={() => addSection(a)} style={{ padding: "12px 16px", borderBottom: `1px solid ${C.borderLight}`, cursor: "pointer", backgroundColor: C.bg }}>
-                      <div style={{ fontSize: "13px", fontWeight: 600, color: C.text }}>{a.product}</div>
-                      <div style={{ fontSize: "12px", color: C.textTertiary, marginTop: "2px" }}>{a.desc}</div>
+                      <div style={{ fontSize: "14px", fontWeight: 500, color: C.text }}>{a.product}</div>
+                      <div style={{ fontSize: "13px", color: C.textTertiary, marginTop: "2px" }}>{a.desc}</div>
                     </div>
                   ))}
                   {ADDABLE.filter(a => !sections.find(s2 => s2.id === a.id)).length === 0 && (
-                    <div style={{ padding: "14px 16px", fontSize: "13px", color: C.textTertiary, fontStyle: "italic", backgroundColor: C.bg }}>All recommended products are already in the brief.</div>
+                    <div style={{ padding: "14px 16px", fontSize: "14px", color: C.textTertiary, fontStyle: "italic", backgroundColor: C.bg }}>All recommended products are already in the brief.</div>
                   )}
                 </div>
               )}
@@ -2480,8 +2454,8 @@ function AudienceBriefBuilder({ onBack }) {
 }
 
 const briefHeaderStyle = { padding: "14px 24px", borderBottom: `1px solid ${C.borderLight}`, display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 };
-const briefBadge = { width: "28px", height: "28px", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Menlo, 'SF Mono', monospace", fontSize: "10px", fontWeight: 700 };
-const briefIconBtn = { width: "26px", height: "26px", borderRadius: "6px", border: "none", backgroundColor: "transparent", color: C.textTertiary, cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Source Sans 3', Helvetica, sans-serif" };
+const briefBadge = { width: "28px", height: "28px", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Menlo, 'SF Mono', monospace", fontSize: "10px", fontWeight: 500 };
+const briefIconBtn = { width: "26px", height: "26px", borderRadius: "6px", border: "none", backgroundColor: "transparent", color: C.textTertiary, cursor: "pointer", fontSize: "15px", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Source Sans 3', Helvetica, sans-serif" };
 
 function AgentHeader({ onBack, badge, color, name, canvasOpen, onToggleCanvas, hasCanvas = true, loading = false }) {
   return (
@@ -2489,7 +2463,7 @@ function AgentHeader({ onBack, badge, color, name, canvasOpen, onToggleCanvas, h
       <div style={briefHeaderStyle}>
         <button onClick={onBack} title="Back to home" style={{ border: "none", background: "transparent", color: C.textSecondary, fontSize: "22px", lineHeight: 1, cursor: "pointer", padding: "0 4px", flexShrink: 0 }}>‹</button>
         <div style={{ ...briefBadge, backgroundColor: color + "18", color }}>{badge}</div>
-        <span style={{ fontSize: "15px", fontWeight: 600, color: C.text, flex: 1, fontFamily: "'Urbanist', Arial, sans-serif" }}>DS-1 · {name}</span>
+        <span style={{ fontSize: "15px", fontWeight: 500, color: C.text, flex: 1, fontFamily: "'Urbanist', Arial, sans-serif" }}>DS-1 · {name}</span>
         {hasCanvas && (
           <button onClick={onToggleCanvas} style={s.btnSecondary}>{canvasOpen ? "Hide canvas" : "Show canvas"}</button>
         )}
@@ -2534,7 +2508,7 @@ function ProjectsView({ agency, onNavigate }) {
           <button onClick={() => setOpenProject(null)} style={{
             display: "flex", alignItems: "center", gap: "6px", padding: "5px 12px", borderRadius: "6px",
             border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textSecondary,
-            cursor: "pointer", fontWeight: 500, fontFamily: "'Source Sans 3', Helvetica, sans-serif", fontSize: "13px",
+            cursor: "pointer", fontWeight: 500, fontFamily: "'Source Sans 3', Helvetica, sans-serif", fontSize: "14px",
           }}>← Projects</button>
         </div>
 
@@ -2555,7 +2529,7 @@ function ProjectsView({ agency, onNavigate }) {
           <button style={{
             width: "100%", padding: "14px 18px", borderRadius: "10px", marginBottom: "24px",
             border: "none", backgroundColor: C.actionBg, color: "#fff",
-            fontSize: "14px", fontWeight: 600, cursor: "pointer", textAlign: "left",
+            fontSize: "15px", fontWeight: 500, cursor: "pointer", textAlign: "left",
             fontFamily: "'Source Sans 3', Helvetica, sans-serif", animation: "fadeUp 0.5s ease-out", animationDelay: "0.05s", animationFillMode: "both",
           }}>+ New chat in this project</button>
 
@@ -2566,7 +2540,7 @@ function ProjectsView({ agency, onNavigate }) {
             <div style={{
               marginTop: "12px", padding: "14px 16px", borderRadius: "10px",
               backgroundColor: C.bgSidebar, border: `1px solid ${C.borderLight}`,
-              fontSize: "13px", color: C.text, lineHeight: "1.6",
+              fontSize: "14px", color: C.text, lineHeight: "1.6",
             }}>{p.instructions}</div>
           </div>
 
@@ -2578,7 +2552,7 @@ function ProjectsView({ agency, onNavigate }) {
                 <div style={projS.sectionDesc}>{p.files} files DS-1 uses as context in this project</div>
               </div>
               <button style={{
-                padding: "6px 14px", borderRadius: "6px", fontSize: "12px", fontWeight: 600,
+                padding: "6px 14px", borderRadius: "6px", fontSize: "13px", fontWeight: 500,
                 border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text,
                 cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
               }}>+ Add</button>
@@ -2598,9 +2572,9 @@ function ProjectsView({ agency, onNavigate }) {
                     width: "32px", height: "32px", borderRadius: "6px",
                     backgroundColor: f.color + "14", color: f.color,
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontFamily: "Menlo, 'SF Mono', monospace", fontSize: "8px", fontWeight: 700,
+                    fontFamily: "Menlo, 'SF Mono', monospace", fontSize: "8px", fontWeight: 500,
                   }}>{f.type}</div>
-                  <span style={{ fontSize: "14px", fontWeight: 500, color: C.text }}>{f.name}</span>
+                  <span style={{ fontSize: "15px", fontWeight: 500, color: C.text }}>{f.name}</span>
                 </div>
               ))}
             </div>
@@ -2621,8 +2595,8 @@ function ProjectsView({ agency, onNavigate }) {
                   padding: "12px 16px", borderRadius: "8px",
                   border: `1px solid ${C.border}`, backgroundColor: C.bg, cursor: "pointer",
                 }}>
-                  <span style={{ flex: 1, fontSize: "14px", fontWeight: 500, color: C.text }}>{c.title}</span>
-                  <span style={{ fontSize: "12px", color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace" }}>{c.time}</span>
+                  <span style={{ flex: 1, fontSize: "15px", fontWeight: 500, color: C.text }}>{c.title}</span>
+                  <span style={{ fontSize: "13px", color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace" }}>{c.time}</span>
                 </div>
               ))}
             </div>
@@ -2642,7 +2616,7 @@ function ProjectsView({ agency, onNavigate }) {
           <p style={s.subheading}>Organize campaigns and initiatives with their own context, files, and chats</p>
         </div>
         <button onClick={() => setShowNew(true)} style={{
-          padding: "9px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600,
+          padding: "9px 16px", borderRadius: "8px", fontSize: "14px", fontWeight: 500,
           border: "none", backgroundColor: C.actionBg, color: "#fff",
           cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif", flexShrink: 0,
         }}>+ New project</button>
@@ -2652,20 +2626,20 @@ function ProjectsView({ agency, onNavigate }) {
 
       {/* Search */}
       <div style={{ position: "relative", maxWidth: "720px", marginBottom: "20px" }}>
-        <span style={{ position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)", color: C.textTertiary, fontSize: "14px" }}>⌕</span>
+        <span style={{ position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)", color: C.textTertiary, fontSize: "15px" }}>⌕</span>
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search projects..."
-          style={{ width: "100%", padding: "12px 16px 12px 40px", borderRadius: "10px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "14px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", outline: "none", boxSizing: "border-box" }}
+          style={{ width: "100%", padding: "12px 16px 12px 40px", borderRadius: "10px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "15px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", outline: "none", boxSizing: "border-box" }}
         />
       </div>
 
       {(() => {
         const q = search.toLowerCase().trim();
         const shown = q ? projects.filter(p => p.name.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q)) : projects;
-        if (shown.length === 0) return <div style={{ maxWidth: "720px", padding: "24px 2px", fontSize: "14px", color: C.textTertiary, fontStyle: "italic" }}>No projects match "{search}".</div>;
+        if (shown.length === 0) return <div style={{ maxWidth: "720px", padding: "24px 2px", fontSize: "15px", color: C.textTertiary, fontStyle: "italic" }}>No projects match "{search}".</div>;
         return (
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", maxWidth: "720px" }}>
         {shown.map((p, i) => (
@@ -2685,14 +2659,14 @@ function ProjectsView({ agency, onNavigate }) {
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: "18px", marginBottom: "14px",
             }}>◳</div>
-            <div style={{ fontSize: "15px", fontWeight: 600, color: C.text, marginBottom: "4px" }}>{p.name}</div>
-            <div style={{ fontSize: "13px", color: C.textSecondary, lineHeight: "1.5", marginBottom: "16px" }}>{p.desc}</div>
-            <div style={{ display: "flex", gap: "14px", fontSize: "12px", color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace" }}>
+            <div style={{ fontSize: "15px", fontWeight: 500, color: C.text, marginBottom: "4px" }}>{p.name}</div>
+            <div style={{ fontSize: "14px", color: C.textSecondary, lineHeight: "1.5", marginBottom: "16px" }}>{p.desc}</div>
+            <div style={{ display: "flex", gap: "14px", fontSize: "13px", color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace" }}>
               <span>{p.convos} chats</span>
               <span>{p.files} files</span>
               <span>{p.audiences} audiences</span>
             </div>
-            <div style={{ fontSize: "11px", color: C.textTertiary, marginTop: "10px" }}>Updated {p.updated}</div>
+            <div style={{ fontSize: "13px", color: C.textTertiary, marginTop: "10px" }}>Updated {p.updated}</div>
           </div>
         ))}
       </div>
@@ -2704,8 +2678,8 @@ function ProjectsView({ agency, onNavigate }) {
 
 const projS = {
   section: { marginBottom: "28px", animation: "fadeUp 0.5s ease-out", animationFillMode: "both" },
-  sectionTitle: { fontSize: "15px", fontWeight: 700, color: C.text },
-  sectionDesc: { fontSize: "13px", color: C.textTertiary, marginTop: "2px" },
+  sectionTitle: { fontSize: "15px", fontWeight: 500, color: C.text },
+  sectionDesc: { fontSize: "14px", color: C.textTertiary, marginTop: "2px" },
 };
 
 function NewProjectModal({ onClose }) {
@@ -2718,10 +2692,10 @@ function NewProjectModal({ onClose }) {
   const Field = ({ label, hint, required, children }) => (
     <div style={{ marginBottom: "18px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px" }}>
-        <span style={{ fontSize: "13px", fontWeight: 600, color: C.text }}>{label}</span>
-        {required && <span style={{ fontSize: "11px", color: C.accentRed }}>required</span>}
+        <span style={{ fontSize: "14px", fontWeight: 500, color: C.text }}>{label}</span>
+        {required && <span style={{ fontSize: "13px", color: C.accentRed }}>required</span>}
       </div>
-      {hint && <div style={{ fontSize: "12px", color: C.textTertiary, marginBottom: "8px", lineHeight: "1.5" }}>{hint}</div>}
+      {hint && <div style={{ fontSize: "13px", color: C.textTertiary, marginBottom: "8px", lineHeight: "1.5" }}>{hint}</div>}
       {children}
     </div>
   );
@@ -2729,7 +2703,7 @@ function NewProjectModal({ onClose }) {
   const inputStyle = {
     width: "100%", padding: "10px 14px", borderRadius: "8px",
     border: `1px solid ${C.border}`, backgroundColor: C.bg,
-    color: C.text, fontSize: "14px", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
+    color: C.text, fontSize: "15px", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
     outline: "none", boxSizing: "border-box",
   };
 
@@ -2760,8 +2734,8 @@ function NewProjectModal({ onClose }) {
           position: "sticky", top: 0, backgroundColor: C.bg, borderRadius: "16px 16px 0 0",
         }}>
           <div>
-            <div style={{ fontSize: "17px", fontWeight: 700, color: C.text }}>New Project</div>
-            <div style={{ fontSize: "13px", color: C.textTertiary, marginTop: "2px" }}>Create a siloed workspace for a campaign or initiative</div>
+            <div style={{ fontSize: "17px", fontWeight: 500, color: C.text }}>New Project</div>
+            <div style={{ fontSize: "14px", color: C.textTertiary, marginTop: "2px" }}>Create a siloed workspace for a campaign or initiative</div>
           </div>
           <button onClick={onClose} style={{
             width: "30px", height: "30px", borderRadius: "8px", border: "none",
@@ -2801,12 +2775,12 @@ function NewProjectModal({ onClose }) {
           position: "sticky", bottom: 0, backgroundColor: C.bg, borderRadius: "0 0 16px 16px",
         }}>
           <button onClick={onClose} style={{
-            padding: "10px 18px", borderRadius: "8px", fontSize: "14px", fontWeight: 600,
+            padding: "10px 18px", borderRadius: "8px", fontSize: "15px", fontWeight: 500,
             border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text,
             cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
           }}>Cancel</button>
           <button onClick={onClose} disabled={!canCreate} style={{
-            padding: "10px 20px", borderRadius: "8px", fontSize: "14px", fontWeight: 600,
+            padding: "10px 20px", borderRadius: "8px", fontSize: "15px", fontWeight: 500,
             border: "none", backgroundColor: C.actionBg, color: "#fff",
             cursor: canCreate ? "pointer" : "not-allowed", opacity: canCreate ? 1 : 0.4,
             fontFamily: "'Source Sans 3', Helvetica, sans-serif",
@@ -2865,14 +2839,14 @@ function HistoryView({ agency, onNavigate }) {
         <div style={briefHeaderStyle}>
           <button onClick={() => setOpenConv(null)} style={s.btnSecondary}>← History</button>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: "14px", fontWeight: 600, color: C.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{openConv.title}</div>
-            <div style={{ fontSize: "11px", color: C.textTertiary }}>{openConv.messages} messages · {openConv.date}</div>
+            <div style={{ fontSize: "15px", fontWeight: 500, color: C.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{openConv.title}</div>
+            <div style={{ fontSize: "13px", color: C.textTertiary }}>{openConv.messages} messages · {openConv.date}</div>
           </div>
           <div style={{ position: "relative", flexShrink: 0 }}>
             <button onClick={() => setAssigningId(assigningId === openConv.id ? null : openConv.id)} style={{
               display: "flex", alignItems: "center", gap: "6px", padding: "7px 12px", borderRadius: "8px",
               border: `1px solid ${C.border}`, backgroundColor: openConv.project ? C.accentBlue + "14" : C.bg,
-              color: openConv.project ? C.accentBlue : C.textSecondary, cursor: "pointer", fontSize: "12px", fontWeight: 600, fontFamily: "'Source Sans 3', Helvetica, sans-serif",
+              color: openConv.project ? C.accentBlue : C.textSecondary, cursor: "pointer", fontSize: "13px", fontWeight: 500, fontFamily: "'Source Sans 3', Helvetica, sans-serif",
             }}>◳ {openConv.project || "Assign to project"} <span style={{ fontSize: "10px" }}>▾</span></button>
             {assigningId === openConv.id && <AssignMenu current={openConv.project} options={PROJECT_OPTIONS} onPick={(p) => assign(openConv.id, p)} />}
           </div>
@@ -2881,11 +2855,11 @@ function HistoryView({ agency, onNavigate }) {
           <div style={{ maxWidth: "680px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "16px" }}>
             {openConv.transcript.map((m, i) => (
               m.role === "user" ? (
-                <div key={i} style={{ alignSelf: "flex-end", maxWidth: "80%", fontSize: "14px", color: "#fff", backgroundColor: C.text, padding: "10px 14px", borderRadius: "14px 14px 2px 14px", lineHeight: "1.5" }}>{m.text}</div>
+                <div key={i} style={{ alignSelf: "flex-end", maxWidth: "80%", fontSize: "15px", color: "#fff", backgroundColor: C.text, padding: "10px 14px", borderRadius: "14px 14px 2px 14px", lineHeight: "1.5" }}>{m.text}</div>
               ) : (
                 <div key={i} style={{ display: "flex", gap: "10px", maxWidth: "90%" }}>
-                  <span style={{ fontSize: "11px", fontWeight: 700, color: C.accentBlue, fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0, marginTop: "3px" }}>DS-1</span>
-                  <div style={{ fontSize: "14px", color: C.text, lineHeight: "1.6", backgroundColor: C.bgSecondary, border: `1px solid ${C.borderLight}`, padding: "12px 14px", borderRadius: "2px 14px 14px 14px" }}>{m.text}</div>
+                  <span style={{ fontSize: "13px", fontWeight: 500, color: C.accentBlue, fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0, marginTop: "3px" }}>DS-1</span>
+                  <div style={{ fontSize: "15px", color: C.text, lineHeight: "1.6", backgroundColor: C.bgSecondary, border: `1px solid ${C.borderLight}`, padding: "12px 14px", borderRadius: "2px 14px 14px 14px" }}>{m.text}</div>
                 </div>
               )
             ))}
@@ -2899,7 +2873,7 @@ function HistoryView({ agency, onNavigate }) {
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendInHistory(); } }}
               placeholder="Continue this conversation…"
               rows={1}
-              style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "14px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "7px 0" }}
+              style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "15px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "7px 0" }}
             />
             <button onClick={sendInHistory} style={{ width: "32px", height: "32px", borderRadius: "8px", border: "none", cursor: "pointer", backgroundColor: draft.trim() ? C.text : C.bgHover, color: draft.trim() ? "#fff" : C.textTertiary, fontSize: "15px", flexShrink: 0 }}>↑</button>
           </div>
@@ -2928,8 +2902,8 @@ function HistoryView({ agency, onNavigate }) {
             cursor: "pointer", transition: "background-color 0.15s ease",
           }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: "14px", fontWeight: 600, color: C.text }}>{conv.title}</div>
-              <div style={{ fontSize: "12px", color: C.textTertiary, marginTop: "3px", display: "flex", gap: "12px", alignItems: "center" }}>
+              <div style={{ fontSize: "15px", fontWeight: 500, color: C.text }}>{conv.title}</div>
+              <div style={{ fontSize: "13px", color: C.textTertiary, marginTop: "3px", display: "flex", gap: "12px", alignItems: "center" }}>
                 <span>{conv.messages} messages</span>
                 <span>·</span>
                 <span>{conv.date}</span>
@@ -2938,7 +2912,7 @@ function HistoryView({ agency, onNavigate }) {
             <div style={{ position: "relative", flexShrink: 0 }} onClick={(e) => e.stopPropagation()}>
               <button onClick={() => setAssigningId(assigningId === conv.id ? null : conv.id)} style={{
                 display: "flex", alignItems: "center", gap: "6px",
-                fontSize: "12px", fontWeight: 600, cursor: "pointer",
+                fontSize: "13px", fontWeight: 500, cursor: "pointer",
                 padding: "4px 10px", borderRadius: "6px", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
                 border: `1px solid ${conv.project ? "transparent" : C.border}`,
                 color: conv.project ? C.accentBlue : C.textTertiary,
@@ -2960,16 +2934,16 @@ function HistoryView({ agency, onNavigate }) {
 function AssignMenu({ current, options, onPick }) {
   return (
     <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, width: "240px", backgroundColor: C.bg, borderRadius: "10px", border: `1px solid ${C.border}`, boxShadow: "0 6px 24px rgba(0,0,0,0.12)", overflow: "hidden", zIndex: 20 }}>
-      <div style={{ padding: "9px 14px", fontSize: "11px", fontWeight: 600, color: C.textTertiary, textTransform: "uppercase", letterSpacing: "0.5px", borderBottom: `1px solid ${C.borderLight}` }}>Assign to project</div>
+      <div style={{ padding: "9px 14px", fontSize: "13px", fontWeight: 500, color: C.textTertiary, textTransform: "uppercase", letterSpacing: "0.5px", borderBottom: `1px solid ${C.borderLight}` }}>Assign to project</div>
       {options.map((p) => (
-        <div key={p} onClick={() => onPick(p)} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 14px", cursor: "pointer", fontSize: "13px", color: C.text }}>
+        <div key={p} onClick={() => onPick(p)} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 14px", cursor: "pointer", fontSize: "14px", color: C.text }}>
           <span style={{ color: C.accentBlue }}>◳</span>
           <span style={{ flex: 1 }}>{p}</span>
-          {current === p && <span style={{ color: C.accentGreen, fontSize: "13px" }}>✓</span>}
+          {current === p && <span style={{ color: C.accentGreen, fontSize: "14px" }}>✓</span>}
         </div>
       ))}
       {current && (
-        <div onClick={() => onPick(null)} style={{ padding: "10px 14px", cursor: "pointer", fontSize: "13px", color: C.accentRed, borderTop: `1px solid ${C.borderLight}` }}>Remove from project</div>
+        <div onClick={() => onPick(null)} style={{ padding: "10px 14px", cursor: "pointer", fontSize: "14px", color: C.accentRed, borderTop: `1px solid ${C.borderLight}` }}>Remove from project</div>
       )}
     </div>
   );
@@ -2996,7 +2970,7 @@ function SettingsView({ onNavigate }) {
     <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
       {options.map(opt => (
         <button key={opt.value} onClick={() => onChange(opt.value)} style={{
-          padding: "8px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600,
+          padding: "8px 16px", borderRadius: "8px", fontSize: "14px", fontWeight: 500,
           border: `1px solid ${value === opt.value ? C.text : C.border}`,
           backgroundColor: value === opt.value ? C.text : C.bg,
           color: value === opt.value ? "#fff" : C.textSecondary,
@@ -3052,7 +3026,7 @@ function SettingsView({ onNavigate }) {
               { value: "custom", label: "Custom" },
             ].map(opt => (
               <button key={opt.value} onClick={() => setVoiceMode(opt.value)} style={{
-                padding: "8px 18px", borderRadius: "8px", fontSize: "13px", fontWeight: 600,
+                padding: "8px 18px", borderRadius: "8px", fontSize: "14px", fontWeight: 500,
                 border: `1px solid ${voiceMode === opt.value ? C.text : C.border}`,
                 backgroundColor: voiceMode === opt.value ? C.text : C.bg,
                 color: voiceMode === opt.value ? "#fff" : C.textSecondary,
@@ -3074,7 +3048,7 @@ function SettingsView({ onNavigate }) {
           )}
           {voiceMode === "custom" && (
             <div style={{ marginTop: "14px" }}>
-              <div style={{ fontSize: "13px", color: C.textSecondary, marginBottom: "8px" }}>
+              <div style={{ fontSize: "14px", color: C.textSecondary, marginBottom: "8px" }}>
                 Paste an example of how you'd like DS-1 to communicate. It will learn from the style, tone, and structure.
               </div>
               <textarea
@@ -3085,7 +3059,7 @@ function SettingsView({ onNavigate }) {
                 style={{
                   width: "100%", padding: "12px 14px", borderRadius: "8px",
                   border: `1px solid ${C.border}`, backgroundColor: C.bg,
-                  color: C.text, fontSize: "13px", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
+                  color: C.text, fontSize: "14px", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
                   outline: "none", resize: "vertical", lineHeight: "1.6",
                   boxSizing: "border-box",
                 }}
@@ -3093,7 +3067,7 @@ function SettingsView({ onNavigate }) {
               {customExample.trim() && (
                 <button style={{
                   marginTop: "8px", padding: "7px 16px", borderRadius: "6px",
-                  fontSize: "12px", fontWeight: 600, border: "none",
+                  fontSize: "13px", fontWeight: 500, border: "none",
                   backgroundColor: C.actionBg, color: "#fff", cursor: "pointer",
                   fontFamily: "'Source Sans 3', Helvetica, sans-serif",
                 }}>Save style</button>
@@ -3189,11 +3163,11 @@ const setS = {
   },
   sectionTitle: {
     fontSize: "16px",
-    fontWeight: 700,
+    fontWeight: 500,
     color: C.text,
   },
   sectionDesc: {
-    fontSize: "13px",
+    fontSize: "14px",
     color: C.textTertiary,
     marginTop: "2px",
   },
@@ -3203,7 +3177,7 @@ const setS = {
     borderRadius: "8px",
     backgroundColor: C.bgSidebar,
     border: `1px solid ${C.borderLight}`,
-    fontSize: "13px",
+    fontSize: "14px",
     color: C.textSecondary,
     lineHeight: "1.6",
   },
@@ -3220,12 +3194,12 @@ const setS = {
     minWidth: 0,
   },
   label: {
-    fontSize: "14px",
-    fontWeight: 600,
+    fontSize: "15px",
+    fontWeight: 500,
     color: C.text,
   },
   labelDesc: {
-    fontSize: "12px",
+    fontSize: "13px",
     color: C.textTertiary,
     marginTop: "2px",
   },
@@ -3383,12 +3357,12 @@ function AdminView({ agency, onNavigate }) {
         marginBottom: "20px", maxWidth: "720px",
         animation: "fadeUp 0.5s ease-out", animationDelay: "0.02s", animationFillMode: "both",
       }}>
-        <span style={{ fontSize: "12px", color: C.textTertiary, fontWeight: 600 }}>TEAM ACCESS:</span>
+        <span style={{ fontSize: "13px", color: C.textTertiary, fontWeight: 500 }}>TEAM ACCESS:</span>
         <div style={{ display: "flex", gap: "8px" }}>
           <span style={{ ...adminS.teamBadge, backgroundColor: C.accentPurple + "14", color: C.accentPurple }}>CS</span>
           <span style={{ ...adminS.teamBadge, backgroundColor: C.accentBlue + "14", color: C.accentBlue }}>General</span>
         </div>
-        <span style={{ fontSize: "11px", color: C.textTertiary, fontStyle: "italic" }}>Click badges to assign</span>
+        <span style={{ fontSize: "13px", color: C.textTertiary, fontStyle: "italic" }}>Click badges to assign</span>
       </div>
 
       {/* Summary bar */}
@@ -3404,8 +3378,8 @@ function AdminView({ agency, onNavigate }) {
           backgroundColor: agency.color + "18", color: agency.color,
         }}>{agency.initials}</div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: "14px", fontWeight: 600, color: C.text }}>{agency.name}</div>
-          <div style={{ fontSize: "12px", color: C.textTertiary }}>{enabledCount} of {totalCount} capabilities enabled</div>
+          <div style={{ fontSize: "15px", fontWeight: 500, color: C.text }}>{agency.name}</div>
+          <div style={{ fontSize: "13px", color: C.textTertiary }}>{enabledCount} of {totalCount} capabilities enabled</div>
         </div>
         <div style={adminS.progressBar}>
           <div style={{ ...adminS.progressFill, width: `${(enabledCount / totalCount) * 100}%` }} />
@@ -3418,7 +3392,7 @@ function AdminView({ agency, onNavigate }) {
           <span style={adminS.catIcon}>⊟</span>
           <span style={adminS.catTitle}>Data Providers</span>
         </div>
-        <div style={{ fontSize: "13px", color: C.textTertiary, marginBottom: "12px", paddingLeft: "4px" }}>
+        <div style={{ fontSize: "14px", color: C.textTertiary, marginBottom: "12px", paddingLeft: "4px" }}>
           Control which data sources appear in audience results for this workspace
         </div>
 
@@ -3428,8 +3402,8 @@ function AdminView({ agency, onNavigate }) {
             <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
               <div style={{ ...adminS.provBadge, backgroundColor: C.accentBlue + "18", color: C.accentBlue }}>Ds</div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: "14px", fontWeight: 600, color: C.text }}>Dstillery Audiences <span style={{ fontSize: "11px", fontWeight: 600, color: C.accentGreen, backgroundColor: C.accentGreen + "14", padding: "1px 7px", borderRadius: "4px", marginLeft: "4px" }}>Default</span></div>
-                <div style={{ fontSize: "12px", color: C.textTertiary, marginTop: "2px" }}>Dstillery's full first-party behavioral catalog</div>
+                <div style={{ fontSize: "15px", fontWeight: 500, color: C.text }}>Dstillery Audiences <span style={{ fontSize: "13px", fontWeight: 500, color: C.accentGreen, backgroundColor: C.accentGreen + "14", padding: "1px 7px", borderRadius: "4px", marginLeft: "4px" }}>Default</span></div>
+                <div style={{ fontSize: "13px", color: C.textTertiary, marginTop: "2px" }}>Dstillery's full first-party behavioral catalog</div>
               </div>
               <ProvToggle on={providers.dstillery} onToggle={() => toggleProvider("dstillery")} />
             </div>
@@ -3440,8 +3414,8 @@ function AdminView({ agency, onNavigate }) {
             <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
               <div style={{ ...adminS.provBadge, backgroundColor: C.accentGreen + "18", color: C.accentGreen }}>LR</div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: "14px", fontWeight: 600, color: C.text }}>LiveRamp Marketplace</div>
-                <div style={{ fontSize: "12px", color: C.textTertiary, marginTop: "2px" }}>Pulls third-party providers via the LiveRamp connector</div>
+                <div style={{ fontSize: "15px", fontWeight: 500, color: C.text }}>LiveRamp Marketplace</div>
+                <div style={{ fontSize: "13px", color: C.textTertiary, marginTop: "2px" }}>Pulls third-party providers via the LiveRamp connector</div>
               </div>
               <ProvToggle on={providers.liveramp} onToggle={() => toggleProvider("liveramp")} />
             </div>
@@ -3449,11 +3423,11 @@ function AdminView({ agency, onNavigate }) {
             {providers.liveramp && (
               <div style={{ marginTop: "14px", paddingTop: "14px", borderTop: `1px solid ${C.borderLight}` }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
-                  <span style={{ fontSize: "12px", fontWeight: 600, color: C.textSecondary }}>
+                  <span style={{ fontSize: "13px", fontWeight: 500, color: C.textSecondary }}>
                     Marketplace providers
-                    <span style={{ fontSize: "10px", fontWeight: 600, color: C.textTertiary, backgroundColor: C.bgHover, padding: "1px 6px", borderRadius: "3px", marginLeft: "6px", fontFamily: "Menlo, 'SF Mono', monospace" }}>via LiveRamp MCP</span>
+                    <span style={{ fontSize: "10px", fontWeight: 500, color: C.textTertiary, backgroundColor: C.bgHover, padding: "1px 6px", borderRadius: "3px", marginLeft: "6px", fontFamily: "Menlo, 'SF Mono', monospace" }}>via LiveRamp MCP</span>
                   </span>
-                  <span style={{ fontSize: "11px", color: C.textTertiary }}>{lrSelected.length} of {LIVERAMP_PROVIDERS.length} selected</span>
+                  <span style={{ fontSize: "13px", color: C.textTertiary }}>{lrSelected.length} of {LIVERAMP_PROVIDERS.length} selected</span>
                 </div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
                   {LIVERAMP_PROVIDERS.map(p => {
@@ -3461,7 +3435,7 @@ function AdminView({ agency, onNavigate }) {
                     return (
                       <button key={p} onClick={() => toggleLr(p)} style={{
                         display: "flex", alignItems: "center", gap: "6px",
-                        padding: "6px 12px", borderRadius: "7px", fontSize: "12px", fontWeight: 500,
+                        padding: "6px 12px", borderRadius: "7px", fontSize: "13px", fontWeight: 500,
                         border: `1px solid ${on ? C.accentGreen : C.border}`,
                         backgroundColor: on ? C.accentGreen + "10" : C.bg,
                         color: on ? C.text : C.textTertiary, cursor: "pointer",
@@ -3482,8 +3456,8 @@ function AdminView({ agency, onNavigate }) {
             <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
               <div style={{ ...adminS.provBadge, backgroundColor: C.accentPurple + "18", color: C.accentPurple }}>⇡</div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: "14px", fontWeight: 600, color: C.text }}>Upload Your Own Taxonomy</div>
-                <div style={{ fontSize: "12px", color: C.textTertiary, marginTop: "2px" }}>Bring a custom segment taxonomy to surface in results</div>
+                <div style={{ fontSize: "15px", fontWeight: 500, color: C.text }}>Upload Your Own Taxonomy</div>
+                <div style={{ fontSize: "13px", color: C.textTertiary, marginTop: "2px" }}>Bring a custom segment taxonomy to surface in results</div>
               </div>
               <ProvToggle on={providers.taxonomy} onToggle={() => toggleProvider("taxonomy")} />
             </div>
@@ -3493,7 +3467,7 @@ function AdminView({ agency, onNavigate }) {
                 <button style={{
                   width: "100%", padding: "16px", borderRadius: "8px",
                   border: `1px dashed ${C.border}`, backgroundColor: "transparent",
-                  color: C.textTertiary, cursor: "pointer", fontSize: "13px",
+                  color: C.textTertiary, cursor: "pointer", fontSize: "14px",
                   fontFamily: "'Source Sans 3', Helvetica, sans-serif",
                 }}>+ Upload taxonomy file (CSV, XLSX)</button>
               </div>
@@ -3528,7 +3502,7 @@ function AdminView({ agency, onNavigate }) {
                     <div key={tool.id} style={adminS.toolRow}>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-                          <span style={{ fontSize: "14px", fontWeight: 600, color: isOn ? C.text : C.textTertiary }}>{tool.name}</span>
+                          <span style={{ fontSize: "15px", fontWeight: 500, color: isOn ? C.text : C.textTertiary }}>{tool.name}</span>
                           {showsTeams && (
                           <div style={{ display: "flex", gap: "4px" }}>
                             <button
@@ -3556,7 +3530,7 @@ function AdminView({ agency, onNavigate }) {
                           </div>
                           )}
                         </div>
-                        <div style={{ fontSize: "12px", color: C.textTertiary, lineHeight: "1.5", marginTop: "2px" }}>{tool.desc}</div>
+                        <div style={{ fontSize: "13px", color: C.textTertiary, lineHeight: "1.5", marginTop: "2px" }}>{tool.desc}</div>
                       </div>
                       <button
                         onClick={() => toggle(tool.id)}
@@ -3584,7 +3558,7 @@ const adminS = {
   agencyDot: {
     width: "36px", height: "36px", borderRadius: "8px",
     display: "flex", alignItems: "center", justifyContent: "center",
-    fontFamily: "Menlo, 'SF Mono', monospace", fontSize: "12px", fontWeight: 700,
+    fontFamily: "Menlo, 'SF Mono', monospace", fontSize: "13px", fontWeight: 500,
     flexShrink: 0,
   },
   progressBar: {
@@ -3604,11 +3578,11 @@ const adminS = {
     fontSize: "16px", color: C.textTertiary, width: "24px", textAlign: "center",
   },
   catTitle: {
-    fontSize: "13px", fontWeight: 700, color: C.text,
+    fontSize: "14px", fontWeight: 500, color: C.text,
     textTransform: "uppercase", letterSpacing: "0.5px",
   },
   catCount: {
-    fontSize: "12px", color: C.textTertiary,
+    fontSize: "13px", color: C.textTertiary,
     fontFamily: "Menlo, 'SF Mono', monospace",
     marginLeft: "auto",
   },
@@ -3637,7 +3611,7 @@ const adminS = {
   },
   teamBadge: {
     fontSize: "10px",
-    fontWeight: 700,
+    fontWeight: 500,
     padding: "2px 8px",
     borderRadius: "4px",
     fontFamily: "Menlo, 'SF Mono', monospace",
@@ -3654,7 +3628,7 @@ const adminS = {
   provBadge: {
     width: "36px", height: "36px", borderRadius: "8px",
     display: "flex", alignItems: "center", justifyContent: "center",
-    fontFamily: "Menlo, 'SF Mono', monospace", fontSize: "13px", fontWeight: 700,
+    fontFamily: "Menlo, 'SF Mono', monospace", fontSize: "14px", fontWeight: 500,
     flexShrink: 0,
   },
 };
@@ -3682,23 +3656,23 @@ const actS = {
     borderBottom: `1px solid ${C.borderLight}`,
   },
   cardIcon: {
-    fontSize: "14px",
+    fontSize: "15px",
     color: C.textTertiary,
     width: "20px",
     textAlign: "center",
   },
   cardTitle: {
-    fontSize: "14px",
-    fontWeight: 700,
+    fontSize: "15px",
+    fontWeight: 500,
     color: C.text,
   },
   cardContext: {
-    fontSize: "13px",
+    fontSize: "14px",
     color: C.textTertiary,
   },
   reviewLink: {
-    fontSize: "13px",
-    fontWeight: 600,
+    fontSize: "14px",
+    fontWeight: 500,
     color: C.text,
     marginLeft: "auto",
     cursor: "pointer",
@@ -3719,12 +3693,12 @@ const actS = {
     flexShrink: 0,
   },
   taskText: {
-    fontSize: "14px",
+    fontSize: "15px",
     color: C.text,
     flex: 1,
   },
   fileBadge: {
-    fontSize: "12px",
+    fontSize: "13px",
     color: C.textTertiary,
     backgroundColor: C.bgSidebar,
     border: `1px solid ${C.borderLight}`,
@@ -3787,8 +3761,8 @@ const s = {
     alignItems: "center",
     justifyContent: "center",
     fontFamily: "Menlo, 'SF Mono', monospace",
-    fontSize: "12px",
-    fontWeight: 700,
+    fontSize: "13px",
+    fontWeight: 500,
     cursor: "pointer",
     margin: "0 auto",
   },
@@ -3799,8 +3773,8 @@ const s = {
   },
   logoText: {
     fontFamily: "'Urbanist', Arial, sans-serif",
-    fontWeight: 700,
-    fontSize: "14px",
+    fontWeight: 500,
+    fontSize: "15px",
     color: "#fff",
     letterSpacing: "0.5px",
   },
@@ -3825,20 +3799,20 @@ const s = {
     alignItems: "center",
     justifyContent: "center",
     fontFamily: "Menlo, 'SF Mono', monospace",
-    fontSize: "11px",
-    fontWeight: 700,
+    fontSize: "13px",
+    fontWeight: 500,
     flexShrink: 0,
   },
   agencyName: {
-    fontSize: "13px",
-    fontWeight: 600,
+    fontSize: "14px",
+    fontWeight: 500,
     color: C.text,
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
   },
   agencyLabel: {
-    fontSize: "11px",
+    fontSize: "13px",
     color: C.textTertiary,
   },
   dropdown: {
@@ -3850,12 +3824,12 @@ const s = {
     boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
   },
   dropdownHeader: {
-    fontSize: "11px",
+    fontSize: "13px",
     color: C.textTertiary,
     textTransform: "uppercase",
     letterSpacing: "0.5px",
     padding: "10px 14px 6px",
-    fontWeight: 600,
+    fontWeight: 500,
   },
   dropdownItem: {
     display: "flex",
@@ -3874,11 +3848,11 @@ const s = {
     justifyContent: "center",
     fontFamily: "Menlo, 'SF Mono', monospace",
     fontSize: "10px",
-    fontWeight: 700,
+    fontWeight: 500,
     flexShrink: 0,
   },
   dropdownItemText: {
-    fontSize: "13px",
+    fontSize: "14px",
     color: C.text,
   },
 
@@ -3898,7 +3872,7 @@ const s = {
     border: "none",
     cursor: "pointer",
     fontFamily: "'Source Sans 3', Helvetica, sans-serif",
-    fontSize: "14px",
+    fontSize: "15px",
     transition: "all 0.15s ease",
     textAlign: "left",
     width: "100%",
@@ -3942,7 +3916,7 @@ const s = {
   // Typography
   heading: {
     fontSize: "30px",
-    fontWeight: 700,
+    fontWeight: 500,
     color: C.text,
     margin: 0,
     letterSpacing: "-0.5px",
@@ -3955,11 +3929,11 @@ const s = {
     fontWeight: 400,
   },
   sectionLabel: {
-    fontSize: "12px",
+    fontSize: "13px",
     color: C.textTertiary,
     textTransform: "uppercase",
     letterSpacing: "1px",
-    fontWeight: 600,
+    fontWeight: 500,
   },
 
   // Home cards
@@ -3998,16 +3972,16 @@ const s = {
     marginBottom: "18px",
   }),
   cardTitle: {
-    fontSize: "20px", fontWeight: 600, margin: "0 0 8px 0", letterSpacing: "-0.2px", color: C.text,
+    fontSize: "20px", fontWeight: 500, margin: "0 0 8px 0", letterSpacing: "-0.2px", color: C.text,
   },
   cardDesc: {
-    fontSize: "14px", color: C.textSecondary, lineHeight: "1.6", margin: 0, flex: 1,
+    fontSize: "15px", color: C.textSecondary, lineHeight: "1.6", margin: 0, flex: 1,
   },
   cardFooter: {
     marginTop: "24px", paddingTop: "16px", borderTop: `1px solid ${C.borderLight}`,
   },
   cardAction: (color) => ({
-    fontSize: "13px", fontWeight: 600, color: color, fontFamily: "Menlo, 'SF Mono', monospace",
+    fontSize: "14px", fontWeight: 500, color: color, fontFamily: "Menlo, 'SF Mono', monospace",
   }),
 
   // Recent activity
@@ -4020,13 +3994,13 @@ const s = {
     padding: "14px 18px", borderBottom: `1px solid ${C.borderLight}`, backgroundColor: C.bg,
   },
   recentName: {
-    fontSize: "14px", fontWeight: 500, display: "block", color: C.text,
+    fontSize: "15px", fontWeight: 500, display: "block", color: C.text,
   },
   recentMeta: {
-    fontSize: "12px", color: C.textTertiary, display: "block", marginTop: "2px",
+    fontSize: "13px", color: C.textTertiary, display: "block", marginTop: "2px",
   },
   recentTime: {
-    fontSize: "12px", color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0,
+    fontSize: "13px", color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0,
   },
 
   // Notification styles
@@ -4035,19 +4009,19 @@ const s = {
     backgroundColor: C.bg,
   },
   notifName: {
-    fontSize: "14px",
-    fontWeight: 600,
+    fontSize: "15px",
+    fontWeight: 500,
     color: C.text,
   },
   notifMeta: {
-    fontSize: "12px",
+    fontSize: "13px",
     color: C.textTertiary,
     marginTop: "3px",
     fontFamily: "Menlo, 'SF Mono', monospace",
   },
   statusBadge: (bg, color) => ({
     display: "inline-block",
-    fontSize: "12px",
+    fontSize: "13px",
     fontWeight: 500,
     color: color,
     backgroundColor: bg,
@@ -4061,8 +4035,8 @@ const s = {
     border: "none",
     backgroundColor: C.actionBg,
     color: "#fff",
-    fontSize: "13px",
-    fontWeight: 600,
+    fontSize: "14px",
+    fontWeight: 500,
     fontFamily: "'Source Sans 3', Helvetica, sans-serif",
     cursor: "pointer",
   },
@@ -4072,14 +4046,14 @@ const s = {
     border: `1px solid ${C.border}`,
     backgroundColor: C.bg,
     color: C.text,
-    fontSize: "13px",
+    fontSize: "14px",
     fontWeight: 500,
     fontFamily: "'Source Sans 3', Helvetica, sans-serif",
     cursor: "pointer",
   },
   emptyState: {
     padding: "16px 18px",
-    fontSize: "14px",
+    fontSize: "15px",
     color: C.textTertiary,
     fontStyle: "italic",
     backgroundColor: C.bg,
