@@ -111,6 +111,10 @@ export default function DS1App() {
           to { background-position: -200% center; }
         }
         * { box-sizing: border-box; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: ${C.border}; border-radius: 999px; }
+        ::-webkit-scrollbar-thumb:hover { background: ${C.textTertiary}; }
         body {
           font-family: 'Source Sans 3', Helvetica, sans-serif;
           font-size: 15px;
@@ -1612,12 +1616,13 @@ function AudienceExplorerChat({ onBack, initialQuery }) {
                 </div>
               ))}
               {selected.length > 0 && (
-                <div style={{ position: "sticky", bottom: 0, display: "flex", alignItems: "center", gap: "14px", padding: "14px 18px", borderRadius: "12px", backgroundColor: C.actionBg, color: "#fff", boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}>
+                <div style={{ position: "sticky", bottom: 0, display: "flex", alignItems: "center", gap: "10px", padding: "14px 18px", borderRadius: "12px", backgroundColor: C.actionBg, color: "#fff", boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: "15px", fontWeight: 500 }}>{selected.length} selected</div>
                     <div style={{ fontSize: "13px", opacity: 0.7, fontFamily: "Menlo, 'SF Mono', monospace" }}>{fmtSize(combinedReach)} combined reach</div>
                   </div>
-                  <button onClick={() => setSelected([])} style={{ padding: "8px 12px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.3)", background: "transparent", color: "#fff", fontSize: "14px", fontWeight: 500, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>Clear</button>
+                  <button onClick={() => setSelected([])} style={{ padding: "8px 12px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.25)", background: "transparent", color: "#fff", fontSize: "14px", fontWeight: 500, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>Clear</button>
+                  <button onClick={() => handleSend("group these into a compound audience")} style={{ padding: "8px 14px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.25)", background: "transparent", color: "#fff", fontSize: "14px", fontWeight: 500, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>Group</button>
                   <button onClick={() => handleSend("lets syndicate this")} style={{ padding: "8px 14px", borderRadius: "8px", border: "none", background: "#fff", color: C.text, fontSize: "14px", fontWeight: 500, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>Syndicate →</button>
                 </div>
               )}
@@ -1979,59 +1984,57 @@ function DomainSeededCanvas({ onBack }) {
 }
 
 
-function PixelCreator({ onBack }) {
-  const [draftType, setDraftType] = useState("Site Visitor");
-  const [draftCodes, setDraftCodes] = useState("");
+function PixelCreator({ onBack, marketer }) {
+  const [pixelType, setPixelType] = useState("Site Visitor");
+  const [chips, setChips] = useState([]); // { key, label, code, desc, editing }
   const [agreed, setAgreed] = useState(false);
-  const [batch, setBatch] = useState([]);
+  const [created, setCreated] = useState([]);
   const [copied, setCopied] = useState(null);
+  const [tagInput, setTagInput] = useState("");
+  const [canvasOpen, setCanvasOpen] = useState(true);
   const [log, setLog] = useState([
-    { role: "ds1", text: "I'm your Pixel Creator. Add audience codes on the canvas — one per line for bulk — choose a pixel type, agree to the terms, and I'll generate the tags ready to deploy." },
-    { role: "user", text: "Create a conversion pixel for fjallraven checkout" },
-    { role: "ds1", text: "Sounds like a tracking pixel. I've opened the pixel canvas — add codes there or tell me what to create." },
+    { role: "ds1", text: "I'm your Pixel Creator. Tell me what you want to track — pages, events, placements — and I'll generate the audience codes and descriptions. You just pick the pixel type and agree to the terms." },
   ]);
   const [input, setInput] = useState("");
-  const [canvasOpen, setCanvasOpen] = useState(true);
+  const [generating, setGenerating] = useState(false);
 
-  const PIXEL_TYPES = [
-    { value: "Site Visitor" },
-    { value: "Conversion" },
-    { value: "Ad Viewer" },
-  ];
+  const PIXEL_TYPES = ["Site Visitor", "Conversion", "Ad Viewer"];
 
   const tagFor = (code, kind) => kind === "js"
     ? `<script src="//action.dstillery.com/orbserv/nsjs?adv=cl161902600414132&ns=5973&nc=${code}&ncv=64" type="text/javascript"></script>`
     : `<img width="1" height="1" src="//action.dstillery.com/orbserv/nspix?adv=cl161902600414132&ns=5973&nc=${code}&ncv=64" />`;
 
-  const say = (text) => setLog(prev => [...prev, { role: "ds1", text }]);
-  const cleanCode = (s) => s.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  const slugify = s => s.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  const say = text => setLog(prev => [...prev, { role: "ds1", text }]);
 
-  const addToBatch = () => {
-    const codes = draftCodes.split("\n").map(cleanCode).filter(Boolean);
-    if (codes.length === 0) return;
-    const additions = codes.map((code, i) => ({ key: Date.now() + "-" + i, code, type: draftType, status: "draft" }));
-    setBatch(prev => [...prev, ...additions]);
-    setDraftCodes("");
-    say(`Added ${additions.length} ${draftType} pixel${additions.length !== 1 ? "s" : ""} to the batch.`);
+  // DS-1 generates code + description from a label
+  const generateChip = (label) => {
+    const code = slugify(label);
+    const typeMap = { "Site Visitor": "visitors to", "Conversion": "conversions on", "Ad Viewer": "ad impressions for" };
+    const desc = `Tracks ${typeMap[pixelType]} ${label.toLowerCase()}.`;
+    return { key: Date.now() + Math.random(), label, code, desc, editing: false };
   };
 
-  const createAll = () => {
-    const drafts = batch.filter(p => p.status === "draft");
-    // if nothing in batch yet, use current codes
-    if (drafts.length === 0) {
-      const codes = draftCodes.split("\n").map(cleanCode).filter(Boolean);
-      if (codes.length === 0 || !agreed) return;
-      let n = 874790;
-      const created = codes.map((code, i) => ({ key: Date.now() + "-" + i, code, type: draftType, status: "created", id: String(n + i), loads: 0 }));
-      setBatch(created);
-      setDraftCodes("");
-      say(`Created ${created.length} pixel${created.length !== 1 ? "s" : ""}. Tags are ready on the right — each needs 1,000 loads before segments unlock.`);
-      return;
-    }
-    if (!agreed) return;
-    let n = 874790;
-    setBatch(prev => prev.map(p => p.status === "draft" ? { ...p, status: "created", id: String(n++), loads: 0 } : p));
-    say(`Created ${drafts.length} pixel${drafts.length !== 1 ? "s" : ""}. Tags are ready on the right.`);
+  const addChip = (raw) => {
+    const label = raw.trim();
+    if (!label) return;
+    const chip = generateChip(label);
+    setChips(prev => [...prev, chip]);
+    setTagInput("");
+  };
+
+  const removeChip = key => setChips(prev => prev.filter(c => c.key !== key));
+
+  const updateChip = (key, field, val) => setChips(prev => prev.map(c => c.key === key ? { ...c, [field]: val } : c));
+
+  const handleCreate = () => {
+    if (!agreed || chips.length === 0) return;
+    const now = Date.now();
+    const newPixels = chips.map((c, i) => ({ ...c, id: String(874790 + i + now % 1000), status: "created" }));
+    setCreated(prev => [...prev, ...newPixels]);
+    setChips([]);
+    setAgreed(false);
+    say(`Created ${newPixels.length} ${pixelType} pixel${newPixels.length !== 1 ? "s" : ""}. Tags are on the canvas — want to change any codes or descriptions before deploying?`);
   };
 
   const copy = (text, key) => {
@@ -2044,165 +2047,176 @@ function PixelCreator({ onBack }) {
     if (!raw) return;
     setLog(prev => [...prev, { role: "user", text: raw }]);
     setInput("");
+    setGenerating(true);
+    // Detect type override from message
     const t = raw.toLowerCase();
-    const type = /conversion|convert|checkout|purchase/.test(t) ? "Conversion" : /ad.?viewer|impression/.test(t) ? "Ad Viewer" : "Site Visitor";
-    const codeMatch = raw.match(/(?:for|called|named)\s+([a-z0-9 ,\-]+)/i);
-    const codes = (codeMatch ? codeMatch[1] : "").split(/[,]/).map(cleanCode).filter(Boolean);
-    if (codes.length) {
-      setDraftType(type);
-      setDraftCodes(codes.join("\n"));
-      setTimeout(() => say(`Got it — I've pre-filled the code${codes.length > 1 ? "s" : ""} on the canvas. Agree to the terms and hit Create all.`), 400);
-    } else {
-      setTimeout(() => say("Tell me the audience code — e.g. \"create a conversion pixel for checkout\"."), 400);
-    }
+    const detectedType = /conversion|convert|checkout|purchase/.test(t) ? "Conversion" : /ad.?viewer|impression/.test(t) ? "Ad Viewer" : pixelType;
+    if (detectedType !== pixelType) setPixelType(detectedType);
+    // Extract things to track — split by commas, "and", or newlines
+    const things = raw.split(/,|\band\b|\n/).map(s => s.replace(/^(create|track|pixel|for|a|an|the|me)\s+/gi, "").trim()).filter(Boolean);
+    setTimeout(() => {
+      setGenerating(false);
+      const newChips = things.map(generateChip);
+      setChips(prev => [...prev, ...newChips]);
+      say(`Generated ${newChips.length} ${detectedType} pixel${newChips.length !== 1 ? "s" : ""}. Review the codes and descriptions on the right — edit anything that looks off, then agree to the terms and create.`);
+    }, 900);
   };
 
-  const CodeBlock = ({ label, code, ckey }) => (
-    <div style={{ marginTop: "8px" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "4px" }}>
-        <span style={{ fontSize: "13px", fontWeight: 500, color: C.textTertiary }}>{label}</span>
-        <button onClick={() => copy(code, ckey)} style={{ padding: "2px 10px", borderRadius: "5px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: copied === ckey ? C.accentGreen : C.textSecondary, fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>{copied === ckey ? "✓ Copied" : "Copy"}</button>
-      </div>
-      <div style={{ padding: "10px 12px", borderRadius: "6px", backgroundColor: "#1A1917", overflowX: "auto" }}>
-        <code style={{ fontSize: "13px", fontFamily: "Menlo, 'SF Mono', monospace", color: "#e8e5e0", lineHeight: "1.5", whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{code}</code>
-      </div>
-    </div>
-  );
-
-  const canCreate = draftCodes.trim().length > 0 || batch.filter(p => p.status === "draft").length > 0;
+  const typeColor = C.accentAmaranth;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, overflow: "hidden" }}>
-      <AgentHeader onBack={onBack} badge="PX" color={C.accentPink} name="Pixel creator" canvasOpen={canvasOpen} onToggleCanvas={() => setCanvasOpen(!canvasOpen)} />
+      <AgentHeader onBack={onBack} badge="PX" color={typeColor} name="Pixel creator" canvasOpen={canvasOpen} onToggleCanvas={() => setCanvasOpen(!canvasOpen)} />
 
       <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
         {/* LEFT — chat */}
-        <div style={{ width: canvasOpen ? "380px" : "100%", flexShrink: 0, borderRight: canvasOpen ? `1px solid ${C.borderLight}` : "none", display: "flex", flexDirection: "column", backgroundColor: canvasOpen ? C.bgSecondary : C.bg }}>
+        <div style={{ width: canvasOpen ? "380px" : "100%", flexShrink: 0, borderRight: canvasOpen ? `1px solid ${C.borderLight}` : "none", display: "flex", flexDirection: "column", backgroundColor: C.bgSecondary }}>
           <div style={{ flex: 1, overflowY: "auto", padding: "20px", boxSizing: "border-box" }}>
             {log.map((m, i) => (
               <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start", marginBottom: "12px" }}>
-                {m.role === "user" ? (
-                  <div style={{ maxWidth: "85%", fontSize: "14px", color: C.text, backgroundColor: C.bgHover, padding: "10px 14px", borderRadius: "14px 14px 2px 14px", lineHeight: "1.5" }}>{m.text}</div>
-                ) : (
-                  <div style={{ maxWidth: "88%", fontSize: "14px", color: C.text, backgroundColor: C.bg, border: `1px solid ${C.borderLight}`, padding: "10px 14px", borderRadius: "2px 14px 14px 14px", lineHeight: "1.5" }}>{m.text}</div>
-                )}
+                {m.role === "user"
+                  ? <div style={{ maxWidth: "85%", fontSize: "14px", color: C.text, backgroundColor: C.bgHover, padding: "10px 14px", borderRadius: "14px 14px 2px 14px", lineHeight: "1.5" }}>{m.text}</div>
+                  : <div style={{ maxWidth: "88%", fontSize: "14px", color: C.text, backgroundColor: C.bg, border: `1px solid ${C.borderLight}`, padding: "10px 14px", borderRadius: "2px 14px 14px 14px", lineHeight: "1.6" }}>{m.text}</div>
+                }
               </div>
             ))}
+            {generating && (
+              <div style={{ fontSize: "13px", color: C.textTertiary, fontStyle: "italic", paddingLeft: "4px" }}>Generating codes…</div>
+            )}
           </div>
-
-          {/* composer */}
           <div style={{ padding: "14px", borderTop: `1px solid ${C.borderLight}` }}>
             <div style={{ display: "flex", gap: "8px", alignItems: "flex-end", padding: "6px 6px 6px 12px", borderRadius: "12px", border: `1px solid ${C.border}`, backgroundColor: C.bg }}>
-              <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); runInput(); } }} placeholder="Message pixel creator…" rows={1} style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "14px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "4px 0" }} />
-              <button onClick={runInput} style={{ width: "30px", height: "30px", borderRadius: "8px", border: "none", cursor: "pointer", backgroundColor: input.trim() ? C.text : C.bgHover, color: input.trim() ? "#fff" : C.textTertiary, fontSize: "15px", flexShrink: 0 }}>↑</button>
+              <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); runInput(); } }} placeholder="e.g. homepage, checkout, spring campaign…" rows={1} style={{ flex: 1, border: "none", outline: "none", backgroundColor: "transparent", fontSize: "14px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", color: C.text, resize: "none", lineHeight: "1.5", padding: "4px 0" }} />
+              <button onClick={runInput} style={{ width: "30px", height: "30px", borderRadius: "8px", border: "none", cursor: "pointer", backgroundColor: input.trim() ? C.actionBg : C.bgHover, color: input.trim() ? "#fff" : C.textTertiary, fontSize: "15px", flexShrink: 0 }}>↑</button>
             </div>
           </div>
         </div>
 
         {/* RIGHT — canvas */}
         {canvasOpen && (
-          <div style={{ flex: 1, overflowY: "auto", padding: "28px 32px", minWidth: 0, backgroundColor: C.bg }}>
-            <h2 style={{ fontSize: "18px", fontWeight: 500, color: C.text, margin: "0 0 4px" }}>Pixel batch</h2>
-            <p style={{ fontSize: "14px", color: C.textTertiary, margin: "0 0 20px" }}>Structured creation lives here — the chat narrates and can trigger it.</p>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, backgroundColor: C.bg }}>
+            {/* scrollable content */}
+            <div style={{ flex: 1, overflowY: "auto", padding: "28px 32px" }}>
+            <h2 style={{ fontSize: "18px", fontWeight: 500, color: C.text, margin: "0 0 4px", fontFamily: "'Urbanist', Arial, sans-serif" }}>Pixel batch</h2>
+            <p style={{ fontSize: "14px", color: C.textTertiary, margin: "0 0 24px" }}>DS-1 generates codes and descriptions — you review, then create.</p>
 
-            <div style={{ border: `1px solid ${C.border}`, borderRadius: "12px", padding: "20px", backgroundColor: C.bg }}>
-              {/* Type tabs */}
-              <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+            {/* Step 1 — pixel type */}
+            <div style={{ marginBottom: "24px" }}>
+              <div style={{ fontSize: "13px", fontWeight: 500, color: C.textTertiary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "10px" }}>Pixel type</div>
+              <div style={{ display: "flex", gap: "8px" }}>
                 {PIXEL_TYPES.map(pt => (
-                  <button
-                    key={pt.value}
-                    onClick={() => setDraftType(pt.value)}
-                    style={{
-                      padding: "7px 16px", borderRadius: "8px", fontSize: "14px", fontWeight: 500,
-                      border: `1px solid ${draftType === pt.value ? C.accentPink : C.border}`,
-                      backgroundColor: draftType === pt.value ? C.accentPink + "12" : "transparent",
-                      color: draftType === pt.value ? C.accentPink : C.textSecondary,
-                      cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
-                    }}
-                  >{pt.value}</button>
+                  <button key={pt} onClick={() => setPixelType(pt)} style={{ padding: "7px 16px", borderRadius: "8px", fontSize: "14px", fontWeight: 500, border: `1px solid ${pixelType === pt ? typeColor : C.border}`, backgroundColor: pixelType === pt ? typeColor + "12" : "transparent", color: pixelType === pt ? typeColor : C.textSecondary, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif", transition: "all 0.12s ease" }}>{pt}</button>
                 ))}
-              </div>
-
-              {/* Code textarea */}
-              <textarea
-                value={draftCodes}
-                onChange={(e) => setDraftCodes(e.target.value)}
-                rows={4}
-                placeholder={"Audience codes — one per line for bulk\nfjallraven-checkout-conv"}
-                style={{
-                  width: "100%", padding: "12px 14px", borderRadius: "8px",
-                  border: `1px solid ${C.border}`, backgroundColor: C.bg,
-                  color: C.text, fontSize: "13px", fontFamily: "Menlo, 'SF Mono', monospace",
-                  outline: "none", resize: "vertical", lineHeight: "1.6",
-                  boxSizing: "border-box", marginBottom: "16px",
-                }}
-              />
-
-              {/* Terms + buttons */}
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
-                <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", flex: 1 }}>
-                  <div
-                    onClick={() => setAgreed(!agreed)}
-                    style={{
-                      width: "16px", height: "16px", borderRadius: "3px", flexShrink: 0,
-                      border: `1.5px solid ${agreed ? C.accentPink : C.border}`,
-                      backgroundColor: agreed ? C.accentPink : "transparent",
-                      display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-                    }}
-                  >
-                    {agreed && <span style={{ color: "#fff", fontSize: "10px", lineHeight: 1 }}>✓</span>}
-                  </div>
-                  <span style={{ fontSize: "14px", color: C.textSecondary }}>I agree to Dstillery's pixel placement terms</span>
-                </label>
-                <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
-                  <button
-                    onClick={addToBatch}
-                    disabled={!draftCodes.trim()}
-                    style={{ padding: "8px 16px", borderRadius: "8px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: draftCodes.trim() ? C.text : C.textTertiary, fontSize: "14px", fontWeight: 500, cursor: draftCodes.trim() ? "pointer" : "default", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}
-                  >Add to batch</button>
-                  <button
-                    onClick={createAll}
-                    disabled={!agreed || !canCreate}
-                    style={{ padding: "8px 16px", borderRadius: "8px", border: "none", backgroundColor: (agreed && canCreate) ? C.accentPink : C.accentPink + "55", color: "#fff", fontSize: "14px", fontWeight: 500, cursor: (agreed && canCreate) ? "pointer" : "default", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}
-                  >Create all</button>
-                </div>
               </div>
             </div>
 
-            {/* Created pixels */}
-            {batch.filter(p => p.status === "created").length > 0 && (
-              <div style={{ marginTop: "20px", display: "flex", flexDirection: "column", gap: "12px" }}>
-                {batch.filter(p => p.status === "created").map((p) => (
-                  <div key={p.key} style={{ border: `1px solid ${C.accentGreen}55`, borderRadius: "12px", backgroundColor: C.bg, overflow: "hidden" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "12px 14px", borderBottom: `1px solid ${C.borderLight}`, backgroundColor: C.bgSecondary }}>
-                      <span style={{ fontSize: "10px", fontWeight: 500, color: C.accentPink, backgroundColor: C.accentPink + "16", padding: "2px 8px", borderRadius: "4px", fontFamily: "Menlo, 'SF Mono', monospace" }}>{p.type.toUpperCase().split(" ")[0]}</span>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: "14px", fontWeight: 500, color: C.text }}>{p.code}</div>
-                        {p.id && <div style={{ fontSize: "13px", color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace" }}>ID {p.id}</div>}
+            {/* Step 2 — chip list */}
+            {(chips.length > 0 || true) && (
+              <div style={{ marginBottom: "24px" }}>
+                <div style={{ fontSize: "13px", fontWeight: 500, color: C.textTertiary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "10px" }}>
+                  Pixels to create {chips.length > 0 && <span style={{ color: typeColor, fontFamily: "Menlo, 'SF Mono', monospace", fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>· {chips.length}</span>}
+                </div>
+
+                {/* Tag input */}
+                <div style={{ display: "flex", gap: "8px", marginBottom: chips.length > 0 ? "14px" : "0" }}>
+                  <input
+                    value={tagInput}
+                    onChange={e => setTagInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addChip(tagInput); } }}
+                    placeholder="Type a page or placement, press Enter…"
+                    style={{ flex: 1, padding: "9px 12px", borderRadius: "8px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "14px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", outline: "none" }}
+                  />
+                  <button onClick={() => addChip(tagInput)} disabled={!tagInput.trim()} style={{ padding: "9px 14px", borderRadius: "8px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: tagInput.trim() ? C.text : C.textTertiary, fontSize: "14px", cursor: tagInput.trim() ? "pointer" : "default", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>Add</button>
+                </div>
+
+                {/* Chips with inline edit */}
+                {chips.length > 0 && (
+                  <div style={{ border: `1px solid ${C.border}`, borderRadius: "10px", overflow: "hidden" }}>
+                    {chips.map((chip, i) => (
+                      <div key={chip.key} style={{ padding: "12px 14px", borderBottom: i < chips.length - 1 ? `1px solid ${C.borderLight}` : "none", backgroundColor: C.bg }}>
+                        <div style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
+                          {/* Type badge */}
+                          <span style={{ fontSize: "10px", fontWeight: 500, color: typeColor, backgroundColor: typeColor + "14", padding: "3px 8px", borderRadius: "4px", fontFamily: "Menlo, 'SF Mono', monospace", flexShrink: 0, marginTop: "3px" }}>{pixelType.split(" ")[0].toUpperCase()}</span>
+
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            {/* Code — inline editable */}
+                            <input
+                              value={chip.code}
+                              onChange={e => updateChip(chip.key, "code", slugify(e.target.value))}
+                              style={{ width: "100%", fontSize: "14px", fontFamily: "Menlo, 'SF Mono', monospace", color: C.text, border: "none", outline: "none", backgroundColor: "transparent", padding: 0, marginBottom: "3px" }}
+                            />
+                            {/* Description — inline editable */}
+                            <input
+                              value={chip.desc}
+                              onChange={e => updateChip(chip.key, "desc", e.target.value)}
+                              style={{ width: "100%", fontSize: "13px", color: C.textSecondary, border: "none", outline: "none", backgroundColor: "transparent", padding: 0, fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}
+                            />
+                          </div>
+
+                          <button onClick={() => removeChip(chip.key)} style={{ background: "none", border: "none", color: C.textTertiary, cursor: "pointer", fontSize: "16px", lineHeight: 1, padding: "2px", flexShrink: 0 }}>×</button>
+                        </div>
                       </div>
-                      <span style={{ fontSize: "13px", fontWeight: 500, color: C.accentGreen }}>✓ Created</span>
-                    </div>
-                    <div style={{ padding: "12px 14px" }}>
-                      <CodeBlock label="HTML Image Tag" code={tagFor(p.code, "img")} ckey={p.key + "-img"} />
-                      <CodeBlock label="JavaScript Tag" code={tagFor(p.code, "js")} ckey={p.key + "-js"} />
-                    </div>
+                    ))}
                   </div>
-                ))}
+                )}
+
+                {chips.length === 0 && (
+                  <div style={{ padding: "24px", border: `1px dashed ${C.border}`, borderRadius: "10px", textAlign: "center", color: C.textTertiary, fontSize: "14px" }}>
+                    Describe what to track in the chat, or add items above
+                  </div>
+                )}
               </div>
             )}
 
-            {/* Draft batch */}
-            {batch.filter(p => p.status === "draft").length > 0 && (
-              <div style={{ marginTop: "16px", border: `1px solid ${C.border}`, borderRadius: "10px", overflow: "hidden" }}>
-                {batch.filter(p => p.status === "draft").map((p, i, arr) => (
-                  <div key={p.key} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "11px 14px", borderBottom: i < arr.length - 1 ? `1px solid ${C.borderLight}` : "none", backgroundColor: C.bg }}>
-                    <span style={{ fontSize: "10px", fontWeight: 500, color: C.accentPink, backgroundColor: C.accentPink + "16", padding: "2px 8px", borderRadius: "4px", fontFamily: "Menlo, 'SF Mono', monospace" }}>{p.type.toUpperCase().split(" ")[0]}</span>
-                    <span style={{ fontSize: "14px", color: C.text, flex: 1 }}>{p.code}</span>
-                    <span onClick={() => setBatch(prev => prev.filter(x => x.key !== p.key))} style={{ fontSize: "13px", color: C.textTertiary, cursor: "pointer" }}>Draft · remove ×</span>
-                  </div>
-                ))}
+            {/* Create button */}
+            {chips.length > 0 && (
+              <div style={{ marginBottom: "24px" }}>
+                <button onClick={handleCreate} disabled={!agreed} style={{ width: "100%", padding: "10px 20px", borderRadius: "8px", border: "none", backgroundColor: agreed ? C.actionBg : C.bgHover, color: agreed ? "#fff" : C.textTertiary, fontSize: "14px", fontWeight: 500, cursor: agreed ? "pointer" : "default", fontFamily: "'Source Sans 3', Helvetica, sans-serif", transition: "all 0.12s ease" }}>
+                  {agreed ? `Create ${chips.length} pixel${chips.length !== 1 ? "s" : ""} →` : `Agree to terms in the chat to create ${chips.length} pixel${chips.length !== 1 ? "s" : ""}`}
+                </button>
               </div>
             )}
+
+            {/* Created pixels */}
+            {created.length > 0 && (
+              <div style={{ marginTop: "28px" }}>
+                <div style={{ fontSize: "13px", fontWeight: 500, color: C.textTertiary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "12px" }}>Created · {created.length}</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {created.map(p => (
+                    <div key={p.key} style={{ border: `1px solid ${C.border}`, borderRadius: "10px", overflow: "hidden" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "11px 14px", backgroundColor: C.bgSecondary, borderBottom: `1px solid ${C.borderLight}` }}>
+                        <span style={{ fontSize: "10px", fontWeight: 500, color: typeColor, backgroundColor: typeColor + "14", padding: "2px 8px", borderRadius: "4px", fontFamily: "Menlo, 'SF Mono', monospace" }}>{p.type ? p.type.split(" ")[0].toUpperCase() : pixelType.split(" ")[0].toUpperCase()}</span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: "14px", fontFamily: "Menlo, 'SF Mono', monospace", color: C.text }}>{p.code}</div>
+                          <div style={{ fontSize: "13px", color: C.textTertiary }}>{p.desc}</div>
+                        </div>
+                        <span style={{ fontSize: "13px", color: C.accentOrangeDark, flexShrink: 0 }}>✓ ID {p.id}</span>
+                      </div>
+                      <div style={{ padding: "10px 14px", backgroundColor: "#1A1917" }}>
+                        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "6px" }}>
+                          <button onClick={() => copy(tagFor(p.code, "img") + "\n" + tagFor(p.code, "js"), p.key)} style={{ padding: "2px 10px", borderRadius: "5px", border: "1px solid rgba(255,255,255,0.15)", backgroundColor: "transparent", color: copied === p.key ? C.accentOrange : "rgba(255,255,255,0.5)", fontSize: "12px", cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>{copied === p.key ? "✓ Copied" : "Copy tags"}</button>
+                        </div>
+                        <code style={{ fontSize: "12px", fontFamily: "Menlo, 'SF Mono', monospace", color: "#e8e5e0", lineHeight: "1.6", display: "block", whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{tagFor(p.code, "img")}{"\n"}{tagFor(p.code, "js")}</code>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            </div>{/* end scrollable */}
+
+            {/* Pinned footer — terms + create */}
+            <div style={{ flexShrink: 0, padding: "14px 32px", borderTop: `1px solid ${C.borderLight}`, backgroundColor: C.bg, display: "flex", alignItems: "center", gap: "12px" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: "8px", flex: 1, cursor: "pointer" }}>
+                <div onClick={() => setAgreed(!agreed)} style={{ width: "15px", height: "15px", borderRadius: "3px", flexShrink: 0, border: `1.5px solid ${agreed ? typeColor : C.border}`, backgroundColor: agreed ? typeColor : "transparent", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.12s ease" }}>
+                  {agreed && <span style={{ color: "#fff", fontSize: "9px", lineHeight: 1 }}>✓</span>}
+                </div>
+                <span style={{ fontSize: "13px", color: C.textSecondary }}>I agree to Dstillery's pixel placement terms</span>
+              </label>
+              <button onClick={handleCreate} disabled={!agreed || chips.length === 0} style={{ padding: "9px 20px", borderRadius: "8px", border: "none", backgroundColor: (agreed && chips.length > 0) ? C.actionBg : C.bgHover, color: (agreed && chips.length > 0) ? "#fff" : C.textTertiary, fontSize: "14px", fontWeight: 500, cursor: (agreed && chips.length > 0) ? "pointer" : "default", fontFamily: "'Source Sans 3', Helvetica, sans-serif", flexShrink: 0, whiteSpace: "nowrap", transition: "all 0.12s ease" }}>
+                {chips.length > 0 ? `Create ${chips.length} pixel${chips.length !== 1 ? "s" : ""} →` : "Create →"}
+              </button>
+            </div>
           </div>
         )}
       </div>
