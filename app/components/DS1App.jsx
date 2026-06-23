@@ -2386,7 +2386,6 @@ function AudienceBriefBuilder({ onBack, marketer }) {
     <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, overflow: "hidden" }}>
       <style>{`.brief-card:hover .grip { color: ${C.textSecondary}; } .card-body { animation: expandIn 0.18s ease-out; } @keyframes expandIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }`}</style>
       <AgentHeader onBack={onBack} badge="AB" color={C.accentOrange} name="Audience brief" canvasOpen={canvasOpen} onToggleCanvas={() => setCanvasOpen(!canvasOpen)} onReset={reset} />
-      <MarketerBar marketer={marketer || "Matchaful"} />
 
       <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
         {/* LEFT — chat */}
