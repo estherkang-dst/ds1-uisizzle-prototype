@@ -2224,7 +2224,7 @@ function PixelCreator({ onBack, marketer }) {
   );
 }
 
-const BriefChevron = ({ open }) => (
+const Chevron = ({ open }) => (
   <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ transition: "transform 0.18s ease", transform: open ? "rotate(180deg)" : "rotate(0)" }}>
     <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
@@ -2259,7 +2259,7 @@ function AudienceBriefBuilder({ onBack, marketer }) {
     {
       id: "searchlookalike", product: "Custom Search Lookalikes",
       targets: "Reaches people actively searching for matcha cafes and tennis in downtown NYC.",
-      desc: "Targets people based on the brand and competitor keywords they search, drawn from a 2M+ opted-in panel across major search engines and retail search platforms.",
+      desc: "Targets people based on the brand and competitor keywords they search, drawn from a 2M+ opted-in panel.",
       groups: [
         { label: "Downtown NYC Matcha & Tennis Aficionados", style: "bullet", items: ["Matcha cafes Lower Manhattan", "Tennis clubs Downtown NYC", "Young professionals NYC wellness", "Best green tea shops Manhattan", "NYC tennis leagues under 35", "Trendy healthy spots NYC 2026", "Matcha health benefits athletes", "US Open tickets Manhattan", "Indoor tennis courts Downtown", "Organic matcha powder reviews"] },
         { label: "Manhattan Youth Wellness & Active Lifestyle", style: "bullet", items: ["Healthy living Downtown NYC", "Tennis lessons for young adults", "Matcha latte recipes 2026", "NYC fitness trends under 35", "Active social groups Manhattan", "Tennis watch parties NYC", "Japanese matcha tea brands", "Wellness activities Lower Manhattan", "Trendy sports gear NYC", "Young professionals social clubs Manhattan"] },
@@ -2268,19 +2268,19 @@ function AudienceBriefBuilder({ onBack, marketer }) {
     {
       id: "prebuilt", product: "Pre-built Audiences",
       targets: "Ready-to-activate audiences for tennis players and tea drinkers, skewing Gen Z.",
-      desc: "Off-the-shelf audiences from a catalog of 10,000+, built on event-level behavioral, demographic, search, and partner data — no setup required.",
+      desc: "Dstillery's entire catalog of off-the-shelf audiences.",
       groups: [{ label: "Recommended for this campaign", style: "bullet", items: ["Tennis Players", "Olympic Tennis Fans", "Tea Drinkers", "Gen Z Audience", "Active Lifestyle Enthusiasts"] }],
     },
     {
       id: "custombuilt", product: "Custom Built Audiences",
       targets: "A tailored Gen Z matcha-and-tennis audience built from five behavioral segments.",
-      desc: "Combines existing pre-built audiences with and/or/not logic into one custom audience — no first-party data required.",
+      desc: "Combines existing pre-built audiences with and/or/not logic into one custom audience.",
       groups: [{ label: "Custom Built Gen Z Matcha & Tennis Enthusiasts", style: "bullet", items: ["Tennis Players", "Olympic Tennis Fans", "Tea Drinkers", "Gen Z Audience", "Active Lifestyle Enthusiasts"] }],
     },
     {
       id: "customurl", product: "Custom Built URL Audiences",
       targets: "Models new users from visitors to NYC food, design, and lifestyle sites.",
-      desc: "Seeds a model with the people who visit chosen web pages, then finds a new set with similar online behavior. Available ID-based or ID-free®.",
+      desc: "Seeds a model with the people who visit chosen web pages, then finds a new set with similar online behavior.",
       groups: [{ label: "Custom Built Downtown NYC Matcha Tennis URLs", style: "url", items: ["www.6sqft.com", "www.bonappetit.com", "www.food52.com"] }],
     },
     {
@@ -2295,18 +2295,19 @@ function AudienceBriefBuilder({ onBack, marketer }) {
       desc: "Learns your customers' DNA across thousands of behavioral attributes and refreshes every user in the audience every 24 hours.",
       groups: [{ label: "Gather your data via any of these:", style: "numbered", items: ["Dstillery pixel(s) placed on any active page", "One-time pull of a Trade Desk Conversion Details Report", "CRM list(s) sent over via LiveRamp"] }],
     },
+    {
+      id: "retail", product: "Custom Built Retail Purchase Audiences",
+      targets: "Reaches shoppers actively browsing matcha and tennis retail product pages.",
+      desc: "Targets people based on the retail product pages they browse and the categories they shop.",
+      groups: [{ label: "Recommended retail audiences", style: "bullet", items: ["Matcha & Specialty Tea Shoppers", "Tennis & Racquet Sports Buyers", "Premium Athletic Apparel Shoppers"] }],
+    },
   ];
 
   const DEFAULT_IDS = ["searchlookalike", "prebuilt", "custombuilt", "customurl", "predictivettd", "customai"];
 
-  const ADDABLE = [
-    { id: "geo", product: "Custom Geo Audiences", targets: "Reaches people based on the places they physically visit.", desc: "Audiences built from location signals, geo-fencing, and point-of-interest visits.", groups: [{ label: null, style: "bullet", items: ["Specialty Coffee Shop Visitors", "Wellness Studio Visitors"] }] },
-    { id: "retarget", product: "Retargeting Pools", targets: "Re-engages people who already visited your site.", desc: "Audience pools built from pixel and site-activity data for retargeting.", groups: [{ label: null, style: "bullet", items: ["Site Visitors — 30 day", "Cart Abandoners"] }] },
-    { id: "seasonal", product: "Seasonal Intent Audiences", targets: "Targets time-sensitive, seasonal purchase intent.", desc: "Time-sensitive audiences modeled around seasonal purchase behavior.", groups: [{ label: null, style: "bullet", items: ["Summer Iced Beverage Intenders", "Back-to-Routine Shoppers"] }] },
-  ];
-
   const [brandName] = useState("Matcha & Tennis Campaign");
   const [sections, setSections] = useState(DRAFT_SECTIONS.filter(x => DEFAULT_IDS.includes(x.id)));
+  const addableProducts = DRAFT_SECTIONS.filter(p => !sections.find(s2 => s2.id === p.id));
   const [showAdd, setShowAdd] = useState(false);
   const [exported, setExported] = useState(false);
   const [canvasOpen, setCanvasOpen] = useState(true);
@@ -2466,7 +2467,7 @@ function AudienceBriefBuilder({ onBack, marketer }) {
                         <div style={{ fontSize: "15px", fontWeight: 600, color: C.text, fontFamily: "'Urbanist', Arial, sans-serif" }}>{sec.product}</div>
                         <div style={{ fontSize: "13px", color: C.textSecondary, marginTop: "3px", lineHeight: "1.45" }}>{sec.targets}</div>
                       </div>
-                      <span style={{ color: C.textTertiary, display: "flex", alignItems: "center", flexShrink: 0 }}><BriefChevron open={isOpen} /></span>
+                      <span style={{ color: C.textTertiary, display: "flex", alignItems: "center", flexShrink: 0 }}><Chevron open={isOpen} /></span>
                       <button onClick={(e) => { e.stopPropagation(); removeSection(sec.id); }} title="Remove" style={{ width: "28px", height: "26px", borderRadius: "7px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textSecondary, cursor: "pointer", fontSize: "15px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>×</button>
                     </div>
                     {isOpen && (
@@ -2485,13 +2486,13 @@ function AudienceBriefBuilder({ onBack, marketer }) {
                 <button onClick={() => setShowAdd(!showAdd)} style={{ padding: "10px 16px", borderRadius: "8px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textSecondary, cursor: "pointer", fontSize: "14px", fontWeight: 500, fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>+ Add product</button>
                 {showAdd && (
                   <div style={{ marginTop: "8px", border: `1px solid ${C.border}`, borderRadius: "10px", overflow: "hidden", boxShadow: "0 4px 16px rgba(0,0,0,0.06)" }}>
-                    {ADDABLE.filter(a => !sections.find(s2 => s2.id === a.id)).map(a => (
+                    {addableProducts.map(a => (
                       <div key={a.id} onClick={() => addSection(a)} style={{ padding: "12px 16px", borderBottom: `1px solid ${C.borderLight}`, cursor: "pointer", backgroundColor: C.bg }}>
                         <div style={{ fontSize: "14px", fontWeight: 500, color: C.text }}>{a.product}</div>
-                        <div style={{ fontSize: "13px", color: C.textTertiary, marginTop: "2px" }}>{a.desc}</div>
+                        <div style={{ fontSize: "13px", color: C.textTertiary, marginTop: "2px" }}>{a.targets}</div>
                       </div>
                     ))}
-                    {ADDABLE.filter(a => !sections.find(s2 => s2.id === a.id)).length === 0 && (
+                    {addableProducts.length === 0 && (
                       <div style={{ padding: "14px 16px", fontSize: "14px", color: C.textTertiary, fontStyle: "italic", backgroundColor: C.bg }}>All recommended products are already in the brief.</div>
                     )}
                   </div>
