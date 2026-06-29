@@ -2525,318 +2525,550 @@ function AgentHeader({ onBack, badge, color, name, canvasOpen, onToggleCanvas, h
   );
 }
 
-function ProjectsView({ agency, onNavigate }) {
-  const [openProject, setOpenProject] = useState(null);
-  const [showNew, setShowNew] = useState(false);
-  const [search, setSearch] = useState("");
+const btn = {
+  primary: { padding: "8px 16px", borderRadius: "8px", border: "none", backgroundColor: C.actionBg, color: "#fff", fontSize: "14px", fontWeight: 500, fontFamily: "'Source Sans 3', Helvetica, sans-serif", cursor: "pointer" },
+  secondary: { padding: "8px 16px", borderRadius: "8px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "14px", fontWeight: 500, fontFamily: "'Source Sans 3', Helvetica, sans-serif", cursor: "pointer" },
+  ghost: { padding: "6px 12px", borderRadius: "7px", border: "none", background: "transparent", color: C.textSecondary, fontSize: "13px", fontWeight: 500, fontFamily: "'Source Sans 3', Helvetica, sans-serif", cursor: "pointer" },
+};
 
-  const projects = [
-    {
-      id: 1, name: "SafeGuard Q3 Auto Campaign", color: C.accentBlue,
-      desc: "Customer acquisition for auto insurance, July–Sept 2026",
-      convos: 8, files: 4, audiences: 5, updated: "2h ago",
-      instructions: "Focus on auto insurance intenders and recent vehicle purchasers. Always exclude current policyholders. Syndicate to The Trade Desk. Reports should be client-ready and exclude internal segment IDs.",
-    },
-    {
-      id: 2, name: "NY Sports Fans Initiative", color: C.accentGreen,
-      desc: "Multi-team sports audience program for regional advertisers",
-      convos: 12, files: 6, audiences: 9, updated: "Yesterday",
-      instructions: "Build compound audiences combining NBA, NHL, MLB, and NFL fan segments in the NY DMA. Prioritize scale over precision. Default to ID-based targeting.",
-    },
-    {
-      id: 3, name: "CPG Health & Wellness", color: C.accentOrange,
-      desc: "Q3 launch for a wellness CPG brand across retail + DTC",
-      convos: 5, files: 3, audiences: 4, updated: "3 days ago",
-      instructions: "Domain-seeded audiences from wellness and fitness publishers. Combine with purchase intent signals. LiveRamp distribution preferred.",
-    },
+const DriveGlyph = ({ size = 15 }) => (
+  <svg width={size} height={size} viewBox="0 0 87.3 78" style={{ flexShrink: 0 }}>
+    <path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
+    <path d="M43.65 25L29.9 1.2c-1.35.8-2.5 1.9-3.3 3.3L1.2 48.5C.4 49.9 0 51.45 0 53h27.5z" fill="#00ac47"/>
+    <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H59.7l5.85 11.5z" fill="#ea4335"/>
+    <path d="M43.65 25L57.4 1.2C56.05.4 54.5 0 52.9 0H34.4c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/>
+    <path d="M59.8 53H27.5L13.75 76.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/>
+    <path d="M73.4 26.5L60.75 4.5c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25 59.8 53h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
+  </svg>
+);
+
+function Avatar({ name, color, size = 26 }) {
+  const initials = name.split(" ").map(w => w[0]).slice(0, 2).join("");
+  return (
+    <div style={{ width: size, height: size, borderRadius: "50%", backgroundColor: color + "22", color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: size * 0.42 + "px", fontWeight: 600, flexShrink: 0, fontFamily: "'Urbanist', Arial, sans-serif" }}>{initials}</div>
+  );
+}
+
+function ProjectsView({ agency, onNavigate }) {
+  const baseFiles = [
+    { name: "Campaign Brief", type: "PDF", color: C.accentRed, src: "device" },
+    { name: "Audience Strategy", type: "DOCX", color: C.accentAmaranth, src: "device" },
+    { name: "Approved Exclusions", type: "XLSX", color: C.accentOrangeDark, src: "device" },
   ];
 
-  if (openProject) {
-    const p = openProject;
-    return (
-      <div style={s.content}>
-        <style>{`@keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }`}</style>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "20px", animation: "fadeUp 0.4s ease-out" }}>
-          <button onClick={() => setOpenProject(null)} style={{
-            display: "flex", alignItems: "center", gap: "6px", padding: "5px 12px", borderRadius: "6px",
-            border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.textSecondary,
-            cursor: "pointer", fontWeight: 500, fontFamily: "'Source Sans 3', Helvetica, sans-serif", fontSize: "14px",
-          }}>← Projects</button>
-        </div>
+  const YOUR = [
+    { id: "sg", marketer: "SafeGuard Auto Insurance", name: "SafeGuard Q3 Auto Campaign", color: C.accentOrange, desc: "Customer acquisition for auto insurance, Jul–Sep 2026", convos: 8, files: 4, audiences: 5, updated: "2h ago", owner: "You",
+      instructions: "Focus on auto insurance intenders and recent vehicle purchasers. Always exclude current policyholders. Syndicate to The Trade Desk. Reports should be client-ready and exclude internal segment IDs." },
+    { id: "ny", marketer: "NSM Demo", name: "NY Sports Fans Initiative", color: C.accentRed, desc: "Multi-team sports audience program for regional advertisers", convos: 12, files: 6, audiences: 9, updated: "Yesterday", owner: "You",
+      instructions: "Build compound audiences combining NBA, NHL, MLB, and NFL fan segments in the NY DMA. Prioritize scale over precision. Default to ID-based targeting." },
+  ];
+  const TEAM = [
+    { id: "cpg", marketer: "Matchaful", name: "CPG Health & Wellness", color: C.accentAmaranth, desc: "Q3 launch for a wellness CPG brand across retail + DTC", convos: 5, files: 3, audiences: 4, updated: "3 days ago", owner: "Marcus Lee", access: "Can edit",
+      instructions: "Domain-seeded audiences from wellness and fitness publishers. Combine with purchase intent. LiveRamp distribution preferred." },
+    { id: "hol", marketer: "American Eagle Outfitters", name: "Holiday Retail Push", color: C.accentOrange, desc: "Cross-marketer holiday retargeting and prospecting", convos: 9, files: 5, audiences: 7, updated: "1 week ago", owner: "Dana Cho", access: "Can edit",
+      instructions: "Layer seasonal intent on existing retail audiences. Reuse Q3 exclusion lists." },
+  ];
+  const SHARED = [
+    { id: "key", marketer: "Keynes Travel & Hospitality", name: "Keynes Travel Audiences", color: C.accentCrimson, desc: "Travel & hospitality audience library for Keynes", convos: 6, files: 4, audiences: 6, updated: "4 days ago", owner: "Priya Raman", access: "Can edit",
+      instructions: "Affluent travel intenders, ID-free where possible." },
+    { id: "ae", marketer: "American Eagle Outfitters", name: "American Eagle Back-to-School", color: C.accentRed, desc: "Gen Z apparel prospecting for the BTS season", convos: 4, files: 2, audiences: 3, updated: "Last month", owner: "Devin Park", access: "Can view",
+      instructions: "Gen Z, campus-adjacent geos, apparel intent." },
+  ];
+  const ALL = [...YOUR, ...TEAM, ...SHARED];
 
-        <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "28px", maxWidth: "720px", animation: "fadeUp 0.5s ease-out" }}>
-          <div style={{
-            width: "44px", height: "44px", borderRadius: "10px",
-            backgroundColor: p.color + "18", color: p.color,
-            display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px", flexShrink: 0,
-          }}>◳</div>
-          <div>
-            <h1 style={{ ...s.heading, fontSize: "26px" }}>{p.name}</h1>
-            <p style={{ ...s.subheading, marginTop: "4px" }}>{p.desc}</p>
-          </div>
-        </div>
-
-        <div style={{ maxWidth: "720px" }}>
-          {/* New chat in project */}
-          <button style={{
-            width: "100%", padding: "14px 18px", borderRadius: "10px", marginBottom: "24px",
-            border: "none", backgroundColor: C.actionBg, color: "#fff",
-            fontSize: "15px", fontWeight: 500, cursor: "pointer", textAlign: "left",
-            fontFamily: "'Source Sans 3', Helvetica, sans-serif", animation: "fadeUp 0.5s ease-out", animationDelay: "0.05s", animationFillMode: "both",
-          }}>+ New chat in this project</button>
-
-          {/* Project instructions */}
-          <div style={projS.section}>
-            <div style={projS.sectionTitle}>Project description</div>
-            <div style={projS.sectionDesc}>What this project is for and how DS-1 should approach it</div>
-            <div style={{
-              marginTop: "12px", padding: "14px 16px", borderRadius: "10px",
-              backgroundColor: C.bgSidebar, border: `1px solid ${C.borderLight}`,
-              fontSize: "14px", color: C.text, lineHeight: "1.6",
-            }}>{p.instructions}</div>
-          </div>
-
-          {/* Project knowledge */}
-          <div style={projS.section}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div>
-                <div style={projS.sectionTitle}>Relevant files</div>
-                <div style={projS.sectionDesc}>{p.files} files DS-1 uses as context in this project</div>
-              </div>
-              <button style={{
-                padding: "6px 14px", borderRadius: "6px", fontSize: "13px", fontWeight: 500,
-                border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text,
-                cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
-              }}>+ Add</button>
-            </div>
-            <div style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "8px" }}>
-              {[
-                { name: "Campaign Brief", type: "PDF", color: C.accentRed },
-                { name: "Audience Strategy", type: "DOCX", color: C.accentPurple },
-                { name: "Approved Exclusions", type: "XLSX", color: C.accentGreen },
-              ].map((f, i) => (
-                <div key={i} style={{
-                  display: "flex", alignItems: "center", gap: "12px",
-                  padding: "12px 16px", borderRadius: "8px",
-                  border: `1px solid ${C.border}`, backgroundColor: C.bg,
-                }}>
-                  <div style={{
-                    width: "32px", height: "32px", borderRadius: "6px",
-                    backgroundColor: f.color + "14", color: f.color,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontFamily: "Menlo, 'SF Mono', monospace", fontSize: "8px", fontWeight: 500,
-                  }}>{f.type}</div>
-                  <span style={{ fontSize: "15px", fontWeight: 500, color: C.text }}>{f.name}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Project conversations */}
-          <div style={projS.section}>
-            <div style={projS.sectionTitle}>Conversations</div>
-            <div style={projS.sectionDesc}>{p.convos} chats in this project</div>
-            <div style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "8px" }}>
-              {[
-                { title: "Auto insurance intenders search", time: "2h ago" },
-                { title: "Compound build — intenders + recent buyers", time: "Yesterday" },
-                { title: "Syndication to The Trade Desk", time: "2 days ago" },
-              ].map((c, i) => (
-                <div key={i} style={{
-                  display: "flex", alignItems: "center", gap: "12px",
-                  padding: "12px 16px", borderRadius: "8px",
-                  border: `1px solid ${C.border}`, backgroundColor: C.bg, cursor: "pointer",
-                }}>
-                  <span style={{ flex: 1, fontSize: "15px", fontWeight: 500, color: C.text }}>{c.title}</span>
-                  <span style={{ fontSize: "13px", color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace" }}>{c.time}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const [view, setView] = useState("home");
+  const [openId, setOpenId] = useState(null);
+  const [showNew, setShowNew] = useState(false);
+  const [search, setSearch] = useState("");
+  const open = ALL.find(p => p.id === openId);
 
   return (
-    <div style={s.content}>
-      <style>{`@keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }`}</style>
-      <Breadcrumb onNavigate={onNavigate} current="Projects" />
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", maxWidth: "720px", animation: "fadeUp 0.5s ease-out" }}>
-        <div>
-          <h1 style={s.heading}>Projects</h1>
-          <p style={s.subheading}>Organize campaigns and initiatives with their own context, files, and chats</p>
-        </div>
-        <button onClick={() => setShowNew(true)} style={{
-          padding: "9px 16px", borderRadius: "8px", fontSize: "14px", fontWeight: 500,
-          border: "none", backgroundColor: C.actionBg, color: "#fff",
-          cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif", flexShrink: 0,
-        }}>+ New project</button>
-      </div>
-
+    <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+      <style>{`.pcard:hover { border-color: ${C.textTertiary}; box-shadow: 0 4px 16px rgba(0,0,0,0.05); } .ic:hover{background:${C.bgHover};} .backbtn:hover{color:${C.text};} .psearch:focus { border-color: ${C.accentOrange} !important; box-shadow: 0 0 0 3px ${C.accentOrange}22; } .prow:hover { border-color: ${C.textTertiary}; background: ${C.bg}; } .ptab:hover { color: ${C.text}; } .sortitem:hover { background: ${C.bgHover}; } .shareinput:focus-within { border-color: ${C.accentOrange} !important; box-shadow: 0 0 0 3px ${C.accentOrange}22; } .shrow:hover { background: ${C.bgHover}; }`}</style>
+      {view === "home" && (
+        <ProjectsHome YOUR={YOUR} TEAM={TEAM} SHARED={SHARED} search={search} setSearch={setSearch}
+          onOpen={(id) => { setOpenId(id); setView("project"); }} onNew={() => setShowNew(true)} />
+      )}
+      {view === "project" && open && (
+        <ProjectDetail project={open} baseFiles={baseFiles} onBack={() => setView("home")} />
+      )}
       {showNew && <NewProjectModal onClose={() => setShowNew(false)} />}
-
-      {/* Search */}
-      <div style={{ position: "relative", maxWidth: "720px", marginBottom: "20px" }}>
-        <span style={{ position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)", color: C.textTertiary, fontSize: "15px" }}>⌕</span>
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search projects..."
-          style={{ width: "100%", padding: "12px 16px 12px 40px", borderRadius: "10px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "15px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", outline: "none", boxSizing: "border-box" }}
-        />
-      </div>
-
-      {(() => {
-        const q = search.toLowerCase().trim();
-        const shown = q ? projects.filter(p => p.name.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q)) : projects;
-        if (shown.length === 0) return <div style={{ maxWidth: "720px", padding: "24px 2px", fontSize: "15px", color: C.textTertiary, fontStyle: "italic" }}>No projects match "{search}".</div>;
-        return (
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", maxWidth: "720px" }}>
-        {shown.map((p, i) => (
-          <div
-            key={p.id}
-            onClick={() => setOpenProject(p)}
-            style={{
-              padding: "20px", borderRadius: "12px",
-              border: `1px solid ${C.border}`, backgroundColor: C.bg, cursor: "pointer",
-              transition: "all 0.15s ease",
-              animation: "fadeUp 0.4s ease-out", animationDelay: `${i * 0.06}s`, animationFillMode: "both",
-            }}
-          >
-            <div style={{
-              width: "40px", height: "40px", borderRadius: "10px",
-              backgroundColor: p.color + "18", color: p.color,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: "18px", marginBottom: "14px",
-            }}>◳</div>
-            <div style={{ fontSize: "15px", fontWeight: 500, color: C.text, marginBottom: "4px" }}>{p.name}</div>
-            <div style={{ fontSize: "14px", color: C.textSecondary, lineHeight: "1.5", marginBottom: "16px" }}>{p.desc}</div>
-            <div style={{ display: "flex", gap: "14px", fontSize: "13px", color: C.textTertiary, fontFamily: "Menlo, 'SF Mono', monospace" }}>
-              <span>{p.convos} chats</span>
-              <span>{p.files} files</span>
-              <span>{p.audiences} audiences</span>
-            </div>
-            <div style={{ fontSize: "13px", color: C.textTertiary, marginTop: "10px" }}>Updated {p.updated}</div>
-          </div>
-        ))}
-      </div>
-        );
-      })()}
     </div>
   );
 }
 
-const projS = {
-  section: { marginBottom: "28px", animation: "fadeUp 0.5s ease-out", animationFillMode: "both" },
-  sectionTitle: { fontSize: "15px", fontWeight: 500, color: C.text },
-  sectionDesc: { fontSize: "14px", color: C.textTertiary, marginTop: "2px" },
-};
+function ProjectsHome({ YOUR, TEAM, SHARED, search, setSearch, onOpen, onNew }) {
+  const [tab, setTab] = useState("your");
+  const [sortOpen, setSortOpen] = useState(false);
+  const [sort, setSort] = useState("Last updated");
+
+  const TABS = [
+    { id: "your", label: "Your projects", items: YOUR },
+    { id: "team", label: "Team", items: TEAM },
+    { id: "shared", label: "Shared with you", items: SHARED },
+  ];
+  const active = TABS.find(t => t.id === tab);
+  const q = search.trim().toLowerCase();
+  const items = q ? active.items.filter(p => p.name.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q)) : active.items;
+
+  return (
+    <div style={{ flex: 1, overflowY: "auto" }}>
+      <div style={{ maxWidth: "960px", margin: "0 auto", padding: "32px clamp(20px,4vw,48px)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+          <h1 style={{ fontSize: "28px", fontWeight: 500, color: C.text, margin: 0, fontFamily: "'Urbanist', Arial, sans-serif" }}>Projects</h1>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div style={{ position: "relative" }}>
+              <button onClick={() => setSortOpen(!sortOpen)} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "8px 14px", borderRadius: "9px", border: "none", backgroundColor: C.bgHover, color: C.textSecondary, fontSize: "13.5px", cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif" }}>
+                Sort by <span style={{ fontWeight: 600, color: C.text }}>{sort}</span> <span style={{ fontSize: "10px", color: C.textTertiary }}>▾</span>
+              </button>
+              {sortOpen && (
+                <div style={{ position: "absolute", top: "calc(100% + 4px)", right: 0, width: "170px", backgroundColor: C.bg, border: `1px solid ${C.border}`, borderRadius: "10px", boxShadow: "0 6px 24px rgba(0,0,0,0.1)", zIndex: 50, overflow: "hidden" }}>
+                  {["Last updated", "Date created"].map(o => (
+                    <div key={o} className="sortitem" onClick={() => { setSort(o); setSortOpen(false); }} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", padding: "10px 14px", fontSize: "14px", cursor: "pointer", color: C.text }}>
+                      {o}{o === sort && <span style={{ color: C.accentOrange, fontSize: "13px" }}>✓</span>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button onClick={onNew} style={btn.secondary}>New project</button>
+          </div>
+        </div>
+
+        <div style={{ position: "relative", marginBottom: "20px" }}>
+          <span style={{ position: "absolute", left: "15px", top: "50%", transform: "translateY(-50%)", color: C.textTertiary, display: "flex" }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.8"/><path d="M20 20l-3.8-3.8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+          </span>
+          <input className="psearch" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search projects..."
+            style={{ width: "100%", padding: "12px 16px 12px 40px", borderRadius: "11px", border: `1px solid ${C.border}`, backgroundColor: C.bg, fontSize: "14.5px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", color: C.text, outline: "none", boxSizing: "border-box", transition: "all .15s ease" }} />
+        </div>
+
+        <div style={{ display: "flex", gap: "4px", marginBottom: "18px" }}>
+          {TABS.map(t => (
+            <button key={t.id} className="ptab" onClick={() => setTab(t.id)}
+              style={{ padding: "7px 14px", borderRadius: "9px", border: "none", cursor: "pointer", fontSize: "14px", fontWeight: 500, fontFamily: "'Source Sans 3', Helvetica, sans-serif", backgroundColor: tab === t.id ? C.bgHover : "transparent", color: tab === t.id ? C.text : C.textTertiary, transition: "color .12s ease" }}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {items.length === 0 ? (
+          <div style={{ padding: "40px 4px", fontSize: "15px", color: C.textTertiary, fontStyle: "italic" }}>
+            {q ? `No projects match "${search}".` : "Nothing here yet."}
+          </div>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "14px" }}>
+            {items.map((p, i) => {
+              const isPrivate = p.owner === "You";
+              return (
+                <div key={p.id} className="prow" onClick={() => onOpen(p.id)}
+                  style={{ border: `1px solid ${C.border}`, borderRadius: "14px", padding: "18px 20px", backgroundColor: C.bg, cursor: "pointer", transition: "all .15s ease", animation: "fadeUp .35s ease-out", animationDelay: `${i * 0.04}s`, animationFillMode: "both" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+                    <div style={{ width: "34px", height: "34px", borderRadius: "9px", backgroundColor: p.color + "18", color: p.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "17px", flexShrink: 0 }}>◳</div>
+                    <span style={{ fontSize: "16px", fontWeight: 600, color: C.text, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</span>
+                    {!isPrivate && <span style={{ fontSize: "11px", fontWeight: 600, color: C.textSecondary, backgroundColor: C.bgHover, padding: "3px 9px", borderRadius: "999px", flexShrink: 0 }}>{p.access}</span>}
+                  </div>
+                  <div style={{ fontSize: "14px", color: C.textSecondary, lineHeight: "1.5", marginBottom: "12px" }}>{p.desc}</div>
+                  <div style={{ fontSize: "13px", color: C.textTertiary }}>
+                    {p.convos} chat{p.convos === 1 ? "" : "s"} <span style={{ margin: "0 7px" }}>·</span> {p.marketer} <span style={{ margin: "0 7px" }}>·</span> Updated {p.updated}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DocStack({ color = "#8A8884" }) {
+  return (
+    <svg width="46" height="40" viewBox="0 0 46 40" fill="none" style={{ opacity: 0.7 }}>
+      <rect x="2" y="8" width="20" height="26" rx="3" stroke={color} strokeWidth="1.6" transform="rotate(-6 12 21)"/>
+      <rect x="14" y="6" width="20" height="26" rx="3" stroke={color} strokeWidth="1.6" fill="none"/>
+      <path d="M30 22h8M34 18v8" stroke={color} strokeWidth="1.6" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+function ProjectDetail({ project, baseFiles, onBack }) {
+  const isOwner = project.owner === "You";
+  const [files, setFiles] = useState(baseFiles);
+  const [chats, setChats] = useState([
+    { title: "Auto insurance intenders search", time: "2h ago", msgs: 6 },
+    { title: "Compound build — intenders + recent buyers", time: "Yesterday", msgs: 11 },
+  ]);
+  const [tab, setTab] = useState("chats");
+  const [input, setInput] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [instructions, setInstructions] = useState(project.instructions || "");
+  const [editInstr, setEditInstr] = useState(false);
+  const [showShare, setShowShare] = useState(false);
+  const [showAttach, setShowAttach] = useState(false);
+  const [showFileAdd, setShowFileAdd] = useState(false);
+  const [addMenu, setAddMenu] = useState(false);
+
+  const addFile = (s) => {
+    setFiles(prev => [...prev, s === "drive"
+      ? { name: "Q3 Media Plan (Drive)", type: "GSHEET", color: C.accentOrangeDark, src: "drive" }
+      : { name: "New upload.pdf", type: "PDF", color: C.accentRed, src: "device" }]);
+    setShowFileAdd(false);
+  };
+  const start = () => {
+    const t = input.trim(); if (!t) return;
+    setChats(prev => [{ title: t.length > 48 ? t.slice(0, 48) + "…" : t, time: "just now", msgs: 1 }, ...prev]);
+    setInput("");
+  };
+
+  const railCard = { border: `1px solid ${C.border}`, borderRadius: "14px", backgroundColor: C.bg, overflow: "hidden", marginBottom: "14px" };
+  const railHead = { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px 4px" };
+  const railTitle = { fontSize: "15px", fontWeight: 600, color: C.text, fontFamily: "'Urbanist', Arial, sans-serif" };
+  const railSub = { fontSize: "13px", color: C.textTertiary, padding: "0 18px 16px", lineHeight: "1.5" };
+  const plus = { width: "26px", height: "26px", borderRadius: "7px", border: "none", background: "transparent", color: C.textSecondary, fontSize: "18px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" };
+
+  return (
+    <div style={{ flex: 1, overflowY: "auto" }}>
+      <div style={{ maxWidth: "1140px", margin: "0 auto", padding: "26px clamp(20px,4vw,48px) 48px" }}>
+        <button onClick={onBack} className="backbtn" style={{ display: "flex", alignItems: "center", gap: "8px", border: "none", background: "transparent", color: C.textSecondary, fontSize: "14px", fontWeight: 500, fontFamily: "'Source Sans 3', Helvetica, sans-serif", cursor: "pointer", padding: "4px 2px", marginBottom: "18px", transition: "color .12s ease" }}>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M14.5 5.5l-7 6.5 7 6.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          All projects
+        </button>
+
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "16px", marginBottom: "24px" }}>
+          <div style={{ minWidth: 0 }}>
+            <h1 style={{ fontSize: "30px", fontWeight: 500, color: C.text, margin: 0, fontFamily: "'Urbanist', Arial, sans-serif", lineHeight: 1.15 }}>{project.name}</h1>
+            <div style={{ fontSize: "15px", color: C.textSecondary, marginTop: "6px" }}>{project.desc}</div>
+            <div style={{ fontSize: "13px", color: C.textTertiary, marginTop: "8px", display: "flex", alignItems: "center", gap: "6px" }}>
+              {isOwner ? "Created by you" : `Created by ${project.owner}`}
+              <span>·</span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>{isOwner ? <><svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{display:"inline",verticalAlign:"-1px",marginRight:"4px"}}><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" strokeWidth="2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11" stroke="currentColor" strokeWidth="2"/></svg>Private</> : project.access}</span>
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
+            <div style={{ position: "relative" }}>
+              <button className="ic" onClick={() => setMenuOpen(!menuOpen)} style={plus} title="More">⋮</button>
+              {menuOpen && (
+                <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, width: "188px", backgroundColor: C.bg, border: `1px solid ${C.border}`, borderRadius: "11px", boxShadow: "0 8px 28px rgba(0,0,0,0.12)", zIndex: 60, overflow: "hidden", padding: "5px" }}>
+                  <div className="ic" onClick={() => setMenuOpen(false)} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 12px", borderRadius: "7px", cursor: "pointer", fontSize: "14px", fontWeight: 500, color: C.text }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 20h4l10-10-4-4L4 16v4z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"/><path d="M13.5 6.5l4 4" stroke="currentColor" strokeWidth="1.7"/></svg>
+                    Edit details
+                  </div>
+                  <div style={{ height: "1px", background: C.borderLight, margin: "5px 4px" }} />
+                  <div className="ic" onClick={() => { setMenuOpen(false); onBack(); }} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 12px", borderRadius: "7px", cursor: "pointer", fontSize: "14px", fontWeight: 500, color: C.accentRed }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 7h14M10 7V5h4v2M6 7l1 12h10l1-12" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    Delete
+                  </div>
+                </div>
+              )}
+            </div>
+            <button onClick={() => setShowShare(true)} style={btn.secondary}>Share</button>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: "28px", alignItems: "flex-start", flexWrap: "wrap" }}>
+          <div style={{ flex: "1 1 560px", minWidth: "320px" }}>
+            <div style={{ border: `1px solid ${C.border}`, borderRadius: "16px", backgroundColor: C.bg, padding: "16px 18px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+              <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); start(); } }}
+                rows={2} placeholder="How can I help you today?"
+                style={{ width: "100%", border: "none", outline: "none", background: "transparent", fontSize: "15px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", color: C.text, resize: "none", lineHeight: "1.5" }} />
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "10px" }}>
+                <div style={{ position: "relative" }}>
+                  <button className="ic" onClick={() => setAddMenu(!addMenu)} style={{ ...plus, border: `1px solid ${C.border}` }} title="Add">+</button>
+                  {addMenu && (
+                    <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: 0, width: "232px", backgroundColor: C.bg, border: `1px solid ${C.border}`, borderRadius: "11px", boxShadow: "0 8px 28px rgba(0,0,0,0.12)", zIndex: 60, overflow: "hidden", padding: "5px" }}>
+                      <div className="ic" onClick={() => setAddMenu(false)} style={{ display: "flex", alignItems: "center", gap: "11px", padding: "9px 12px", borderRadius: "7px", cursor: "pointer", fontSize: "14px", color: C.text }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 11l-8.5 8.5a5 5 0 01-7-7L13 4a3.5 3.5 0 015 5l-8.5 8.5a2 2 0 01-3-3L14 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        <span style={{ flex: 1 }}>Add files</span>
+                        <span style={{ fontSize: "12px", color: C.textTertiary }}>⌘U</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <button onClick={start} style={{ width: "30px", height: "30px", borderRadius: "9px", border: "none", cursor: "pointer", backgroundColor: input.trim() ? C.text : C.bgHover, color: input.trim() ? "#fff" : C.textTertiary, fontSize: "15px" }}>↑</button>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "22px 0 14px" }}>
+              <div style={{ display: "flex", gap: "4px" }}>
+                {["chats", "activity"].map(t => (
+                  <button key={t} onClick={() => setTab(t)} style={{ padding: "6px 12px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "14px", fontWeight: 500, fontFamily: "'Source Sans 3', Helvetica, sans-serif", backgroundColor: tab === t ? C.bgHover : "transparent", color: tab === t ? C.text : C.textTertiary }}>{t === "chats" ? "Your chats" : "Activity"}</button>
+                ))}
+              </div>
+              <span style={{ fontSize: "13px", color: C.textTertiary }}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{display:"inline",verticalAlign:"-1px",marginRight:"4px"}}><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" strokeWidth="2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11" stroke="currentColor" strokeWidth="2"/></svg>Your chats are private until shared</span>
+            </div>
+
+            {tab === "chats" ? (
+              chats.length === 0 ? (
+                <div style={{ border: `1px solid ${C.border}`, borderRadius: "14px", padding: "44px 24px", textAlign: "center", fontSize: "14.5px", color: C.textTertiary, backgroundColor: C.bg }}>
+                  Start a chat to keep conversations organized and re-use project knowledge.
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {chats.map((c, i) => (
+                    <div key={i} className="ic" style={{ display: "flex", alignItems: "center", gap: "12px", padding: "13px 16px", borderRadius: "11px", border: `1px solid ${C.border}`, backgroundColor: C.bg, cursor: "pointer" }}>
+                      <span style={{ flex: 1, fontSize: "14.5px", fontWeight: 500, color: C.text }}>{c.title}</span>
+                      <span style={{ fontSize: "12.5px", color: C.textTertiary, fontFamily: "Menlo, monospace" }}>{c.msgs} msgs</span>
+                      <span style={{ fontSize: "12.5px", color: C.textTertiary }}>{c.time}</span>
+                    </div>
+                  ))}
+                </div>
+              )
+            ) : (
+              <div style={{ border: `1px solid ${C.border}`, borderRadius: "14px", padding: "44px 24px", textAlign: "center", fontSize: "14.5px", color: C.textTertiary, backgroundColor: C.bg }}>
+                Project activity — shares, file changes, and new chats — will show here.
+              </div>
+            )}
+          </div>
+
+          <div style={{ flex: "0 0 320px", width: "320px" }}>
+            <div style={railCard}>
+              <div style={railHead}>
+                <span style={railTitle}>Memory</span>
+                <span style={{ fontSize: "12px", fontWeight: 500, color: C.textSecondary, backgroundColor: C.bgHover, padding: "3px 9px", borderRadius: "999px", display: "inline-flex", alignItems: "center", gap: "4px" }}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{display:"inline",verticalAlign:"-1px",marginRight:"4px"}}><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" strokeWidth="2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11" stroke="currentColor" strokeWidth="2"/></svg>Only you</span>
+              </div>
+              <div style={railSub}>Project memory will show here after a few chats.</div>
+            </div>
+
+            <div style={railCard}>
+              <div style={railHead}>
+                <span style={railTitle}>Instructions</span>
+                <button onClick={() => setEditInstr(!editInstr)} style={plus} className="ic">{editInstr ? "✓" : "+"}</button>
+              </div>
+              {editInstr ? (
+                <div style={{ padding: "4px 18px 16px" }}>
+                  <textarea value={instructions} onChange={e => setInstructions(e.target.value)} rows={4} autoFocus
+                    style={{ width: "100%", padding: "10px 12px", borderRadius: "9px", border: `1px solid ${C.border}`, fontSize: "13.5px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", color: C.text, lineHeight: "1.55", outline: "none", resize: "vertical", boxSizing: "border-box" }} />
+                </div>
+              ) : instructions ? (
+                <div style={{ ...railSub, color: C.textSecondary }}>{instructions}</div>
+              ) : (
+                <div style={railSub}>Add instructions to tailor DS-1's responses.</div>
+              )}
+              <div style={{ borderTop: `1px solid ${C.borderLight}` }} />
+              <div style={{ ...railHead, position: "relative" }}>
+                <span style={railTitle}>Files</span>
+                <button onClick={() => setShowFileAdd(!showFileAdd)} style={plus} className="ic">+</button>
+                {showFileAdd && (
+                  <div style={{ position: "absolute", top: "calc(100% - 2px)", right: "14px", width: "220px", backgroundColor: C.bg, border: `1px solid ${C.border}`, borderRadius: "10px", boxShadow: "0 6px 24px rgba(0,0,0,0.1)", zIndex: 50, overflow: "hidden" }}>
+                    <div onClick={() => addFile("device")} className="ic" style={{ display: "flex", alignItems: "center", gap: "10px", padding: "11px 14px", cursor: "pointer", fontSize: "14px", color: C.text, borderBottom: `1px solid ${C.borderLight}` }}>Upload from device</div>
+                    <div onClick={() => addFile("drive")} className="ic" style={{ display: "flex", alignItems: "center", gap: "10px", padding: "11px 14px", cursor: "pointer", fontSize: "14px", color: C.text }}><DriveGlyph /> Connect Google Drive</div>
+                  </div>
+                )}
+              </div>
+              <div style={{ padding: "4px 14px 16px" }}>
+                {files.length === 0 ? (
+                  <div style={{ borderRadius: "12px", backgroundColor: C.bgSidebar, padding: "28px 18px", display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", textAlign: "center" }}>
+                    <DocStack />
+                    <div style={{ fontSize: "13px", color: C.textTertiary, lineHeight: "1.5" }}>Add PDFs, documents, or other text to reference in this project.</div>
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "7px" }}>
+                    {files.map((f, i) => (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 12px", borderRadius: "9px", border: `1px solid ${C.border}`, backgroundColor: C.bg }}>
+                        <div style={{ width: "28px", height: "28px", borderRadius: "6px", backgroundColor: f.color + "14", color: f.color, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Menlo, monospace", fontSize: "7.5px", fontWeight: 600, flexShrink: 0 }}>{f.type}</div>
+                        <span style={{ flex: 1, fontSize: "13.5px", fontWeight: 500, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f.name}</span>
+                        {f.src === "drive" && <DriveGlyph size={13} />}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div style={railCard}>
+              <div style={railHead}>
+                <span style={railTitle}>Attached chats</span>
+                <button onClick={() => setShowAttach(true)} style={plus} className="ic">+</button>
+              </div>
+              <div style={railSub}>Bring an existing chat into this project to reuse its context.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {showShare && <ShareModal project={project} onClose={() => setShowShare(false)} />}
+      {showAttach && <AttachModal existing={chats} onAttach={(c) => setChats(prev => [...prev, { title: c.title, time: c.time, msgs: 0 }])} onClose={() => setShowAttach(false)} />}
+    </div>
+  );
+}
+
+function ShareModal({ project, onClose }) {
+  const colors = [C.accentOrange, C.accentRed, C.accentAmaranth, C.accentCrimson];
+  const DIRECTORY = [
+    { name: "Christopher Jenness", sub: "cjenness@dstillery.com" },
+    { name: "Marcus Lee", sub: "mlee@dstillery.com" },
+    { name: "Dana Cho", sub: "dcho@dstillery.com" },
+    { name: "Priya Raman", sub: "praman@dstillery.com" },
+    { name: "Devin Park", sub: "dpark@dstillery.com" },
+    { name: "Sofia Alvarez", sub: "salvarez@dstillery.com" },
+  ];
+  const [people, setPeople] = useState([
+    { name: "Esther Kang", sub: "you@dstillery.com", role: "Owner", locked: true },
+    { name: "Christopher Jenness", sub: "cjenness@dstillery.com", role: "Can edit" },
+    { name: "Marcus Lee", sub: "mlee@dstillery.com", role: "Can view" },
+  ]);
+  const [query, setQuery] = useState("");
+  const [pendingRole, setPendingRole] = useState("Can view");
+  const [genAccess, setGenAccess] = useState("Can view");
+  const [copied, setCopied] = useState(false);
+
+  const q = query.trim().toLowerCase();
+  const matches = q ? DIRECTORY.filter(d => (d.name.toLowerCase().includes(q) || d.sub.toLowerCase().includes(q)) && !people.find(p => p.sub === d.sub)) : [];
+  const addPerson = (d) => { setPeople(prev => [...prev, { name: d.name, sub: d.sub, role: pendingRole }]); setQuery(""); };
+
+  const RoleSelect = ({ value, onChange, disabled }) => (
+    <select value={value} onChange={e => onChange(e.target.value)} disabled={disabled}
+      style={{ border: "none", background: "transparent", fontSize: "13.5px", fontWeight: 500, color: disabled ? C.textTertiary : C.textSecondary, cursor: disabled ? "default" : "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif", outline: "none", textAlign: "right", appearance: disabled ? "none" : "auto" }}>
+      {disabled ? <option>Owner</option> : <><option>Can view</option><option>Can edit</option><option>Remove</option></>}
+    </select>
+  );
+
+  return (
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "24px", animation: "fadeIn .2s ease-out" }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: "480px", backgroundColor: C.bg, borderRadius: "16px", boxShadow: "0 12px 48px rgba(0,0,0,0.18)", animation: "popIn .25s cubic-bezier(.4,0,.2,1)", overflow: "hidden" }}>
+        <div style={{ padding: "20px 24px", borderBottom: `1px solid ${C.borderLight}` }}>
+          <div style={{ fontSize: "17px", fontWeight: 600, color: C.text, fontFamily: "'Urbanist', Arial, sans-serif" }}>Share "{project.name}"</div>
+          <div style={{ fontSize: "13.5px", color: C.textTertiary, marginTop: "2px" }}>People you add can use this project's chats, files, and audiences.</div>
+        </div>
+        <div style={{ padding: "18px 24px" }}>
+          <div style={{ marginBottom: "20px" }}>
+            <div style={{ fontSize: "13px", color: C.textTertiary, marginBottom: "8px" }}>Add people by email</div>
+            <div className="shareinput" style={{ display: "flex", alignItems: "center", gap: "8px", padding: "3px 12px 3px 14px", borderRadius: "10px", border: `1px solid ${C.border}`, backgroundColor: C.bg, transition: "all .15s ease" }}>
+              <input value={query} onChange={e => setQuery(e.target.value)} placeholder="name@dstillery.com" autoFocus
+                style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontSize: "14px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", color: C.text, padding: "8px 0" }} />
+              <div style={{ display: "flex", alignItems: "center", paddingLeft: "8px", borderLeft: `1px solid ${C.borderLight}` }}>
+                <select value={pendingRole} onChange={e => setPendingRole(e.target.value)}
+                  style={{ border: "none", background: "transparent", fontSize: "13.5px", fontWeight: 500, color: C.textSecondary, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif", outline: "none" }}>
+                  <option>Can view</option><option>Can edit</option>
+                </select>
+              </div>
+            </div>
+            {q && (
+              <div style={{ marginTop: "8px", border: `1px solid ${C.border}`, borderRadius: "10px", overflow: "hidden" }}>
+                {matches.length > 0 ? matches.map((d, i) => (
+                  <div key={d.sub} className="shrow" onClick={() => addPerson(d)}
+                    style={{ display: "flex", alignItems: "center", gap: "11px", padding: "10px 14px", cursor: "pointer", borderBottom: i < matches.length - 1 ? `1px solid ${C.borderLight}` : "none" }}>
+                    <Avatar name={d.name} color={colors[i % colors.length]} size={30} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: "14px", fontWeight: 500, color: C.text }}>{d.name}</div>
+                      <div style={{ fontSize: "12.5px", color: C.textTertiary }}>{d.sub}</div>
+                    </div>
+                    <span style={{ fontSize: "13px", fontWeight: 500, color: C.accentOrangeDark }}>Add · {pendingRole}</span>
+                  </div>
+                )) : (
+                  <div style={{ padding: "18px 16px", textAlign: "center" }}>
+                    <div style={{ fontSize: "14px", fontWeight: 600, color: C.text }}>Member not found</div>
+                    <div style={{ fontSize: "13px", color: C.textTertiary, marginTop: "3px" }}>You can only add members of your organization.</div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "2px", marginBottom: "20px" }}>
+            {people.map((p, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: "11px", padding: "8px 4px" }}>
+                <Avatar name={p.name} color={colors[i % colors.length]} size={32} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: "14px", fontWeight: 500, color: C.text }}>{p.name}</div>
+                  <div style={{ fontSize: "12.5px", color: C.textTertiary }}>{p.sub}</div>
+                </div>
+                <RoleSelect value={p.role} disabled={p.locked} onChange={(v) => setPeople(prev => v === "Remove" ? prev.filter((_, j) => j !== i) : prev.map((x, j) => j === i ? { ...x, role: v } : x))} />
+              </div>
+            ))}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "11px", padding: "12px 14px", borderRadius: "10px", backgroundColor: C.bgSidebar, border: `1px solid ${C.borderLight}` }}>
+            <div style={{ width: "32px", height: "32px", borderRadius: "8px", backgroundColor: C.accentOrange + "18", color: C.accentOrange, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "15px" }}>⊞</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: "14px", fontWeight: 500, color: C.text }}>Everyone at Dstillery</div>
+              <div style={{ fontSize: "12.5px", color: C.textTertiary }}>Anyone in your workspace with the link</div>
+            </div>
+            <select value={genAccess} onChange={e => setGenAccess(e.target.value)} style={{ border: "none", background: "transparent", fontSize: "13.5px", fontWeight: 500, color: C.textSecondary, cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif", outline: "none" }}>
+              <option>No access</option><option>Can view</option><option>Can edit</option>
+            </select>
+          </div>
+        </div>
+        <div style={{ padding: "14px 24px", borderTop: `1px solid ${C.borderLight}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <button onClick={() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }} style={{ ...btn.secondary, display: "flex", alignItems: "center", gap: "6px" }}>{copied ? "✓ Link copied" : "⎘ Copy link"}</button>
+          <button onClick={onClose} style={btn.primary}>Done</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AttachModal({ existing, onAttach, onClose }) {
+  const LIBRARY = [
+    { title: "NY Knicks audience search & syndication", time: "Jun 3" },
+    { title: "Recent vehicle purchasers — reach forecast", time: "Jun 1" },
+    { title: "Exclusion list cleanup for SafeGuard", time: "May 28" },
+    { title: "Wellness publisher domain seeds", time: "May 24" },
+  ];
+  const taken = new Set(existing.map(c => c.title));
+  const [added, setAdded] = useState(new Set());
+
+  return (
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "24px", animation: "fadeIn .2s ease-out" }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: "460px", backgroundColor: C.bg, borderRadius: "16px", boxShadow: "0 12px 48px rgba(0,0,0,0.18)", animation: "popIn .25s cubic-bezier(.4,0,.2,1)", overflow: "hidden" }}>
+        <div style={{ padding: "20px 24px", borderBottom: `1px solid ${C.borderLight}` }}>
+          <div style={{ fontSize: "17px", fontWeight: 600, color: C.text, fontFamily: "'Urbanist', Arial, sans-serif" }}>Attach conversations</div>
+          <div style={{ fontSize: "13.5px", color: C.textTertiary, marginTop: "2px" }}>Bring an existing chat into this project so its context is reused.</div>
+        </div>
+        <div style={{ padding: "12px 16px", maxHeight: "340px", overflowY: "auto" }}>
+          {LIBRARY.map((c, i) => {
+            const isIn = taken.has(c.title) || added.has(c.title);
+            return (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "11px 12px", borderRadius: "10px" }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: "14px", fontWeight: 500, color: C.text }}>{c.title}</div>
+                  <div style={{ fontSize: "12.5px", color: C.textTertiary, fontFamily: "Menlo, monospace", marginTop: "2px" }}>{c.time}</div>
+                </div>
+                <button disabled={isIn} onClick={() => { onAttach({ title: c.title, time: c.time }); setAdded(prev => new Set(prev).add(c.title)); }}
+                  style={{ ...btn.secondary, padding: "6px 12px", fontSize: "13px", color: isIn ? C.textTertiary : C.text, cursor: isIn ? "default" : "pointer", opacity: isIn ? 0.6 : 1 }}>{isIn ? "✓ Added" : "Attach"}</button>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ padding: "14px 24px", borderTop: `1px solid ${C.borderLight}`, display: "flex", justifyContent: "flex-end" }}>
+          <button onClick={onClose} style={btn.primary}>Done</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function NewProjectModal({ onClose }) {
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
-  const [marketer, setMarketer] = useState("");
-
-  const canCreate = name.trim();
-
-  const Field = ({ label, hint, required, children }) => (
-    <div style={{ marginBottom: "18px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px" }}>
-        <span style={{ fontSize: "14px", fontWeight: 500, color: C.text }}>{label}</span>
-        {required && <span style={{ fontSize: "13px", color: C.accentRed }}>required</span>}
-      </div>
-      {hint && <div style={{ fontSize: "13px", color: C.textTertiary, marginBottom: "8px", lineHeight: "1.5" }}>{hint}</div>}
-      {children}
-    </div>
-  );
-
-  const inputStyle = {
-    width: "100%", padding: "10px 14px", borderRadius: "8px",
-    border: `1px solid ${C.border}`, backgroundColor: C.bg,
-    color: C.text, fontSize: "15px", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
-    outline: "none", boxSizing: "border-box",
-  };
-
+  const can = name.trim();
+  const input = { width: "100%", padding: "10px 14px", borderRadius: "8px", border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text, fontSize: "15px", fontFamily: "'Source Sans 3', Helvetica, sans-serif", outline: "none", boxSizing: "border-box" };
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.35)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        zIndex: 1000, padding: "24px",
-        animation: "fadeIn 0.2s ease-out",
-      }}
-    >
-      <style>{`@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } @keyframes popIn { from { opacity: 0; transform: scale(0.97) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }`}</style>
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          width: "100%", maxWidth: "520px", maxHeight: "85vh", overflowY: "auto",
-          backgroundColor: C.bg, borderRadius: "16px",
-          boxShadow: "0 12px 48px rgba(0,0,0,0.18)",
-          animation: "popIn 0.25s cubic-bezier(0.4,0,0.2,1)",
-        }}
-      >
-        {/* Header */}
-        <div style={{
-          padding: "20px 24px", borderBottom: `1px solid ${C.borderLight}`,
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          position: "sticky", top: 0, backgroundColor: C.bg, borderRadius: "16px 16px 0 0",
-        }}>
-          <div>
-            <div style={{ fontSize: "17px", fontWeight: 500, color: C.text }}>New Project</div>
-            <div style={{ fontSize: "14px", color: C.textTertiary, marginTop: "2px" }}>Create a siloed workspace for a campaign or initiative</div>
-          </div>
-          <button onClick={onClose} style={{
-            width: "30px", height: "30px", borderRadius: "8px", border: "none",
-            backgroundColor: C.bgHover, color: C.textSecondary, cursor: "pointer", fontSize: "16px",
-          }}>×</button>
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "24px", animation: "fadeIn .2s ease-out" }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: "500px", backgroundColor: C.bg, borderRadius: "16px", boxShadow: "0 12px 48px rgba(0,0,0,0.18)", animation: "popIn .25s cubic-bezier(.4,0,.2,1)" }}>
+        <div style={{ padding: "20px 24px", borderBottom: `1px solid ${C.borderLight}` }}>
+          <div style={{ fontSize: "17px", fontWeight: 600, color: C.text, fontFamily: "'Urbanist', Arial, sans-serif" }}>New project</div>
+          <div style={{ fontSize: "13.5px", color: C.textTertiary, marginTop: "2px" }}>A workspace for a campaign or initiative.</div>
         </div>
-
-        {/* Body */}
         <div style={{ padding: "22px 24px" }}>
-          <Field label="Project name" required>
-            <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="e.g. SafeGuard Q3 Auto Campaign" />
-          </Field>
-
-          <Field label="Description">
-            <input style={inputStyle} value={desc} onChange={e => setDesc(e.target.value)} placeholder="What is this project for?" />
-          </Field>
-
-          <Field label="Marketer" hint="Links the project to a marketer account so syndication is pre-wired.">
-            <select style={inputStyle} value={marketer} onChange={e => setMarketer(e.target.value)}>
-              <option value="">Select a marketer...</option>
-              <option>SafeGuard Auto Insurance</option>
-              <option>Microsoft Surface</option>
-              <option>Esther Test Marketer</option>
-              <option>+ Add new marketer</option>
-            </select>
-          </Field>
-
-          <Field label="Relevant files" hint="Add briefs, strategy docs, or any reference material DS-1 should use as context in this project.">
-            <button style={{ ...inputStyle, textAlign: "left", color: C.textTertiary, cursor: "pointer", borderStyle: "dashed" }}>+ Add files</button>
-          </Field>
+          <div style={{ marginBottom: "18px" }}>
+            <div style={{ fontSize: "14px", fontWeight: 500, color: C.text, marginBottom: "6px" }}>Project name</div>
+            <input style={input} value={name} onChange={e => setName(e.target.value)} placeholder="e.g. SafeGuard Q3 Auto Campaign" />
+          </div>
+          <div style={{ marginBottom: "18px" }}>
+            <div style={{ fontSize: "14px", fontWeight: 500, color: C.text, marginBottom: "6px" }}>Description</div>
+            <input style={input} value={desc} onChange={e => setDesc(e.target.value)} placeholder="What is this project for?" />
+          </div>
+          <div>
+            <div style={{ fontSize: "14px", fontWeight: 500, color: C.text, marginBottom: "6px" }}>Project knowledge</div>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <button style={{ ...input, textAlign: "left", color: C.textTertiary, cursor: "pointer", borderStyle: "dashed", flex: 1 }}>Upload files</button>
+              <button style={{ ...input, width: "auto", display: "flex", alignItems: "center", gap: "7px", cursor: "pointer", color: C.text }}><DriveGlyph /> Drive</button>
+            </div>
+          </div>
         </div>
-
-        {/* Footer */}
-        <div style={{
-          padding: "16px 24px", borderTop: `1px solid ${C.borderLight}`,
-          display: "flex", justifyContent: "flex-end", gap: "10px",
-          position: "sticky", bottom: 0, backgroundColor: C.bg, borderRadius: "0 0 16px 16px",
-        }}>
-          <button onClick={onClose} style={{
-            padding: "10px 18px", borderRadius: "8px", fontSize: "15px", fontWeight: 500,
-            border: `1px solid ${C.border}`, backgroundColor: C.bg, color: C.text,
-            cursor: "pointer", fontFamily: "'Source Sans 3', Helvetica, sans-serif",
-          }}>Cancel</button>
-          <button onClick={onClose} disabled={!canCreate} style={{
-            padding: "10px 20px", borderRadius: "8px", fontSize: "15px", fontWeight: 500,
-            border: "none", backgroundColor: C.actionBg, color: "#fff",
-            cursor: canCreate ? "pointer" : "not-allowed", opacity: canCreate ? 1 : 0.4,
-            fontFamily: "'Source Sans 3', Helvetica, sans-serif",
-          }}>Create project</button>
+        <div style={{ padding: "16px 24px", borderTop: `1px solid ${C.borderLight}`, display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+          <button onClick={onClose} style={btn.secondary}>Cancel</button>
+          <button onClick={onClose} disabled={!can} style={{ ...btn.primary, opacity: can ? 1 : 0.4, cursor: can ? "pointer" : "not-allowed" }}>Create project</button>
         </div>
       </div>
     </div>
